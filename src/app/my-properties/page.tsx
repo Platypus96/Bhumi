@@ -1,9 +1,10 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { getPropertiesByOwner } from "@/lib/data";
-import type { Property } from "@/lib/types";
+import { getPropertiesByOwner, getSubmissionsByOwner } from "@/lib/data";
+import type { Property, Submission } from "@/lib/types";
 import { PropertyCard } from "@/components/property-card";
+import { SubmissionCard } from "@/components/submission-card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useWeb3 } from "@/hooks/use-web3";
 import { useFirebase } from "@/firebase/provider";
@@ -14,21 +15,27 @@ import { Button } from "@/components/ui/button";
 
 export default function MyPropertiesPage() {
   const [properties, setProperties] = useState<Property[]>([]);
+  const [submissions, setSubmissions] = useState<Submission[]>([]);
   const [loading, setLoading] = useState(true);
   const { account } = useWeb3();
   const { db } = useFirebase();
 
   useEffect(() => {
     if (account && db) {
-      const fetchProperties = async () => {
+      const fetchAll = async () => {
         setLoading(true);
-        const myProps = await getPropertiesByOwner(db, account);
+        const [myProps, mySubmissions] = await Promise.all([
+            getPropertiesByOwner(db, account),
+            getSubmissionsByOwner(db, account)
+        ]);
         setProperties(myProps);
+        setSubmissions(mySubmissions);
         setLoading(false);
       };
-      fetchProperties();
+      fetchAll();
     } else {
       setProperties([]);
+      setSubmissions([]);
       setLoading(false);
     }
   }, [account, db]);
@@ -45,6 +52,8 @@ export default function MyPropertiesPage() {
     );
   }
 
+  const hasContent = properties.length > 0 || submissions.length > 0;
+
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="flex flex-wrap justify-between items-center mb-8 gap-4">
@@ -53,7 +62,7 @@ export default function MyPropertiesPage() {
             My Properties
             </h1>
             <p className="mt-2 text-lg text-muted-foreground">
-            A list of properties registered to your wallet address.
+            A list of your registered properties and pending submissions.
             </p>
         </div>
         <Button asChild>
@@ -78,8 +87,11 @@ export default function MyPropertiesPage() {
         </div>
       ) : (
         <>
-            {properties.length > 0 ? (
+            {hasContent ? (
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {submissions.map((sub) => (
+                        <SubmissionCard key={sub.id} submission={sub} />
+                    ))}
                     {properties.map((prop) => (
                         <PropertyCard key={prop.parcelId} property={prop} />
                     ))}

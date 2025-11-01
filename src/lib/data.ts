@@ -42,6 +42,18 @@ export async function getPendingSubmissions(db: Firestore): Promise<Submission[]
   return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Submission));
 }
 
+export async function getSubmissionsByOwner(db: Firestore, ownerAddress: string): Promise<Submission[]> {
+  if (!ownerAddress) return [];
+  const q = query(
+    collection(db, SUBMISSIONS_COLLECTION),
+    where('owner', '==', ownerAddress),
+    where('status', '==', 'pending'),
+    orderBy('createdAt', 'desc')
+  );
+  const querySnapshot = await getDocs(q);
+  return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Submission));
+}
+
 export function updateSubmissionStatus(db: Firestore, submissionId: string, status: 'approved' | 'rejected'): void {
   const submissionRef = doc(db, SUBMISSIONS_COLLECTION, submissionId);
   updateDocumentNonBlocking(submissionRef, { status });
