@@ -1,9 +1,9 @@
 import Link from 'next/link';
 import Image from 'next/image';
-import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import type { Property } from '@/lib/types';
-import { Fingerprint, Tag, CheckCircle } from 'lucide-react';
+import { Fingerprint, Tag, CheckCircle, MapPin, RulerSquare } from 'lucide-react';
 import { formatEther } from 'ethers';
 
 interface PropertyCardProps {
@@ -13,7 +13,7 @@ interface PropertyCardProps {
 export function PropertyCard({ property }: PropertyCardProps) {
   return (
     <Link href={`/property/${property.parcelId}`} className="block group">
-      <Card className="h-full flex flex-col hover:shadow-xl transition-all duration-300 overflow-hidden rounded-xl border-2 hover:border-primary">
+      <Card className="h-full flex flex-col hover:shadow-xl transition-all duration-300 overflow-hidden rounded-xl border hover:border-primary">
         <CardHeader className="p-0">
           <div className="relative aspect-video overflow-hidden">
             <Image
@@ -27,14 +27,21 @@ export function PropertyCard({ property }: PropertyCardProps) {
                 For Sale
               </Badge>
             )}
-             <div className="absolute bottom-0 w-full h-16 bg-gradient-to-t from-black/60 to-transparent"></div>
+            <div className="absolute bottom-0 w-full h-16 bg-gradient-to-t from-black/60 to-transparent"></div>
           </div>
         </CardHeader>
-        <CardContent className="flex-grow p-5">
+        <CardContent className="flex-grow p-5 space-y-3">
           <CardTitle className="text-xl font-bold mb-1 truncate">{property.title}</CardTitle>
-           <CardDescription className="text-sm text-muted-foreground mb-3">{property.area}</CardDescription>
-           <p className="text-sm text-muted-foreground line-clamp-2">{property.description}</p>
-          <div className="text-sm text-muted-foreground space-y-2 mt-3">
+           <p className="text-sm text-muted-foreground line-clamp-2 min-h-[40px]">{property.description}</p>
+          <div className="text-sm text-muted-foreground space-y-2 pt-2 border-t">
+             <div className="flex items-center">
+              <RulerSquare className="h-4 w-4 mr-2 flex-shrink-0 text-primary" />
+              <span className="font-medium text-foreground/80">{property.area}</span>
+            </div>
+             <div className="flex items-center">
+              <MapPin className="h-4 w-4 mr-2 flex-shrink-0 text-primary" />
+              <span className="truncate">{property.location}</span>
+            </div>
             <div className="flex items-center">
               <Fingerprint className="h-4 w-4 mr-2 flex-shrink-0 text-primary" />
               <span className="truncate font-mono text-xs">ID: {property.parcelId}</span>

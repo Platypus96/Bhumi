@@ -14,7 +14,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { User, ShieldAlert, Key, Loader2, History, Check, Tag, Building, Hourglass, MapPin, Video } from "lucide-react";
+import { User, ShieldAlert, Key, Loader2, History, Check, Tag, Building, Hourglass, MapPin, Video, Calendar, RulerSquare, Fingerprint } from "lucide-react";
 import { format } from 'date-fns';
 import { VerifyDocument } from "@/components/verify-document";
 import { ManageSale } from "@/components/manage-sale";
@@ -85,7 +85,7 @@ export default function PropertyDetailPage() {
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="grid md:grid-cols-2 gap-8 lg:gap-12">
-        <div>
+        <div className="space-y-6">
           <Card className="overflow-hidden">
             <div className="relative aspect-video">
               <Image src={property.imageUrl} alt={property.title} fill className="object-cover" />
@@ -97,13 +97,12 @@ export default function PropertyDetailPage() {
             </div>
              <CardContent className="p-6">
                 <CardTitle className="text-3xl font-bold">{property.title}</CardTitle>
-                <CardDescription className="text-lg text-muted-foreground">{property.area}</CardDescription>
-                <p className="mt-4">{property.description}</p>
+                <p className="mt-4 text-muted-foreground">{property.description}</p>
              </CardContent>
           </Card>
 
            {videoEmbedUrl && (
-            <Card className="mt-6">
+            <Card>
                 <CardHeader>
                     <CardTitle className="flex items-center"><Video className="mr-2"/> Property Video</CardTitle>
                 </CardHeader>
@@ -120,21 +119,29 @@ export default function PropertyDetailPage() {
                 </CardContent>
             </Card>
            )}
-
-          <VerifyDocument property={property} />
           
         </div>
 
-        <div>
+        <div className="space-y-6">
           <Card>
             <CardHeader>
-              <CardTitle className="text-2xl break-all">Parcel ID: {property.parcelId}</CardTitle>
-              {property.registeredAt && <CardDescription>Registered on {format(property.registeredAt.toDate(), "PPP")}</CardDescription>}
+              <CardTitle className="text-2xl break-all">Property Details</CardTitle>
+              {property.forSale && property.price && (
+                <Alert className="border-accent !mt-4">
+                  <Tag className="h-4 w-4 text-accent" />
+                  <AlertTitle className="text-accent">This property is for sale!</AlertTitle>
+                  <AlertDescription>
+                    Price: <span className="font-bold text-lg">{formatEther(property.price)} ETH</span>
+                  </AlertDescription>
+                </Alert>
+              )}
             </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex items-center break-all"><Key className="mr-3 h-5 w-5 text-primary flex-shrink-0" /> <div><strong>Owner:</strong> {property.owner}</div></div>
+            <CardContent className="space-y-4 text-sm">
+              <div className="flex items-start break-all"><Key className="mr-3 h-5 w-5 text-primary flex-shrink-0 mt-1" /> <div><strong>Owner:</strong> <span className="font-mono text-xs">{property.owner}</span></div></div>
+              <div className="flex items-start break-all"><Fingerprint className="mr-3 h-5 w-5 text-primary flex-shrink-0 mt-1" /> <div><strong>Parcel ID:</strong> <span className="font-mono text-xs">{property.parcelId}</span></div></div>
+              {property.registeredAt && <div className="flex items-center"><Calendar className="mr-3 h-5 w-5 text-primary" /> <div><strong>Registered:</strong> {format(property.registeredAt.toDate(), "PPP")}</div></div>}
               <div className="flex items-center"><Building className="mr-3 h-5 w-5 text-primary" /> <div><strong>Status:</strong> <Badge variant={property.verified ? 'secondary' : 'destructive'}>{property.verified ? "Verified" : "Unverified"}</Badge></div></div>
-              
+               <div className="flex items-center"><RulerSquare className="mr-3 h-5 w-5 text-primary" /> <div><strong>Area:</strong> {property.area}</div></div>
                <div className="flex items-start">
                 <MapPin className="mr-3 h-5 w-5 text-primary flex-shrink-0 mt-1" />
                 <div>
@@ -146,18 +153,10 @@ export default function PropertyDetailPage() {
                   </p>
                 </div>
               </div>
-              
-              {property.forSale && property.price && (
-                <Alert className="border-accent">
-                  <Tag className="h-4 w-4 text-accent" />
-                  <AlertTitle className="text-accent">This property is for sale!</AlertTitle>
-                  <AlertDescription>
-                    Price: <span className="font-bold text-lg">{formatEther(property.price)} ETH</span>
-                  </AlertDescription>
-                </Alert>
-              )}
             </CardContent>
           </Card>
+          
+          <VerifyDocument property={property} />
 
            {isOwner && property.verified && (
             <ManageSale property={property} onSaleStatusChanged={fetchProperty} />
@@ -180,7 +179,7 @@ export default function PropertyDetailPage() {
           )}
 
           {property.history && property.history.length > 0 && (
-            <Card className="mt-6">
+            <Card>
               <CardHeader><CardTitle className="flex items-center"><History className="mr-2" />Transfer History</CardTitle></CardHeader>
               <CardContent>
                  <ul className="space-y-4">
