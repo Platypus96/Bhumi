@@ -22,9 +22,8 @@ service cloud.firestore {
 
     // Helper function to check if the user is the designated registrar.
     function isRegistrar() {
-      // In a real app, this should be managed via custom claims or a config document.
-      // For this app, we check against a hardcoded address in an environment variable.
-      return request.auth.uid == get(/databases/$(database)/documents/config/registrar).data.address;
+      // This wallet address is designated as the registrar for the application.
+      return request.auth.uid == "0x8b66677CAe6466Db4fc485Dec748d9577D0eF000";
     }
 
     // Properties:
