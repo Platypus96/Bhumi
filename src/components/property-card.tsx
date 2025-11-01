@@ -31,9 +31,10 @@ export function PropertyCard({ property }: PropertyCardProps) {
           </div>
         </CardHeader>
         <CardContent className="flex-grow p-5">
-          <CardTitle className="text-xl font-bold mb-2 truncate">{property.title}</CardTitle>
+          <CardTitle className="text-xl font-bold mb-1 truncate">{property.title}</CardTitle>
            <CardDescription className="text-sm text-muted-foreground mb-3">{property.area}</CardDescription>
-          <div className="text-sm text-muted-foreground space-y-2">
+           <p className="text-sm text-muted-foreground line-clamp-2">{property.description}</p>
+          <div className="text-sm text-muted-foreground space-y-2 mt-3">
             <div className="flex items-center">
               <Fingerprint className="h-4 w-4 mr-2 flex-shrink-0 text-primary" />
               <span className="truncate font-mono text-xs">ID: {property.parcelId}</span>

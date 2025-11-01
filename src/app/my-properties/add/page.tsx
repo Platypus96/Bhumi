@@ -23,6 +23,8 @@ const formSchema = z.object({
   title: z.string().min(5, "Title must be at least 5 characters."),
   description: z.string().min(10, "Description is required."),
   area: z.string().min(1, "Area is required."),
+  location: z.string().min(3, "Location is required."),
+  videoUrl: z.string().url("Must be a valid URL.").optional().or(z.literal('')),
   image: z.any().refine(files => files?.length == 1, "Property image is required."),
   document: z.any().refine(files => files?.length == 1, "Proof document is required."),
 });
@@ -43,6 +45,8 @@ export default function AddPropertyPage() {
       title: "",
       description: "",
       area: "",
+      location: "",
+      videoUrl: "",
     },
   });
 
@@ -86,6 +90,8 @@ export default function AddPropertyPage() {
         title: values.title,
         description: values.description,
         area: values.area,
+        location: values.location,
+        videoUrl: values.videoUrl || "",
         imageUrl: imageUploadResult.cid,
         ipfsProofCid: documentUploadResult.cid,
       }, receipt.hash);
@@ -166,6 +172,35 @@ export default function AddPropertyPage() {
                   <FormControl>
                     <Input placeholder="e.g., 2000 sq.ft." {...field} />
                   </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+
+            <FormField
+              control={form.control}
+              name="location"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Location</FormLabel>
+                  <FormControl>
+                    <Input placeholder="e.g., New York, USA" {...field} />
+                  </FormControl>
+                  <FormDescription>A Google Maps link or a general address.</FormDescription>
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+             <FormField
+              control={form.control}
+              name="videoUrl"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Property Video (Optional)</FormLabel>
+                  <FormControl>
+                    <Input placeholder="e.g., https://www.youtube.com/watch?v=..." {...field} />
+                  </FormControl>
+                   <FormDescription>A link to a video tour of the property (YouTube, Vimeo, etc.)</FormDescription>
                   <FormMessage />
                 </FormItem>
               )}

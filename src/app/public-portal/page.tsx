@@ -27,7 +27,7 @@ export default function PublicPortalPage() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
           <Card>
             <CardHeader>
-              <CardDescription className="text-primary font-bold text-lg">1</CardDescription>
+              <CardDescription className="text-accent font-bold text-lg">1</CardDescription>
               <CardTitle>Search Property</CardTitle>
             </CardHeader>
             <CardContent>
@@ -36,7 +36,7 @@ export default function PublicPortalPage() {
           </Card>
           <Card>
             <CardHeader>
-              <CardDescription className="text-primary font-bold text-lg">2</CardDescription>
+              <CardDescription className="text-accent font-bold text-lg">2</CardDescription>
               <CardTitle>Download Document</CardTitle>
             </CardHeader>
             <CardContent>
@@ -45,7 +45,7 @@ export default function PublicPortalPage() {
           </Card>
           <Card>
             <CardHeader>
-              <CardDescription className="text-primary font-bold text-lg">3</CardDescription>
+              <CardDescription className="text-accent font-bold text-lg">3</CardDescription>
               <CardTitle>Verify Integrity</CardTitle>
             </CardHeader>
             <CardContent>

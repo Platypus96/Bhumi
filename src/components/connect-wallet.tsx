@@ -23,8 +23,8 @@ export function WalletConnectButton() {
     return (
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="outline" className="flex items-center gap-2 rounded-full border-2 border-primary/50 text-primary font-semibold hover:bg-primary/5 hover:text-primary">
-             <div className="h-2.5 w-2.5 rounded-full bg-green-500 animate-pulse"></div>
+          <Button variant="outline" className="flex items-center gap-2 rounded-md bg-secondary text-secondary-foreground hover:bg-secondary/80">
+             <div className="h-2.5 w-2.5 rounded-full bg-green-500"></div>
             <span>{shortAddress}</span>
           </Button>
         </DropdownMenuTrigger>

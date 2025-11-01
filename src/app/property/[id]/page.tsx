@@ -4,6 +4,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useParams } from "next/navigation";
 import Image from "next/image";
+import Link from "next/link";
 import { getPropertyByParcelId } from "@/lib/data";
 import type { Property } from "@/lib/types";
 import { useWeb3 } from "@/hooks/use-web3";
@@ -13,12 +14,13 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { User, ShieldAlert, Key, Loader2, History, Check, Tag, Building, Hourglass } from "lucide-react";
+import { User, ShieldAlert, Key, Loader2, History, Check, Tag, Building, Hourglass, MapPin, Video } from "lucide-react";
 import { format } from 'date-fns';
 import { VerifyDocument } from "@/components/verify-document";
 import { ManageSale } from "@/components/manage-sale";
 import { BuyProperty } from "@/components/buy-property";
 import { formatEther } from "ethers";
+import { Button } from "@/components/ui/button";
 
 export default function PropertyDetailPage() {
   const params = useParams();
@@ -44,7 +46,25 @@ export default function PropertyDetailPage() {
   useEffect(() => {
     fetchProperty();
   }, [fetchProperty]);
+
+  const getYoutubeEmbedUrl = (url: string) => {
+    if (!url) return null;
+    let videoId;
+    if (url.includes("youtu.be/")) {
+      videoId = url.split("youtu.be/")[1];
+    } else if (url.includes("watch?v=")) {
+      videoId = url.split("watch?v=")[1];
+    } else {
+      return null;
+    }
+    const ampersandPosition = videoId.indexOf('&');
+    if (ampersandPosition !== -1) {
+      videoId = videoId.substring(0, ampersandPosition);
+    }
+    return `https://www.youtube.com/embed/${videoId}`;
+  }
   
+  const videoEmbedUrl = property?.videoUrl ? getYoutubeEmbedUrl(property.videoUrl) : null;
 
   if (loading) {
     return <div className="container mx-auto px-4 py-8"><Skeleton className="h-[600px] w-full" /></div>;
@@ -82,6 +102,25 @@ export default function PropertyDetailPage() {
              </CardContent>
           </Card>
 
+           {videoEmbedUrl && (
+            <Card className="mt-6">
+                <CardHeader>
+                    <CardTitle className="flex items-center"><Video className="mr-2"/> Property Video</CardTitle>
+                </CardHeader>
+                <CardContent>
+                    <div className="aspect-video">
+                        <iframe
+                            className="w-full h-full rounded-lg"
+                            src={videoEmbedUrl}
+                            title="Property Video"
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                            allowFullScreen
+                        ></iframe>
+                    </div>
+                </CardContent>
+            </Card>
+           )}
+
           <VerifyDocument property={property} />
           
         </div>
@@ -95,6 +134,18 @@ export default function PropertyDetailPage() {
             <CardContent className="space-y-4">
               <div className="flex items-center break-all"><Key className="mr-3 h-5 w-5 text-primary flex-shrink-0" /> <div><strong>Owner:</strong> {property.owner}</div></div>
               <div className="flex items-center"><Building className="mr-3 h-5 w-5 text-primary" /> <div><strong>Status:</strong> <Badge variant={property.verified ? 'secondary' : 'destructive'}>{property.verified ? "Verified" : "Unverified"}</Badge></div></div>
+              
+               <div className="flex items-start">
+                <MapPin className="mr-3 h-5 w-5 text-primary flex-shrink-0 mt-1" />
+                <div>
+                  <strong>Location:</strong>
+                  <p>
+                    <Link href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(property.location)}`} target="_blank" rel="noopener noreferrer" className="text-primary underline hover:text-primary/80">
+                        {property.location}
+                    </Link>
+                  </p>
+                </div>
+              </div>
               
               {property.forSale && property.price && (
                 <Alert className="border-accent">

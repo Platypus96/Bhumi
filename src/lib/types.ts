@@ -27,6 +27,8 @@ export interface Property {
   title: string;
   description: string;
   area: string;
+  location: string;
+  videoUrl?: string;
   imageUrl: string; // This will now be an IPFS CID URL
   ipfsProofCid: string;
   verified: boolean;

@@ -21,16 +21,17 @@ export function Navbar() {
     { href: "/marketplace", label: "Marketplace" },
   ];
 
-  const registrarLink = { href: "/dashboard", label: "Registrar Dashboard" };
+  const registrarLink = { href: "/dashboard", label: "Dashboard" };
   
-  const NavLink = ({ href, children, onClick }: { href: string, children: React.ReactNode, onClick: () => void}) => {
+  const NavLink = ({ href, children, onClick, isRegistrarLink = false }: { href: string, children: React.ReactNode, onClick: () => void, isRegistrarLink?: boolean}) => {
     const isActive = pathname === href;
     return (
       <Link 
         href={href} 
         className={cn(
           "px-3 py-2 rounded-md text-sm font-medium transition-colors",
-          isActive ? "bg-primary text-primary-foreground" : "text-foreground/60 hover:text-foreground/80"
+           isActive ? "bg-accent text-white" : "text-foreground/70 hover:text-foreground/90",
+           isRegistrarLink && "text-accent-foreground/70 hover:text-accent-foreground/90"
         )}
         onClick={onClick}
       >
@@ -48,15 +49,11 @@ export function Navbar() {
 
   const desktopNav = (
     <>
-      {navLinks.map(link => (
-        <NavLink key={link.href} href={link.href} onClick={() => setMobileMenuOpen(false)}>{link.label}</NavLink>
-      ))}
       {isRegistrar && (
-        <Link href={registrarLink.href} className="flex items-center text-primary transition-colors hover:text-primary/80 font-semibold" onClick={() => setMobileMenuOpen(false)}>
-          <Shield className="mr-2 h-4 w-4" />
-          {registrarLink.label}
-        </Link>
+        <NavLink href={registrarLink.href} onClick={() => setMobileMenuOpen(false)}>{registrarLink.label}</NavLink>
       )}
+      <NavLink href="/my-properties" onClick={() => setMobileMenuOpen(false)}>My Properties</NavLink>
+      <NavLink href="/public-portal" onClick={() => setMobileMenuOpen(false)}>Public Portal</NavLink>
     </>
   );
 
@@ -79,7 +76,7 @@ export function Navbar() {
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-16 items-center">
-        <div className="mr-4 hidden md:flex">
+        <div className="mr-auto hidden md:flex items-center">
           <Link href="/" className="mr-6 flex items-center space-x-2">
             <div className="bg-accent/20 text-accent p-2 rounded-lg">
               <Landmark className="h-6 w-6" />
@@ -127,7 +124,8 @@ export function Navbar() {
           </Link>
         </div>
         
-        <div className="flex flex-1 items-center justify-end space-x-2">
+        <div className="flex items-center justify-end space-x-4">
+          <Link href="/marketplace" className="hidden md:inline-flex px-3 py-2 rounded-md text-sm font-medium text-foreground/70 hover:text-foreground/90 transition-colors">Marketplace</Link>
           <WalletConnectButton />
         </div>
       </div>
