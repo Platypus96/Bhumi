@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useForm } from "react-hook-form";
@@ -36,6 +37,9 @@ export function ManageSale({ property, onSaleStatusChanged }: ManageSaleProps) {
 
   const form = useForm<z.infer<typeof listSaleFormSchema>>({
     resolver: zodResolver(listSaleFormSchema),
+    defaultValues: {
+      price: "",
+    },
   });
 
   async function onListForSale(values: z.infer<typeof listSaleFormSchema>) {
