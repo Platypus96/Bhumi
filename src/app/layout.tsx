@@ -4,6 +4,7 @@ import { Toaster } from '@/components/ui/toaster';
 import { Navbar } from '@/components/layout/navbar';
 import { Web3Provider } from '@/hooks/use-web3';
 import { FirebaseProvider } from '@/firebase/provider';
+import { FirebaseClientProvider } from '@/firebase/client-provider';
 
 export const metadata: Metadata = {
   title: 'LandRegistryDApp',
@@ -24,13 +25,15 @@ export default function RootLayout({
       </head>
       <body className="font-body antialiased" suppressHydrationWarning>
         <FirebaseProvider>
-          <Web3Provider>
-            <div className="relative flex min-h-screen flex-col">
-              <Navbar />
-              <main className="flex-1">{children}</main>
-            </div>
-            <Toaster />
-          </Web3Provider>
+          <FirebaseClientProvider>
+            <Web3Provider>
+              <div className="relative flex min-h-screen flex-col">
+                <Navbar />
+                <main className="flex-1">{children}</main>
+              </div>
+              <Toaster />
+            </Web3Provider>
+          </FirebaseClientProvider>
         </FirebaseProvider>
       </body>
     </html>

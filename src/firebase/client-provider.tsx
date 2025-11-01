@@ -1,7 +1,13 @@
 "use client";
 
-import { FirebaseProvider } from "./provider";
+import { useState, useEffect } from "react";
 
 export function FirebaseClientProvider({ children }: { children: React.ReactNode }) {
-  return <FirebaseProvider>{children}</FirebaseProvider>;
+    const [isClient, setIsClient] = useState(false);
+
+    useEffect(() => {
+        setIsClient(true);
+    }, []);
+
+    return <>{isClient ? children : null}</>;
 }
