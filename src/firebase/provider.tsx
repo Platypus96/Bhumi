@@ -1,5 +1,5 @@
 'use client';
-import React, { createContext, useContext, ReactNode, useState, useEffect, useMemo } from 'react';
+import React, { createContext, useContext, ReactNode, useState, useEffect } from 'react';
 import { initializeApp, getApps, getApp, FirebaseApp, FirebaseOptions } from 'firebase/app';
 import { Auth, getAuth } from 'firebase/auth';
 import { Firestore, getFirestore } from 'firebase/firestore';
@@ -30,13 +30,12 @@ export const FirebaseProvider = ({ children }: { children: ReactNode }) => {
         const auth = getAuth(app);
         const db = getFirestore(app);
         setFirebase({ app, auth, db });
-    } else {
-        console.error("Firebase config not found. Make sure to set up your .env.local file.");
     }
   }, []);
 
   if (!firebase) {
-    // You can render a loading spinner or null here
+    // We don't render children until firebase is initialized.
+    // You can show a global loader here if you want.
     return null;
   }
 
