@@ -1,0 +1,114 @@
+/**
+ * @fileoverview Firestore Security Rules for the Bhumi application.
+ *
+ * Core Philosophy:
+ * This ruleset enforces a user-ownership model based on Ethereum addresses,
+ * denormalized directly onto the Property and related documents.
+ *
+ * Data Structure:
+ * - /properties/{propertyId}: Contains property details, including the owner's Ethereum address (ownerAddress).
+ * - /properties/{propertyId}/transferRequests/{transferRequestId}: Contains transfer requests for a specific property.
+ * - /properties/{propertyId}/transferEvents/{transferEventId}: Contains historical transfer events for a property.
+ *
+ * Key Security Decisions:
+ * - Public listing of properties is enabled for discoverability.
+ * - Write access to properties is restricted to the property owner (ownerAddress).
+ * - Transfer requests and events are linked to properties and inherit the property's ownership constraints.
+ *
+ * Denormalization for Authorization:
+ * - The `Property` document includes `ownerAddress` to enable direct authorization checks without additional `get()` calls.
+ *
+ * Structural Segregation:
+ * - Properties, transfer requests, and transfer events are organized into separate collections for clearer access control.
+ */
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    /**
+     * @description Grants public read access to properties and restricts write access to the property owner.
+     * @path /properties/{propertyId}
+     * @allow get, list: Anyone can read property details.
+     * @allow create: Only the registrar (matching request.auth.uid) can create a property.
+     * @allow update, delete: Only the owner (matching existing resource.data.ownerAddress) can update or delete a property.
+     * @deny create: if the `ownerAddress` doesn't exist.
+     * @deny update: if attempting to change the `ownerAddress`.
+     * @principle Enforces document ownership for writes and public read access.
+     */
+    match /properties/{propertyId} {
+      function isOwner(ownerAddress) {
+        return request.auth != null && request.auth.uid == ownerAddress;
+      }
+
+      function isValidNewProperty() {
+        return request.resource.data.keys().hasAll(['id', 'registrarAddress', 'ownerAddress', 'ipfsCID', 'sha256Hash', 'registrationDate', 'propertyDetails'])
+        && request.resource.data.registrarAddress == request.auth.uid;
+      }
+
+      allow get, list: if true;
+      allow create: if isValidNewProperty();
+      allow update: if isOwner(resource.data.ownerAddress) && resource.data.ownerAddress == request.resource.data.ownerAddress;
+      allow delete: if isOwner(resource.data.ownerAddress);
+    }
+
+    /**
+     * @description Restricts access to transfer requests to the property owner.
+     * @path /properties/{propertyId}/transferRequests/{transferRequestId}
+     * @allow get, list: Only the property owner can view transfer requests.
+     * @allow create: Only the property owner can create a transfer request.
+     * @allow update, delete: Only the property owner can update or delete a transfer request.
+     * @deny create: if the property owner doesn't match the request's sellerAddress.
+     * @deny update: if attempting to change the propertyId.
+     * @principle Enforces document ownership for writes.
+     */
+    match /properties/{propertyId}/transferRequests/{transferRequestId} {
+      function isPropertyOwner(propertyId) {
+          return get(/databases/$(database)/documents/properties/$(propertyId)).data.ownerAddress == request.auth.uid;
+      }
+
+      function isValidNewTransferRequest() {
+        return request.resource.data.keys().hasAll(['id', 'propertyId', 'sellerAddress', 'buyerAddress', 'requestDate', 'status'])
+          && request.resource.data.propertyId == parentPropertyId()
+          && request.resource.data.sellerAddress == request.auth.uid;
+      }
+
+      function parentPropertyId() {
+        return request.path.split('/')[1];
+      }
+
+      allow get, list: if isPropertyOwner(propertyId);
+      allow create: if isPropertyOwner(propertyId) && isValidNewTransferRequest();
+      allow update: if isPropertyOwner(propertyId) && resource.data.propertyId == request.resource.data.propertyId;
+      allow delete: if isPropertyOwner(propertyId);
+    }
+
+    /**
+     * @description Restricts access to transfer events to the property owner.
+     * @path /properties/{propertyId}/transferEvents/{transferEventId}
+     * @allow get, list: Only the property owner can view transfer events.
+     * @allow create: Only the registrar (matching request.auth.uid) can create a transfer event.
+     * @allow update, delete: No one can update or delete a transfer event once created.
+     * @deny create: if the registrarAddress doesn't match request.auth.uid.
+     * @principle Enforces document ownership for writes.
+     */
+    match /properties/{propertyId}/transferEvents/{transferEventId} {
+      function isPropertyOwner(propertyId) {
+          return get(/databases/$(database)/documents/properties/$(propertyId)).data.ownerAddress == request.auth.uid;
+      }
+
+      function isValidNewTransferEvent() {
+        return request.resource.data.keys().hasAll(['id', 'propertyId', 'transferRequestId', 'sellerAddress', 'buyerAddress', 'eventDate', 'registrarAddress'])
+          && request.resource.data.propertyId == parentPropertyId()
+          && request.resource.data.registrarAddress == request.auth.uid;
+      }
+
+      function parentPropertyId() {
+        return request.path.split('/')[1];
+      }
+
+      allow get, list: if isPropertyOwner(propertyId);
+      allow create: if isValidNewTransferEvent();
+      allow update, delete: if false;
+    }
+  }
+}
