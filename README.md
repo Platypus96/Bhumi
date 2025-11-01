@@ -18,6 +18,7 @@ The platform ensures transparency, security, and efficiency in managing property
 ## Technology Stack
 
 - **Framework**: Next.js 15 (with App Router)
+- **Deployment**: Vercel
 - **Language**: TypeScript
 - **Styling**: Tailwind CSS with shadcn/ui components for a modern and responsive UI.
 - **Blockchain**: Ethereum (interacting via Ethers.js)
@@ -35,6 +36,7 @@ To get the project running locally, follow these steps.
 - A web browser with the [MetaMask](https://metamask.io/) extension installed.
 - A Firebase project with Firestore enabled.
 - API keys from [Pinata](https://www.pinata.cloud/) for IPFS uploads.
+- A Google AI Gemini API key.
 
 ### 1. Clone the Repository
 
@@ -51,21 +53,33 @@ npm install
 
 ### 3. Set Up Environment Variables
 
-Create a file named `.env` in the root of your project and add the following variables, replacing the placeholder values with your actual credentials.
+Create a file named `.env` in the root of your project and add the following variables. This is required for both local development and for deployment on services like Vercel.
 
-```
+```env
+# Firebase Configuration
+# You can get these values from your Firebase project settings
+NEXT_PUBLIC_FIREBASE_API_KEY=YOUR_FIREBASE_API_KEY
+NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=YOUR_FIREBASE_AUTH_DOMAIN
+NEXT_PUBLIC_FIREBASE_PROJECT_ID=YOUR_FIREBASE_PROJECT_ID
+NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=YOUR_FIREBASE_STORAGE_BUCKET
+NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=YOUR_FIREBASE_MESSAGING_SENDER_ID
+NEXT_PUBLIC_FIREBASE_APP_ID=YOUR_FIREBASE_APP_ID
+
+# Blockchain Configuration
 # Address of the Ethereum account designated as the registrar
 NEXT_PUBLIC_REGISTRAR_ADDRESS="0xYourRegistrarWalletAddress"
-
 # Address of the deployed LandRegistry smart contract
 NEXT_PUBLIC_CONTRACT_ADDRESS="0xYourContractAddress"
 
+# IPFS Service (Pinata)
 # Your Pinata API keys for uploading files to IPFS
 PINATA_API_KEY="YourPinataAPIKey"
 PINATA_API_SECRET="YourPinataSecretAPIKey"
-```
 
-**Note**: Your Firebase project configuration will be automatically handled. You do not need to add it to the `.env` file.
+# Google AI (Gemini)
+# Your Gemini API Key from Google AI Studio
+GEMINI_API_KEY="YourGeminiAPIKey"
+```
 
 ### 4. Run the Development Server
 
@@ -75,7 +89,11 @@ npm run dev
 
 The application will be available at `http://localhost:9002`.
 
-### 5. Set up MetaMask
+### 5. Deploying to Vercel
+
+When you deploy to Vercel, make sure to add all the environment variables from your `.env` file to your Vercel project's settings.
+
+### 6. Set up MetaMask
 
 - Open MetaMask and connect to your local development network (e.g., Hardhat, Ganache) or a testnet (e.g., Sepolia).
 - Make sure you have some test ETH in your account to pay for gas fees.
