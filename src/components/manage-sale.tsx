@@ -13,8 +13,9 @@ import { Loader2, Tag, XCircle } from "lucide-react";
 import { listPropertyForSale, unlistPropertyForSale } from "@/lib/data";
 import { useBlockchain } from "@/hooks/use-blockchain";
 import type { Property } from "@/lib/types";
-import { parseEther } from "ethers";
+import { formatEther, parseEther } from "ethers";
 import { useFirebase } from "@/firebase";
+import { Alert, AlertDescription, AlertTitle } from "./ui/alert";
 
 const listSaleFormSchema = z.object({
   price: z.string().refine(val => !isNaN(parseFloat(val)) && parseFloat(val) > 0, {
@@ -29,7 +30,7 @@ interface ManageSaleProps {
 
 export function ManageSale({ property, onSaleStatusChanged }: ManageSaleProps) {
   const { toast } = useToast();
-  const { markForSale } = useBlockchain(); // Using markForSale now, cancel is implicit in new contract
+  const { markForSale } = useBlockchain();
   const { firestore } = useFirebase();
   const [isProcessing, setIsProcessing] = useState(false);
 
@@ -41,11 +42,14 @@ export function ManageSale({ property, onSaleStatusChanged }: ManageSaleProps) {
     if (!firestore) return;
     setIsProcessing(true);
     try {
+      // The contract expects the price in wei
+      const priceInWei = parseEther(values.price);
+      
       // 1. Call smart contract
-      await markForSale(property.parcelId, values.price);
+      await markForSale(property.parcelId, values.price); // Pass ETH string as per hook update
       
       // 2. Update Firestore
-      await listPropertyForSale(firestore, property.parcelId, parseEther(values.price).toString());
+      await listPropertyForSale(firestore, property.parcelId, priceInWei.toString());
 
       toast({ title: "Property Listed!", description: `Your property is now listed for ${values.price} ETH.` });
       form.reset();
@@ -57,12 +61,41 @@ export function ManageSale({ property, onSaleStatusChanged }: ManageSaleProps) {
     }
   }
 
-  // NOTE: The new contract doesn't seem to have an explicit unlist function.
-  // Marking for sale again with price 0 could be a way, but for now we assume
-  // listing is permanent until sold. Or owner can't unlist.
-  // We will remove the unlisting UI.
+  async function onUnlistForSale() {
+    if (!firestore) return;
+    setIsProcessing(true);
+    try {
+      // To unlist, we mark it for sale with a price of 0.
+      await markForSale(property.parcelId, "0");
+      
+      // Update firestore
+      await unlistPropertyForSale(firestore, property.parcelId);
+
+      toast({ title: "Property Unlisted", description: "Your property has been removed from the marketplace." });
+      onSaleStatusChanged();
+    } catch (e: any) {
+       toast({ variant: 'destructive', title: 'Error', description: e.message || 'Failed to unlist property.' });
+    } finally {
+       setIsProcessing(false);
+    }
+  }
+
   if (property.forSale) {
-    return null; // Don't show anything if already for sale, as there's no way to unlist
+    return (
+      <Card className="mt-6 border-destructive">
+        <CardHeader>
+          <CardTitle className="flex items-center text-destructive"><XCircle className="mr-2" />Remove from Marketplace</CardTitle>
+          {property.price && <CardDescription>This property is currently listed for {formatEther(property.price)} ETH.</CardDescription>}
+        </CardHeader>
+        <CardContent>
+          <p className="text-sm text-muted-foreground mb-4">Unlisting the property will remove it from the public marketplace.</p>
+           <Button variant="destructive" className="w-full" onClick={onUnlistForSale} disabled={isProcessing}>
+            {isProcessing && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+            Unlist Property
+          </Button>
+        </CardContent>
+      </Card>
+    )
   }
 
   return (
