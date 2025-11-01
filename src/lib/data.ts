@@ -27,6 +27,7 @@ export function createSubmission(db: Firestore, submissionData: Omit<Submission,
     createdAt: Timestamp.now(),
   };
   const submissionsCollection = collection(db, SUBMISSIONS_COLLECTION);
+  // Use the non-blocking helper to get contextual errors on failure
   return addDocumentNonBlocking(submissionsCollection, submissionWithTimestamp);
 }
 
