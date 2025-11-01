@@ -14,7 +14,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { User, ShieldAlert, Key, Loader2, History, Check, Tag, Building, Hourglass, MapPin, Video, Calendar, RulerSquare, Fingerprint } from "lucide-react";
+import { User, ShieldAlert, Key, Loader2, History, Check, Tag, Building, Hourglass, MapPin, Video, Calendar, Square, Fingerprint } from "lucide-react";
 import { format } from 'date-fns';
 import { VerifyDocument } from "@/components/verify-document";
 import { ManageSale } from "@/components/manage-sale";
@@ -141,7 +141,7 @@ export default function PropertyDetailPage() {
               <div className="flex items-start break-all"><Fingerprint className="mr-3 h-5 w-5 text-primary flex-shrink-0 mt-1" /> <div><strong>Parcel ID:</strong> <span className="font-mono text-xs">{property.parcelId}</span></div></div>
               {property.registeredAt && <div className="flex items-center"><Calendar className="mr-3 h-5 w-5 text-primary" /> <div><strong>Registered:</strong> {format(property.registeredAt.toDate(), "PPP")}</div></div>}
               <div className="flex items-center"><Building className="mr-3 h-5 w-5 text-primary" /> <div><strong>Status:</strong> <Badge variant={property.verified ? 'secondary' : 'destructive'}>{property.verified ? "Verified" : "Unverified"}</Badge></div></div>
-               <div className="flex items-center"><RulerSquare className="mr-3 h-5 w-5 text-primary" /> <div><strong>Area:</strong> {property.area}</div></div>
+               <div className="flex items-center"><Square className="mr-3 h-5 w-5 text-primary" /> <div><strong>Area:</strong> {property.area}</div></div>
                <div className="flex items-start">
                 <MapPin className="mr-3 h-5 w-5 text-primary flex-shrink-0 mt-1" />
                 <div>

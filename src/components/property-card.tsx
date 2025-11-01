@@ -1,9 +1,10 @@
+
 import Link from 'next/link';
 import Image from 'next/image';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import type { Property } from '@/lib/types';
-import { Fingerprint, Tag, CheckCircle, MapPin, RulerSquare } from 'lucide-react';
+import { Fingerprint, Tag, CheckCircle, MapPin, Square } from 'lucide-react';
 import { formatEther } from 'ethers';
 
 interface PropertyCardProps {
@@ -35,7 +36,7 @@ export function PropertyCard({ property }: PropertyCardProps) {
            <p className="text-sm text-muted-foreground line-clamp-2 min-h-[40px]">{property.description}</p>
           <div className="text-sm text-muted-foreground space-y-2 pt-2 border-t">
              <div className="flex items-center">
-              <RulerSquare className="h-4 w-4 mr-2 flex-shrink-0 text-primary" />
+              <Square className="h-4 w-4 mr-2 flex-shrink-0 text-primary" />
               <span className="font-medium text-foreground/80">{property.area}</span>
             </div>
              <div className="flex items-center">
