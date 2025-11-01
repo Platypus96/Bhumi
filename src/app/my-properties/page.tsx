@@ -6,6 +6,7 @@ import type { Property } from "@/lib/types";
 import { PropertyCard } from "@/components/property-card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useWeb3 } from "@/hooks/use-web3";
+import { useFirebase } from "@/firebase/provider";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertCircle, PlusCircle } from "lucide-react";
 import Link from "next/link";
@@ -15,12 +16,13 @@ export default function MyPropertiesPage() {
   const [properties, setProperties] = useState<Property[]>([]);
   const [loading, setLoading] = useState(true);
   const { account } = useWeb3();
+  const { db } = useFirebase();
 
   useEffect(() => {
-    if (account) {
+    if (account && db) {
       const fetchProperties = async () => {
         setLoading(true);
-        const myProps = await getPropertiesByOwner(account);
+        const myProps = await getPropertiesByOwner(db, account);
         setProperties(myProps);
         setLoading(false);
       };
@@ -29,7 +31,7 @@ export default function MyPropertiesPage() {
       setProperties([]);
       setLoading(false);
     }
-  }, [account]);
+  }, [account, db]);
 
   if (!account) {
      return (

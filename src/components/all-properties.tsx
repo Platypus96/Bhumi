@@ -5,6 +5,7 @@ import { getAllProperties } from "@/lib/data";
 import type { Property } from "@/lib/types";
 import { PropertyCard } from "@/components/property-card";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useFirebase } from "@/firebase/provider";
 
 interface AllPropertiesProps {
     showForSaleOnly?: boolean;
@@ -13,11 +14,13 @@ interface AllPropertiesProps {
 export function AllProperties({ showForSaleOnly = false }: AllPropertiesProps) {
   const [properties, setProperties] = useState<Property[]>([]);
   const [loading, setLoading] = useState(true);
+  const { db } = useFirebase();
 
   useEffect(() => {
+    if (!db) return;
     const fetchProperties = async () => {
       setLoading(true);
-      let allProps = await getAllProperties();
+      let allProps = await getAllProperties(db);
       if (showForSaleOnly) {
         allProps = allProps.filter(p => p.forSale);
       }
@@ -25,7 +28,7 @@ export function AllProperties({ showForSaleOnly = false }: AllPropertiesProps) {
       setLoading(false);
     };
     fetchProperties();
-  }, [showForSaleOnly]);
+  }, [showForSaleOnly, db]);
 
   return (
      <>

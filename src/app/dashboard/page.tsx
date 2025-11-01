@@ -1,12 +1,13 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useWeb3 } from "@/hooks/use-web3";
 import { getPendingSubmissions, createProperty, updateSubmissionStatus } from "@/lib/data";
 import { useBlockchain } from "@/hooks/use-blockchain";
 import { useToast } from "@/hooks/use-toast";
 import type { Submission } from "@/lib/types";
 import { Timestamp } from "firebase/firestore";
+import { useFirebase } from "@/firebase/provider";
 
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
@@ -22,17 +23,19 @@ export default function DashboardPage() {
   const { isRegistrar, account } = useWeb3();
   const { registerProperty } = useBlockchain();
   const { toast } = useToast();
+  const { db } = useFirebase();
   
   const [submissions, setSubmissions] = useState<Submission[]>([]);
   const [loading, setLoading] = useState(true);
   const [processingId, setProcessingId] = useState<string | null>(null);
 
-  const fetchPending = async () => {
+  const fetchPending = useCallback(async () => {
+    if (!db) return;
     setLoading(true);
-    const pending = await getPendingSubmissions();
+    const pending = await getPendingSubmissions(db);
     setSubmissions(pending);
     setLoading(false);
-  };
+  }, [db]);
 
   useEffect(() => {
     if (isRegistrar) {
@@ -40,9 +43,10 @@ export default function DashboardPage() {
     } else {
       setLoading(false);
     }
-  }, [isRegistrar]);
+  }, [isRegistrar, fetchPending]);
 
   const handleApprove = async (submission: Submission) => {
+    if (!db) return;
     setProcessingId(submission.id);
     try {
       // 1. Call smart contract to register property
@@ -57,7 +61,7 @@ export default function DashboardPage() {
       }
 
       // 2. Create property in Firestore
-      await createProperty({
+      await createProperty(db, {
         parcelId: parcelId,
         owner: submission.owner,
         title: submission.title,
@@ -74,7 +78,7 @@ export default function DashboardPage() {
       });
       
       // 3. Update submission status
-      await updateSubmissionStatus(submission.id, 'approved');
+      await updateSubmissionStatus(db, submission.id, 'approved');
 
       toast({
         title: "Submission Approved!",
@@ -97,9 +101,10 @@ export default function DashboardPage() {
   };
   
   const handleReject = async (submissionId: string) => {
+    if (!db) return;
     setProcessingId(submissionId);
      try {
-      await updateSubmissionStatus(submissionId, 'rejected');
+      await updateSubmissionStatus(db, submissionId, 'rejected');
       toast({
         title: "Submission Rejected",
         variant: "default",

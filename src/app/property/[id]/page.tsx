@@ -1,11 +1,12 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useParams } from "next/navigation";
 import Image from "next/image";
 import { getPropertyByParcelId } from "@/lib/data";
 import type { Property } from "@/lib/types";
 import { useWeb3 } from "@/hooks/use-web3";
+import { useFirebase } from "@/firebase/provider";
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -21,6 +22,7 @@ import { formatEther } from "ethers";
 export default function PropertyDetailPage() {
   const params = useParams();
   const { account } = useWeb3();
+  const { db } = useFirebase();
   
   const [property, setProperty] = useState<Property | null>(null);
   const [loading, setLoading] = useState(true);
@@ -28,20 +30,19 @@ export default function PropertyDetailPage() {
   const id = Array.isArray(params.id) ? params.id[0] : params.id;
   const isOwner = account?.toLowerCase() === property?.owner.toLowerCase();
   
-  const fetchProperty = async () => {
-    if (id) {
+  const fetchProperty = useCallback(async () => {
+    if (id && db) {
       setLoading(true);
-      const prop = await getPropertyByParcelId(id);
+      const prop = await getPropertyByParcelId(db, id);
       setProperty(prop);
       setLoading(false);
     }
-  };
+  }, [id, db]);
 
 
   useEffect(() => {
     fetchProperty();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [id]);
+  }, [fetchProperty]);
   
 
   if (loading) {

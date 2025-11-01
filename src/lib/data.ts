@@ -11,6 +11,7 @@ import {
   Timestamp,
   orderBy,
   getFirestore,
+  Firestore,
 } from 'firebase/firestore';
 import { getApps, initializeApp } from 'firebase/app';
 import type { Property, Submission, TransferHistory } from './types';
@@ -30,8 +31,7 @@ const SUBMISSIONS_COLLECTION = 'submissions';
 const PROPERTIES_COLLECTION = 'properties';
 
 // Submissions Flow
-export async function createSubmission(submissionData: Omit<Submission, 'id' | 'createdAt' | 'status'>): Promise<string> {
-  const db = getDb();
+export async function createSubmission(db: Firestore, submissionData: Omit<Submission, 'id' | 'createdAt' | 'status'>): Promise<string> {
   const submissionWithTimestamp = {
     ...submissionData,
     status: 'pending' as const,
@@ -41,8 +41,7 @@ export async function createSubmission(submissionData: Omit<Submission, 'id' | '
   return docRef.id;
 }
 
-export async function getPendingSubmissions(): Promise<Submission[]> {
-  const db = getDb();
+export async function getPendingSubmissions(db: Firestore): Promise<Submission[]> {
   const q = query(
     collection(db, SUBMISSIONS_COLLECTION),
     where('status', '==', 'pending'),
@@ -52,16 +51,14 @@ export async function getPendingSubmissions(): Promise<Submission[]> {
   return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Submission));
 }
 
-export async function updateSubmissionStatus(submissionId: string, status: 'approved' | 'rejected'): Promise<void> {
-  const db = getDb();
+export async function updateSubmissionStatus(db: Firestore, submissionId: string, status: 'approved' | 'rejected'): Promise<void> {
   const submissionRef = doc(db, SUBMISSIONS_COLLECTION, submissionId);
   await updateDoc(submissionRef, { status });
 }
 
 
 // Property Flow (after registrar approval)
-export async function createProperty(propertyData: Omit<Property, 'history'>): Promise<void> {
-    const db = getDb();
+export async function createProperty(db: Firestore, propertyData: Omit<Property, 'history'>): Promise<void> {
     const propertyWithHistory = {
         ...propertyData,
         history: [], // Initialize with empty history
@@ -70,8 +67,7 @@ export async function createProperty(propertyData: Omit<Property, 'history'>): P
     await setDoc(propertyRef, propertyWithHistory);
 }
 
-export async function getPropertyByParcelId(parcelId: string): Promise<Property | null> {
-  const db = getDb();
+export async function getPropertyByParcelId(db: Firestore, parcelId: string): Promise<Property | null> {
   const docRef = doc(db, PROPERTIES_COLLECTION, parcelId);
   const docSnap = await getDoc(docRef);
   if (docSnap.exists()) {
@@ -80,8 +76,7 @@ export async function getPropertyByParcelId(parcelId: string): Promise<Property 
   return null;
 }
 
-export async function getPropertiesByOwner(ownerAddress: string): Promise<Property[]> {
-  const db = getDb();
+export async function getPropertiesByOwner(db: Firestore, ownerAddress: string): Promise<Property[]> {
   if (!ownerAddress) return [];
   const q = query(
     collection(db, PROPERTIES_COLLECTION),
@@ -91,15 +86,13 @@ export async function getPropertiesByOwner(ownerAddress: string): Promise<Proper
   return querySnapshot.docs.map(doc => doc.data() as Property);
 }
 
-export async function getAllProperties(): Promise<Property[]> {
-    const db = getDb();
+export async function getAllProperties(db: Firestore): Promise<Property[]> {
     const q = query(collection(db, PROPERTIES_COLLECTION), orderBy('registeredAt', 'desc'));
     const querySnapshot = await getDocs(q);
     return querySnapshot.docs.map(doc => doc.data() as Property);
 }
 
-export async function listPropertyForSale(parcelId: string, price: string): Promise<void> {
-    const db = getDb();
+export async function listPropertyForSale(db: Firestore, parcelId: string, price: string): Promise<void> {
     const propRef = doc(db, PROPERTIES_COLLECTION, parcelId);
     await updateDoc(propRef, {
         forSale: true,
@@ -107,8 +100,7 @@ export async function listPropertyForSale(parcelId: string, price: string): Prom
     });
 }
 
-export async function unlistPropertyForSale(parcelId: string): Promise<void> {
-    const db = getDb();
+export async function unlistPropertyForSale(db: Firestore, parcelId: string): Promise<void> {
     const propRef = doc(db, PROPERTIES_COLLECTION, parcelId);
     await updateDoc(propRef, {
         forSale: false,
@@ -116,8 +108,7 @@ export async function unlistPropertyForSale(parcelId: string): Promise<void> {
     });
 }
 
-export async function updatePropertyOwner(parcelId: string, newOwner: string, txHash: string, price: string): Promise<void> {
-    const db = getDb();
+export async function updatePropertyOwner(db: Firestore, parcelId: string, newOwner: string, txHash: string, price: string): Promise<void> {
     const propRef = doc(db, PROPERTIES_COLLECTION, parcelId);
     const propSnap = await getDoc(propRef);
 

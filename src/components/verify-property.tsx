@@ -7,12 +7,14 @@ import { Button } from "@/components/ui/button";
 import { Search, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { getPropertyByParcelId } from "@/lib/data";
+import { useFirebase } from "@/firebase/provider";
 
 export function VerifyProperty() {
   const [parcelId, setParcelId] = useState("");
   const [loading, setLoading] = useState(false);
   const router = useRouter();
   const { toast } = useToast();
+  const { db } = useFirebase();
 
   const handleSearch = async () => {
     if (!parcelId) {
@@ -23,9 +25,17 @@ export function VerifyProperty() {
         });
       return;
     }
+    if (!db) {
+        toast({
+            variant: "destructive",
+            title: "Database Error",
+            description: "Firestore is not available.",
+        });
+        return;
+    }
     setLoading(true);
     try {
-        const property = await getPropertyByParcelId(parcelId);
+        const property = await getPropertyByParcelId(db, parcelId);
         if (property) {
             router.push(`/property/${parcelId}`);
         } else {

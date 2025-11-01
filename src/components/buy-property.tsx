@@ -9,6 +9,7 @@ import type { Property } from "@/lib/types";
 import { useBlockchain } from "@/hooks/use-blockchain";
 import { updatePropertyOwner } from "@/lib/data";
 import { useWeb3 } from "@/hooks/use-web3";
+import { useFirebase } from "@/firebase/provider";
 
 interface BuyPropertyProps {
     property: Property;
@@ -19,12 +20,17 @@ export function BuyProperty({ property, onPurchase }: BuyPropertyProps) {
     const { account } = useWeb3();
     const { toast } = useToast();
     const { buyProperty } = useBlockchain();
+    const { db } = useFirebase();
     const [isBuying, setIsBuying] = useState(false);
 
     const handleBuy = async () => {
         if (!property.price) return;
         if (!account) {
             toast({ variant: "destructive", title: "Wallet not connected" });
+            return;
+        }
+        if (!db) {
+            toast({ variant: "destructive", title: "Database Error", description: "Firestore is not available." });
             return;
         }
 
@@ -37,7 +43,7 @@ export function BuyProperty({ property, onPurchase }: BuyPropertyProps) {
             const buyerAddress = account;
 
             // 2. Update Firestore
-            await updatePropertyOwner(property.parcelId, buyerAddress, receipt.hash, property.price);
+            await updatePropertyOwner(db, property.parcelId, buyerAddress, receipt.hash, property.price);
 
             toast({
                 title: "Purchase Successful!",
