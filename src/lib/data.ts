@@ -10,15 +10,28 @@ import {
   where,
   Timestamp,
   orderBy,
+  getFirestore,
 } from 'firebase/firestore';
-import { db } from '@/firebase/config';
+import { getApps, initializeApp } from 'firebase/app';
 import type { Property, Submission, TransferHistory } from './types';
+
+// This is a temporary solution to get the db instance.
+// Ideally, this should be passed down from the provider or a centralized firebase service.
+const getDb = () => {
+    const app = getApps()[0];
+    if (!app) {
+        throw new Error("Firebase has not been initialized. Please ensure FirebaseProvider is set up correctly.");
+    }
+    return getFirestore(app);
+}
+
 
 const SUBMISSIONS_COLLECTION = 'submissions';
 const PROPERTIES_COLLECTION = 'properties';
 
 // Submissions Flow
 export async function createSubmission(submissionData: Omit<Submission, 'id' | 'createdAt' | 'status'>): Promise<string> {
+  const db = getDb();
   const submissionWithTimestamp = {
     ...submissionData,
     status: 'pending' as const,
@@ -29,6 +42,7 @@ export async function createSubmission(submissionData: Omit<Submission, 'id' | '
 }
 
 export async function getPendingSubmissions(): Promise<Submission[]> {
+  const db = getDb();
   const q = query(
     collection(db, SUBMISSIONS_COLLECTION),
     where('status', '==', 'pending'),
@@ -39,6 +53,7 @@ export async function getPendingSubmissions(): Promise<Submission[]> {
 }
 
 export async function updateSubmissionStatus(submissionId: string, status: 'approved' | 'rejected'): Promise<void> {
+  const db = getDb();
   const submissionRef = doc(db, SUBMISSIONS_COLLECTION, submissionId);
   await updateDoc(submissionRef, { status });
 }
@@ -46,6 +61,7 @@ export async function updateSubmissionStatus(submissionId: string, status: 'appr
 
 // Property Flow (after registrar approval)
 export async function createProperty(propertyData: Omit<Property, 'history'>): Promise<void> {
+    const db = getDb();
     const propertyWithHistory = {
         ...propertyData,
         history: [], // Initialize with empty history
@@ -55,6 +71,7 @@ export async function createProperty(propertyData: Omit<Property, 'history'>): P
 }
 
 export async function getPropertyByParcelId(parcelId: string): Promise<Property | null> {
+  const db = getDb();
   const docRef = doc(db, PROPERTIES_COLLECTION, parcelId);
   const docSnap = await getDoc(docRef);
   if (docSnap.exists()) {
@@ -64,6 +81,7 @@ export async function getPropertyByParcelId(parcelId: string): Promise<Property 
 }
 
 export async function getPropertiesByOwner(ownerAddress: string): Promise<Property[]> {
+  const db = getDb();
   if (!ownerAddress) return [];
   const q = query(
     collection(db, PROPERTIES_COLLECTION),
@@ -74,12 +92,14 @@ export async function getPropertiesByOwner(ownerAddress: string): Promise<Proper
 }
 
 export async function getAllProperties(): Promise<Property[]> {
+    const db = getDb();
     const q = query(collection(db, PROPERTIES_COLLECTION), orderBy('registeredAt', 'desc'));
     const querySnapshot = await getDocs(q);
     return querySnapshot.docs.map(doc => doc.data() as Property);
 }
 
 export async function listPropertyForSale(parcelId: string, price: string): Promise<void> {
+    const db = getDb();
     const propRef = doc(db, PROPERTIES_COLLECTION, parcelId);
     await updateDoc(propRef, {
         forSale: true,
@@ -88,6 +108,7 @@ export async function listPropertyForSale(parcelId: string, price: string): Prom
 }
 
 export async function unlistPropertyForSale(parcelId: string): Promise<void> {
+    const db = getDb();
     const propRef = doc(db, PROPERTIES_COLLECTION, parcelId);
     await updateDoc(propRef, {
         forSale: false,
@@ -96,6 +117,7 @@ export async function unlistPropertyForSale(parcelId: string): Promise<void> {
 }
 
 export async function updatePropertyOwner(parcelId: string, newOwner: string, txHash: string, price: string): Promise<void> {
+    const db = getDb();
     const propRef = doc(db, PROPERTIES_COLLECTION, parcelId);
     const propSnap = await getDoc(propRef);
 
