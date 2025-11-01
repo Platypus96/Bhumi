@@ -23,7 +23,7 @@ export default function DashboardPage() {
   const { isRegistrar, account } = useWeb3();
   const { registerProperty } = useBlockchain();
   const { toast } = useToast();
-  const { firestore } = useFirebase();
+  const { db: firestore } = useFirebase();
   
   const [submissions, setSubmissions] = useState<Submission[]>([]);
   const [loading, setLoading] = useState(true);
