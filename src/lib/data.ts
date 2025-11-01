@@ -1,3 +1,4 @@
+
 import {
   collection,
   doc,
@@ -15,6 +16,8 @@ import {
 
 import type { Property, Submission, TransferHistory } from './types';
 import { addDocumentNonBlocking, setDocumentNonBlocking, updateDocumentNonBlocking } from '@/firebase/non-blocking-updates';
+import { FirestorePermissionError } from '@/firebase/errors';
+import { errorEmitter } from '@/firebase/error-emitter';
 
 const SUBMISSIONS_COLLECTION = 'submissions';
 const PROPERTIES_COLLECTION = 'properties';
@@ -38,8 +41,17 @@ export async function getPendingSubmissions(db: Firestore): Promise<Submission[]
     where('status', '==', 'pending'),
     orderBy('createdAt', 'desc')
   );
-  const querySnapshot = await getDocs(q);
-  return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Submission));
+  try {
+    const querySnapshot = await getDocs(q);
+    return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Submission));
+  } catch (error) {
+    const contextualError = new FirestorePermissionError({
+      operation: 'list',
+      path: SUBMISSIONS_COLLECTION,
+    });
+    errorEmitter.emit('permission-error', contextualError);
+    throw contextualError;
+  }
 }
 
 export async function getSubmissionsByOwner(db: Firestore, ownerAddress: string): Promise<Submission[]> {
@@ -50,8 +62,17 @@ export async function getSubmissionsByOwner(db: Firestore, ownerAddress: string)
     where('status', '==', 'pending'),
     orderBy('createdAt', 'desc')
   );
-  const querySnapshot = await getDocs(q);
-  return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Submission));
+  try {
+    const querySnapshot = await getDocs(q);
+    return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Submission));
+  } catch (error) {
+    const contextualError = new FirestorePermissionError({
+      operation: 'list',
+      path: SUBMISSIONS_COLLECTION,
+    });
+    errorEmitter.emit('permission-error', contextualError);
+    throw contextualError;
+  }
 }
 
 export function updateSubmissionStatus(db: Firestore, submissionId: string, status: 'approved' | 'rejected'): void {
@@ -72,11 +93,20 @@ export function createProperty(db: Firestore, propertyData: Omit<Property, 'hist
 
 export async function getPropertyByParcelId(db: Firestore, parcelId: string): Promise<Property | null> {
   const docRef = doc(db, PROPERTIES_COLLECTION, parcelId);
-  const docSnap = await getDoc(docRef);
-  if (docSnap.exists()) {
-    return { ...docSnap.data() } as Property;
+  try {
+    const docSnap = await getDoc(docRef);
+    if (docSnap.exists()) {
+      return { ...docSnap.data() } as Property;
+    }
+    return null;
+  } catch (error) {
+    const contextualError = new FirestorePermissionError({
+      operation: 'get',
+      path: docRef.path,
+    });
+    errorEmitter.emit('permission-error', contextualError);
+    throw contextualError;
   }
-  return null;
 }
 
 export async function getPropertiesByOwner(db: Firestore, ownerAddress: string): Promise<Property[]> {
@@ -85,14 +115,32 @@ export async function getPropertiesByOwner(db: Firestore, ownerAddress: string):
     collection(db, PROPERTIES_COLLECTION),
     where('owner', '==', ownerAddress)
   );
-  const querySnapshot = await getDocs(q);
-  return querySnapshot.docs.map(doc => doc.data() as Property);
+  try {
+    const querySnapshot = await getDocs(q);
+    return querySnapshot.docs.map(doc => doc.data() as Property);
+  } catch (error) {
+    const contextualError = new FirestorePermissionError({
+      operation: 'list',
+      path: PROPERTIES_COLLECTION,
+    });
+    errorEmitter.emit('permission-error', contextualError);
+    throw contextualError;
+  }
 }
 
 export async function getAllProperties(db: Firestore): Promise<Property[]> {
     const q = query(collection(db, PROPERTIES_COLLECTION), orderBy('registeredAt', 'desc'));
-    const querySnapshot = await getDocs(q);
-    return querySnapshot.docs.map(doc => doc.data() as Property);
+    try {
+      const querySnapshot = await getDocs(q);
+      return querySnapshot.docs.map(doc => doc.data() as Property);
+    } catch (error) {
+      const contextualError = new FirestorePermissionError({
+        operation: 'list',
+        path: PROPERTIES_COLLECTION,
+      });
+      errorEmitter.emit('permission-error', contextualError);
+      throw contextualError;
+    }
 }
 
 export function listPropertyForSale(db: Firestore, parcelId: string, price: string): void {
@@ -140,5 +188,19 @@ export async function updatePropertyOwner(db: Firestore, parcelId: string, newOw
         price: null,
         txHash: txHash, // Update the main txHash to the latest transfer
         history: updatedHistory
+    }).catch(error => {
+      const contextualError = new FirestorePermissionError({
+        operation: 'update',
+        path: propRef.path,
+        requestResourceData: {
+          owner: newOwner,
+          forSale: false,
+          price: null,
+          txHash: txHash,
+          history: updatedHistory
+        }
+      });
+      errorEmitter.emit('permission-error', contextualError);
+      throw contextualError;
     });
 }
