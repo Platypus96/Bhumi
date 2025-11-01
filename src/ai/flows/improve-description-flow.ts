@@ -46,7 +46,6 @@ const improveDescriptionFlow = ai.defineFlow(
   "${input}"
   
   Improved Description:`,
-        model: 'gemini-pro'
     });
     return text;
   }
