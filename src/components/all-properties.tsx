@@ -14,13 +14,13 @@ interface AllPropertiesProps {
 export function AllProperties({ showForSaleOnly = false }: AllPropertiesProps) {
   const [properties, setProperties] = useState<Property[]>([]);
   const [loading, setLoading] = useState(true);
-  const { db } = useFirebase();
+  const { firestore } = useFirebase();
 
   useEffect(() => {
-    if (!db) return;
+    if (!firestore) return;
     const fetchProperties = async () => {
       setLoading(true);
-      let allProps = await getAllProperties(db);
+      let allProps = await getAllProperties(firestore);
       if (showForSaleOnly) {
         allProps = allProps.filter(p => p.forSale);
       }
@@ -28,7 +28,7 @@ export function AllProperties({ showForSaleOnly = false }: AllPropertiesProps) {
       setLoading(false);
     };
     fetchProperties();
-  }, [showForSaleOnly, db]);
+  }, [showForSaleOnly, firestore]);
 
   return (
      <>
