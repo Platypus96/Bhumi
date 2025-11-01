@@ -36,8 +36,8 @@ service cloud.firestore {
       // Allow anyone to read properties (for marketplace, public portal)
       allow read, list: if true;
       
-      // Only the owner can update their own property (e.g., list for sale)
-      allow update: if isAuthenticated() && isOwner(resource);
+      // Allow update if user is the owner OR the registrar.
+      allow update: if isAuthenticated() && (isOwner(resource) || isRegistrar());
 
       // Nobody can delete a property.
       allow delete: if false;
