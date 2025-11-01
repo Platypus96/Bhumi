@@ -1,3 +1,4 @@
+
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -12,6 +13,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { AlertCircle, PlusCircle } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
+import { useUser } from '@/firebase/provider';
 
 export default function MyPropertiesPage() {
   const [properties, setProperties] = useState<Property[]>([]);
@@ -19,15 +21,22 @@ export default function MyPropertiesPage() {
   const [loading, setLoading] = useState(true);
   const { account } = useWeb3();
   const { firestore } = useFirebase();
+  const { user } = useUser();
 
   useEffect(() => {
-    if (account && firestore) {
+    if (account && firestore && user) {
       const fetchAll = async () => {
         setLoading(true);
+        // Use user.uid which is the wallet address for fetching data
         const [myProps, mySubmissions] = await Promise.all([
-          getPropertiesByOwner(firestore, account),
-          getSubmissionsByOwner(firestore, account),
-        ]);
+          getPropertiesByOwner(firestore, user.uid),
+          getSubmissionsByOwner(firestore, user.uid),
+        ]).catch(err => {
+          console.error(err);
+          // If there's a permission error, we might get an empty array.
+          // The error is thrown to the overlay, so we can just show empty state here.
+          return [[], []];
+        });
         setProperties(myProps);
         setSubmissions(mySubmissions);
         setLoading(false);
@@ -36,9 +45,10 @@ export default function MyPropertiesPage() {
     } else {
       setProperties([]);
       setSubmissions([]);
-      setLoading(false);
+      // Don't stop loading if we are waiting for account/user
+      setLoading(!!(account && user));
     }
-  }, [account, firestore]);
+  }, [account, firestore, user]);
 
   if (!account) {
     return (
