@@ -22,7 +22,7 @@ import { formatEther } from "ethers";
 export default function PropertyDetailPage() {
   const params = useParams();
   const { account } = useWeb3();
-  const { db } = useFirebase();
+  const { firestore } = useFirebase();
   
   const [property, setProperty] = useState<Property | null>(null);
   const [loading, setLoading] = useState(true);
@@ -31,13 +31,13 @@ export default function PropertyDetailPage() {
   const isOwner = account?.toLowerCase() === property?.owner.toLowerCase();
   
   const fetchProperty = useCallback(async () => {
-    if (id && db) {
+    if (id && firestore) {
       setLoading(true);
-      const prop = await getPropertyByParcelId(db, id);
+      const prop = await getPropertyByParcelId(firestore, id);
       setProperty(prop);
       setLoading(false);
     }
-  }, [id, db]);
+  }, [id, firestore]);
 
 
   useEffect(() => {

@@ -1,4 +1,5 @@
-
+// This component is no longer used and can be safely deleted.
+// I'm leaving it here for now but it should be removed in a future cleanup.
 import Image from 'next/image';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';

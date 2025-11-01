@@ -21,51 +21,34 @@ export const useBlockchain = () => {
   }
 
   // Write functions
-  const registerProperty = async (
-    ownerAddress: string,
-    ipfsProofCid: string,
-    pointerCid: string = ""
+  const addProperty = async (
+    parcelId: string,
+    propertyImageCID: string,
+    proofCID: string
   ) => {
     const c = await getContract();
-    
-    // Use callStatic to simulate the transaction and get the return value (parcelId)
-    const parcelId = await c.registerProperty.staticCall(
-      ownerAddress,
-      ipfsProofCid,
-      pointerCid,
-      ZeroHash
-    );
-
-    // Then, execute the actual transaction
-    const tx = await c.registerProperty(
-      ownerAddress,
-      ipfsProofCid,
-      pointerCid,
-      ZeroHash
-    );
-
-    const receipt = await tx.wait();
-    return { parcelId, receipt };
+    const tx = await c.addProperty(parcelId, propertyImageCID, proofCID);
+    return await tx.wait();
   };
 
-  const listForSale = async (parcelId: string, priceInEth: string) => {
+  const markForSale = async (parcelId: string, priceInEth: string) => {
     const c = await getContract();
     const priceInWei = parseEther(priceInEth);
-    const tx = await c.listForSale(parcelId, priceInWei);
+    const tx = await c.markForSale(parcelId, priceInWei);
     return await tx.wait();
   };
   
-  const cancelListing = async (parcelId: string) => {
-    const c = await getContract();
-    const tx = await c.cancelListing(parcelId);
-    return await tx.wait();
-  };
-
   const buyProperty = async (parcelId: string, priceInWei: string) => {
     const c = await getContract();
     const tx = await c.buyProperty(parcelId, { value: priceInWei });
     return await tx.wait();
   };
+  
+  const verifyProperty = async (parcelId: string) => {
+    const c = await getContract();
+    const tx = await c.verifyProperty(parcelId);
+    return await tx.wait();
+  }
 
 
   // Read-only functions
@@ -75,18 +58,18 @@ export const useBlockchain = () => {
     return c.getProperty(parcelId);
   };
   
-  const getHistoryLength = async (parcelId: string) => {
+  const getUserProperties = async (address: string) => {
      const c = await getContract();
-     return c.getHistoryLength(parcelId);
+     return c.getUserProperties(address);
   }
 
   return {
     contract,
-    registerProperty,
-    listForSale,
-    cancelListing,
+    addProperty,
+    markForSale,
     buyProperty,
+    verifyProperty,
     getProperty,
-    getHistoryLength,
+    getUserProperties
   };
 };

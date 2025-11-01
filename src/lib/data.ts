@@ -12,6 +12,7 @@ import {
   orderBy,
   Firestore,
   addDoc,
+  writeBatch,
 } from 'firebase/firestore';
 
 import type { Property, Submission, TransferHistory } from './types';
@@ -19,76 +20,28 @@ import { addDocumentNonBlocking, setDocumentNonBlocking, updateDocumentNonBlocki
 import { FirestorePermissionError } from '@/firebase/errors';
 import { errorEmitter } from '@/firebase/error-emitter';
 
-const SUBMISSIONS_COLLECTION = 'submissions';
 const PROPERTIES_COLLECTION = 'properties';
 
-// Submissions Flow
-export function createSubmission(db: Firestore, submissionData: Omit<Submission, 'id' | 'createdAt' | 'status'>) {
-  const submissionWithTimestamp = {
-    ...submissionData,
-    status: 'pending' as const,
-    createdAt: Timestamp.now(),
-  };
-  const submissionsCollection = collection(db, SUBMISSIONS_COLLECTION);
-  // Use the non-blocking helper to get contextual errors on failure
-  return addDocumentNonBlocking(submissionsCollection, submissionWithTimestamp);
-}
-
-
-export async function getPendingSubmissions(db: Firestore): Promise<Submission[]> {
-  const q = query(
-    collection(db, SUBMISSIONS_COLLECTION),
-    where('status', '==', 'pending'),
-    orderBy('createdAt', 'desc')
-  );
-  try {
-    const querySnapshot = await getDocs(q);
-    return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Submission));
-  } catch (error) {
-    const contextualError = new FirestorePermissionError({
-      operation: 'list',
-      path: SUBMISSIONS_COLLECTION,
-    });
-    errorEmitter.emit('permission-error', contextualError);
-    throw contextualError;
-  }
-}
-
-export async function getSubmissionsByOwner(db: Firestore, ownerAddress: string): Promise<Submission[]> {
-  if (!ownerAddress) return [];
-  const q = query(
-    collection(db, SUBMISSIONS_COLLECTION),
-    where('owner', '==', ownerAddress),
-    where('status', '==', 'pending'),
-    orderBy('createdAt', 'desc')
-  );
-  try {
-    const querySnapshot = await getDocs(q);
-    return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Submission));
-  } catch (error) {
-    const contextualError = new FirestorePermissionError({
-      operation: 'list',
-      path: SUBMISSIONS_COLLECTION,
-    });
-    errorEmitter.emit('permission-error', contextualError);
-    throw contextualError;
-  }
-}
-
-export function updateSubmissionStatus(db: Firestore, submissionId: string, status: 'approved' | 'rejected'): void {
-  const submissionRef = doc(db, SUBMISSIONS_COLLECTION, submissionId);
-  updateDocumentNonBlocking(submissionRef, { status });
-}
-
-
-// Property Flow (after registrar approval)
-export function createProperty(db: Firestore, propertyData: Omit<Property, 'history'>): void {
-    const propertyWithHistory = {
+export async function createProperty(db: Firestore, propertyData: Omit<Property, 'history' | 'verified' | 'forSale' | 'price' | 'txHash' | 'registeredAt'>, txHash: string): Promise<void> {
+    const propertyWithDefaults = {
         ...propertyData,
-        history: [], // Initialize with empty history
+        verified: false,
+        forSale: false,
+        price: null,
+        history: [],
+        txHash: txHash,
+        registeredAt: Timestamp.now(),
     };
     const propertyRef = doc(db, PROPERTIES_COLLECTION, propertyData.parcelId);
-    setDocumentNonBlocking(propertyRef, propertyWithHistory, { merge: false });
+    await setDoc(propertyRef, propertyWithDefaults).catch(error => {
+      const contextualError = new FirestorePermissionError({
+        operation: 'create',
+        path: propertyRef.path,
+        requestResourceData: propertyWithDefaults
+      });
+      errorEmitter.emit('permission-error', contextualError);
+      throw contextualError;
+    });
 }
 
 export async function getPropertyByParcelId(db: Firestore, parcelId: string): Promise<Property | null> {
@@ -143,19 +96,50 @@ export async function getAllProperties(db: Firestore): Promise<Property[]> {
     }
 }
 
-export function listPropertyForSale(db: Firestore, parcelId: string, price: string): void {
+
+export async function verifyPropertyInDb(db: Firestore, parcelId: string): Promise<void> {
+  const propRef = doc(db, PROPERTIES_COLLECTION, parcelId);
+  await updateDoc(propRef, { verified: true }).catch(error => {
+    const contextualError = new FirestorePermissionError({
+      operation: 'update',
+      path: propRef.path,
+      requestResourceData: { verified: true }
+    });
+    errorEmitter.emit('permission-error', contextualError);
+    throw contextualError;
+  });
+}
+
+
+export async function listPropertyForSale(db: Firestore, parcelId: string, price: string): Promise<void> {
     const propRef = doc(db, PROPERTIES_COLLECTION, parcelId);
-    updateDocumentNonBlocking(propRef, {
+    await updateDoc(propRef, {
         forSale: true,
         price: price
+    }).catch(error => {
+      const contextualError = new FirestorePermissionError({
+        operation: 'update',
+        path: propRef.path,
+        requestResourceData: { forSale: true, price: price }
+      });
+      errorEmitter.emit('permission-error', contextualError);
+      throw contextualError;
     });
 }
 
-export function unlistPropertyForSale(db: Firestore, parcelId: string): void {
+export async function unlistPropertyForSale(db: Firestore, parcelId: string): Promise<void> {
     const propRef = doc(db, PROPERTIES_COLLECTION, parcelId);
-    updateDocumentNonBlocking(propRef, {
+    await updateDoc(propRef, {
         forSale: false,
         price: null
+    }).catch(error => {
+      const contextualError = new FirestorePermissionError({
+        operation: 'update',
+        path: propRef.path,
+        requestResourceData: { forSale: false, price: null }
+      });
+      errorEmitter.emit('permission-error', contextualError);
+      throw contextualError;
     });
 }
 
@@ -180,25 +164,19 @@ export async function updatePropertyOwner(db: Firestore, parcelId: string, newOw
 
     const updatedHistory = currentData.history ? [...currentData.history, newHistoryEntry] : [newHistoryEntry];
 
-    // This is a critical state update, so we'll use a blocking update for now
-    // to ensure the UI can react correctly upon completion.
-    await updateDoc(propRef, {
+    const updateData = {
         owner: newOwner,
         forSale: false,
         price: null,
         txHash: txHash, // Update the main txHash to the latest transfer
         history: updatedHistory
-    }).catch(error => {
+    };
+
+    await updateDoc(propRef, updateData).catch(error => {
       const contextualError = new FirestorePermissionError({
         operation: 'update',
         path: propRef.path,
-        requestResourceData: {
-          owner: newOwner,
-          forSale: false,
-          price: null,
-          txHash: txHash,
-          history: updatedHistory
-        }
+        requestResourceData: updateData
       });
       errorEmitter.emit('permission-error', contextualError);
       throw contextualError;

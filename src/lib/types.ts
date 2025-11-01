@@ -1,5 +1,6 @@
 import type { Timestamp } from "firebase/firestore";
 
+// This is now effectively a subset of the Property type, used during creation.
 export interface Submission {
   id: string;
   owner: string;
@@ -8,14 +9,13 @@ export interface Submission {
   area: string;
   imageUrl: string;
   proofCID: string;
-  pointerCID?: string;
   status: 'pending' | 'approved' | 'rejected';
   createdAt: Timestamp;
 }
 
 export interface TransferHistory {
   from: string;
-  to: string;
+  to:string;
   txHash: string;
   timestamp: Timestamp;
   price: string; // in wei
@@ -27,9 +27,8 @@ export interface Property {
   title: string;
   description: string;
   area: string;
-  imageUrl: string;
+  imageUrl: string; // This will now be an IPFS CID URL
   ipfsProofCid: string;
-  pointerCid?: string;
   verified: boolean;
   txHash: string;
   forSale: boolean;

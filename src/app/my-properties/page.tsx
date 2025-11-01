@@ -2,10 +2,9 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { getPropertiesByOwner, getSubmissionsByOwner } from '@/lib/data';
-import type { Property, Submission } from '@/lib/types';
+import { getPropertiesByOwner } from '@/lib/data';
+import type { Property } from '@/lib/types';
 import { PropertyCard } from '@/components/property-card';
-import { SubmissionCard } from '@/components/submission-card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useWeb3 } from '@/hooks/use-web3';
 import { useFirebase } from '@/firebase';
@@ -17,36 +16,30 @@ import { useUser } from '@/firebase/provider';
 
 export default function MyPropertiesPage() {
   const [properties, setProperties] = useState<Property[]>([]);
-  const [submissions, setSubmissions] = useState<Submission[]>([]);
   const [loading, setLoading] = useState(true);
   const { account } = useWeb3();
   const { firestore } = useFirebase();
   const { user } = useUser();
 
   useEffect(() => {
-    // We need account for wallet actions, and user.uid for data fetching.
+    // We need account for wallet actions, and user for data fetching.
     if (account && firestore && user) {
       const fetchAll = async () => {
         setLoading(true);
         // Use the wallet account for fetching data, as it's the source of truth for ownership.
-        const [myProps, mySubmissions] = await Promise.all([
-          getPropertiesByOwner(firestore, account),
-          getSubmissionsByOwner(firestore, account),
-        ]).catch(err => {
+        const myProps = await getPropertiesByOwner(firestore, account).catch(err => {
           console.error(err);
           // If there's a permission error, we might get an empty array.
           // The error is thrown to the overlay, so we can just show empty state here.
-          return [[], []];
+          return [];
         });
         setProperties(myProps);
-        setSubmissions(mySubmissions);
         setLoading(false);
       };
       fetchAll();
     } else if (!account) {
       // If wallet is not connected, clear data and stop loading.
       setProperties([]);
-      setSubmissions([]);
       setLoading(false);
     } else {
       // Don't stop loading if we are waiting for user/firestore/account
@@ -68,7 +61,7 @@ export default function MyPropertiesPage() {
     );
   }
 
-  const hasContent = properties.length > 0 || submissions.length > 0;
+  const hasContent = properties.length > 0;
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -78,7 +71,7 @@ export default function MyPropertiesPage() {
             My Properties
           </h1>
           <p className="mt-2 text-lg text-muted-foreground">
-            A list of your registered properties and pending submissions.
+            A list of your registered properties on the blockchain.
           </p>
         </div>
         <Button asChild>
@@ -105,9 +98,6 @@ export default function MyPropertiesPage() {
         <>
           {hasContent ? (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {submissions.map((sub) => (
-                <SubmissionCard key={sub.id} submission={sub} />
-              ))}
               {properties.map((prop) => (
                 <PropertyCard key={prop.parcelId} property={prop} />
               ))}
@@ -115,10 +105,10 @@ export default function MyPropertiesPage() {
           ) : (
             <div className="text-center py-16 border-2 border-dashed rounded-lg">
               <h3 className="text-xl font-medium text-muted-foreground">
-                You do not have any properties or submissions yet.
+                You do not have any properties yet.
               </h3>
               <p className="text-muted-foreground mt-2">
-                Get started by submitting a new property for registration.
+                Get started by adding a new property to the blockchain.
               </p>
             </div>
           )}

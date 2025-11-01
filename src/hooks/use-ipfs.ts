@@ -13,17 +13,11 @@ export const useIPFS = () => {
   const [error, setError] = useState<string | null>(null);
 
   // In a real app, you would have separate hooks/logic for Firebase Storage vs. IPFS
-  const uploadFile = async (file: File): Promise<{ cid: string; hash: string } | null> => {
+  const uploadFile = async (file: File): Promise<{ cid: string; } | null> => {
     setIsUploading(true);
     setError(null);
 
-    // 1. Calculate SHA-256 hash locally (optional, as contract does not use it)
-    const fileBuffer = await file.arrayBuffer();
-    const hashBuffer = await crypto.subtle.digest('SHA-256', fileBuffer);
-    const hashArray = Array.from(new Uint8Array(hashBuffer));
-    const localHash = '0x' + hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-
-    // 2. Upload to IPFS service (e.g., Pinata)
+    // Upload to IPFS service (e.g., Pinata)
     // IMPORTANT: Exposing API keys on the client is insecure. 
     // In a production app, this logic should be handled by a secure backend/serverless function.
     if (!IPFS_API_KEY || !IPFS_API_SECRET) {
@@ -32,9 +26,7 @@ export const useIPFS = () => {
         await new Promise(res => setTimeout(res, 1000));
         const mockCid = `Qm${[...Array(44)].map(() => "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789".charAt(Math.floor(Math.random() * 62))).join('')}`;
         setIsUploading(false);
-        // NOTE: In a real app, the `imageUrl` would come from Firebase Storage, not IPFS.
-        // This is a temporary stand-in.
-        return { cid: `https://gateway.pinata.cloud/ipfs/${mockCid}`, hash: localHash };
+        return { cid: `https://gateway.pinata.cloud/ipfs/${mockCid}` };
     }
     
     const formData = new FormData();
@@ -62,7 +54,7 @@ export const useIPFS = () => {
       const gatewayUrl = `https://gateway.pinata.cloud/ipfs/${cid}`;
 
       setIsUploading(false);
-      return { cid: gatewayUrl, hash: localHash };
+      return { cid: gatewayUrl };
 
     } catch (e: any) {
       console.error(e);
@@ -77,7 +69,7 @@ export const useIPFS = () => {
 
 export const downloadAndVerify = async (cid: string): Promise<{authentic: boolean, buffer: ArrayBuffer | null}> => {
     // In a real app, use an IPFS gateway
-    const gatewayUrl = `https://ipfs.io/ipfs/${cid}`;
+    const gatewayUrl = cid; // The CID is now the full URL.
 
     try {
         const response = await fetch(gatewayUrl);
@@ -87,7 +79,6 @@ export const downloadAndVerify = async (cid: string): Promise<{authentic: boolea
 
         const fileBuffer = await response.arrayBuffer();
         
-        // Since contract does not store hash, we just return true if download succeeds
         return { authentic: true, buffer: fileBuffer };
 
     } catch (e) {

@@ -4,7 +4,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { useWeb3 } from "@/hooks/use-web3";
-import { createSubmission } from "@/lib/data";
+import { createProperty } from "@/lib/data";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
@@ -17,6 +17,7 @@ import { useState } from "react";
 import { useIPFS } from "@/hooks/use-ipfs";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { useFirebase } from "@/firebase";
+import { useBlockchain } from "@/hooks/use-blockchain";
 
 const formSchema = z.object({
   title: z.string().min(5, "Title must be at least 5 characters."),
@@ -30,10 +31,9 @@ export default function AddPropertyPage() {
   const { account } = useWeb3();
   const { toast } = useToast();
   const router = useRouter();
-  const { uploadFile: uploadToIpfs, isUploading: isIpfsUploading } = useIPFS();
-  // For now, we use the same IPFS hook for storage upload as a placeholder.
-  const { uploadFile: uploadToStorage, isUploading: isStorageUploading } = useIPFS();
+  const { uploadFile: uploadToIpfs, isUploading } = useIPFS();
   const { firestore } = useFirebase();
+  const { addProperty } = useBlockchain();
   
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -62,31 +62,37 @@ export default function AddPropertyPage() {
       const imageFile = values.image[0] as File;
       const documentFile = values.document[0] as File;
 
-      // In a real app, this would use a Firebase Storage hook.
-      toast({ description: "Uploading image to storage..." });
-      const imageUploadResult = await uploadToStorage(imageFile);
-      if (!imageUploadResult) throw new Error("Image upload failed.");
+      toast({ description: "Uploading property image to IPFS..." });
+      const imageUploadResult = await uploadToIpfs(imageFile);
+      if (!imageUploadResult) throw new Error("Image upload to IPFS failed.");
       
-      toast({ description: "Uploading proof to IPFS..." });
+      toast({ description: "Uploading proof document to IPFS..." });
       const documentUploadResult = await uploadToIpfs(documentFile);
-      if (!documentUploadResult) throw new Error("IPFS upload failed.");
+      if (!documentUploadResult) throw new Error("Proof upload to IPFS failed.");
 
-      const newSubmission = {
+      // A unique identifier for the property. Can be anything, but for simplicity,
+      // we'll combine owner address and current timestamp.
+      const parcelId = `${account}-${Date.now()}`;
+
+      // 1. Add property to the blockchain
+      toast({ description: "Adding property to the blockchain..." });
+      const receipt = await addProperty(parcelId, imageUploadResult.cid, documentUploadResult.cid);
+
+      // 2. Add property to Firestore
+      toast({ description: "Saving property details..." });
+      await createProperty(firestore, {
+        parcelId: parcelId,
         owner: account,
         title: values.title,
         description: values.description,
         area: values.area,
-        // The CID from useIPFS is a full gateway URL, which works for imageUrl
-        imageUrl: imageUploadResult.cid, 
-        proofCID: documentUploadResult.cid,
-      };
-
-      const docRef = await createSubmission(firestore, newSubmission);
-      const submissionId = docRef.id;
+        imageUrl: imageUploadResult.cid,
+        ipfsProofCid: documentUploadResult.cid,
+      }, receipt.hash);
 
       toast({
-        title: "Submission Received!",
-        description: `Your property is pending registrar approval. Submission ID: ${submissionId.substring(0,10)}...`,
+        title: "Property Added!",
+        description: `Your new property has been registered on the blockchain with Parcel ID: ${parcelId.substring(0,10)}...`,
       });
       router.push(`/my-properties`);
 
@@ -107,21 +113,19 @@ export default function AddPropertyPage() {
             <Alert variant="destructive" className="max-w-md mx-auto">
                 <AlertCircle className="h-4 w-4" />
                 <AlertTitle>Access Denied</AlertTitle>
-                <AlertDescription>Please connect your wallet to submit a property.</AlertDescription>
+                <AlertDescription>Please connect your wallet to add a property.</AlertDescription>
             </Alert>
         </div>
     );
   }
 
-  const isUploading = isIpfsUploading || isStorageUploading;
-
   return (
     <div className="container mx-auto max-w-3xl px-4 py-8">
     <Card>
       <CardHeader>
-        <CardTitle>Submit New Property</CardTitle>
+        <CardTitle>Add New Property</CardTitle>
         <CardDescription>
-          Fill in the details below to submit a new property for registration. It will be reviewed by the registrar.
+          Fill in the details below to register a new property on the blockchain. All documents will be stored on IPFS.
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -179,7 +183,7 @@ export default function AddPropertyPage() {
                       <Input type="file" accept="image/*" className="pl-10" {...form.register("image")} />
                     </div>
                   </FormControl>
-                  <FormDescription>This image will be publicly visible.</FormDescription>
+                  <FormDescription>This image will be uploaded to IPFS and be publicly visible.</FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
@@ -204,7 +208,7 @@ export default function AddPropertyPage() {
             />
             <Button type="submit" className="w-full" disabled={isSubmitting || isUploading}>
               {(isSubmitting || isUploading) && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-              {isUploading ? "Uploading files..." : "Submit for Approval"}
+              {isUploading ? "Uploading to IPFS..." : "Add Property to Blockchain"}
             </Button>
           </form>
         </Form>

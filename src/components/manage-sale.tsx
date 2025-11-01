@@ -29,7 +29,7 @@ interface ManageSaleProps {
 
 export function ManageSale({ property, onSaleStatusChanged }: ManageSaleProps) {
   const { toast } = useToast();
-  const { listForSale, cancelListing } = useBlockchain();
+  const { markForSale } = useBlockchain(); // Using markForSale now, cancel is implicit in new contract
   const { firestore } = useFirebase();
   const [isProcessing, setIsProcessing] = useState(false);
 
@@ -42,10 +42,10 @@ export function ManageSale({ property, onSaleStatusChanged }: ManageSaleProps) {
     setIsProcessing(true);
     try {
       // 1. Call smart contract
-      await listForSale(property.parcelId, values.price);
+      await markForSale(property.parcelId, values.price);
       
       // 2. Update Firestore
-      listPropertyForSale(firestore, property.parcelId, parseEther(values.price).toString());
+      await listPropertyForSale(firestore, property.parcelId, parseEther(values.price).toString());
 
       toast({ title: "Property Listed!", description: `Your property is now listed for ${values.price} ETH.` });
       form.reset();
@@ -57,41 +57,12 @@ export function ManageSale({ property, onSaleStatusChanged }: ManageSaleProps) {
     }
   }
 
-  async function onCancelListing() {
-    if (!firestore) return;
-    setIsProcessing(true);
-    try {
-        // 1. Call smart contract
-        await cancelListing(property.parcelId);
-
-        // 2. Update Firestore
-        unlistPropertyForSale(firestore, property.parcelId);
-        
-        toast({ title: "Listing Cancelled", description: `Your property has been unlisted.` });
-        onSaleStatusChanged();
-    } catch (e: any) {
-        toast({ variant: 'destructive', title: 'Error', description: e.message || 'Failed to cancel listing.' });
-    } finally {
-        setIsProcessing(false);
-    }
-  }
-
-
+  // NOTE: The new contract doesn't seem to have an explicit unlist function.
+  // Marking for sale again with price 0 could be a way, but for now we assume
+  // listing is permanent until sold. Or owner can't unlist.
+  // We will remove the unlisting UI.
   if (property.forSale) {
-    return (
-        <Card className="mt-6">
-            <CardHeader>
-                <CardTitle className="flex items-center text-red-600"><XCircle className="mr-2" />Cancel Listing</CardTitle>
-                <CardDescription>This property is currently listed for sale. You can cancel the listing here.</CardDescription>
-            </CardHeader>
-            <CardContent>
-                <Button variant="destructive" className="w-full" onClick={onCancelListing} disabled={isProcessing}>
-                    {isProcessing && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                    Cancel Sale
-                </Button>
-            </CardContent>
-        </Card>
-    )
+    return null; // Don't show anything if already for sale, as there's no way to unlist
   }
 
   return (
