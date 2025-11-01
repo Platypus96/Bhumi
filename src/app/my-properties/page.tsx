@@ -24,13 +24,14 @@ export default function MyPropertiesPage() {
   const { user } = useUser();
 
   useEffect(() => {
+    // We need account for wallet actions, and user.uid for data fetching.
     if (account && firestore && user) {
       const fetchAll = async () => {
         setLoading(true);
-        // Use user.uid which is the wallet address for fetching data
+        // Use the wallet account for fetching data, as it's the source of truth for ownership.
         const [myProps, mySubmissions] = await Promise.all([
-          getPropertiesByOwner(firestore, user.uid),
-          getSubmissionsByOwner(firestore, user.uid),
+          getPropertiesByOwner(firestore, account),
+          getSubmissionsByOwner(firestore, account),
         ]).catch(err => {
           console.error(err);
           // If there's a permission error, we might get an empty array.
@@ -43,11 +44,12 @@ export default function MyPropertiesPage() {
       };
       fetchAll();
     } else if (!account) {
+      // If wallet is not connected, clear data and stop loading.
       setProperties([]);
       setSubmissions([]);
       setLoading(false);
     } else {
-      // Don't stop loading if we are waiting for user/firestore
+      // Don't stop loading if we are waiting for user/firestore/account
       setLoading(true);
     }
   }, [account, firestore, user]);
