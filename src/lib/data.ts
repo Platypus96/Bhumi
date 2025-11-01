@@ -1,5 +1,4 @@
 import {
-  addDoc,
   collection,
   doc,
   getDoc,
@@ -10,26 +9,27 @@ import {
   where,
   Timestamp,
   orderBy,
-  getFirestore,
   Firestore,
+  addDoc,
 } from 'firebase/firestore';
-import { getApps, initializeApp } from 'firebase/app';
-import type { Property, Submission, TransferHistory } from './types';
 
+import type { Property, Submission, TransferHistory } from './types';
+import { addDocumentNonBlocking, setDocumentNonBlocking, updateDocumentNonBlocking } from '@/firebase/non-blocking-updates';
 
 const SUBMISSIONS_COLLECTION = 'submissions';
 const PROPERTIES_COLLECTION = 'properties';
 
 // Submissions Flow
-export async function createSubmission(db: Firestore, submissionData: Omit<Submission, 'id' | 'createdAt' | 'status'>): Promise<string> {
+export function createSubmission(db: Firestore, submissionData: Omit<Submission, 'id' | 'createdAt' | 'status'>) {
   const submissionWithTimestamp = {
     ...submissionData,
     status: 'pending' as const,
     createdAt: Timestamp.now(),
   };
-  const docRef = await addDoc(collection(db, SUBMISSIONS_COLLECTION), submissionWithTimestamp);
-  return docRef.id;
+  const submissionsCollection = collection(db, SUBMISSIONS_COLLECTION);
+  return addDocumentNonBlocking(submissionsCollection, submissionWithTimestamp);
 }
+
 
 export async function getPendingSubmissions(db: Firestore): Promise<Submission[]> {
   const q = query(
@@ -41,20 +41,20 @@ export async function getPendingSubmissions(db: Firestore): Promise<Submission[]
   return querySnapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Submission));
 }
 
-export async function updateSubmissionStatus(db: Firestore, submissionId: string, status: 'approved' | 'rejected'): Promise<void> {
+export function updateSubmissionStatus(db: Firestore, submissionId: string, status: 'approved' | 'rejected'): void {
   const submissionRef = doc(db, SUBMISSIONS_COLLECTION, submissionId);
-  await updateDoc(submissionRef, { status });
+  updateDocumentNonBlocking(submissionRef, { status });
 }
 
 
 // Property Flow (after registrar approval)
-export async function createProperty(db: Firestore, propertyData: Omit<Property, 'history'>): Promise<void> {
+export function createProperty(db: Firestore, propertyData: Omit<Property, 'history'>): void {
     const propertyWithHistory = {
         ...propertyData,
         history: [], // Initialize with empty history
     };
     const propertyRef = doc(db, PROPERTIES_COLLECTION, propertyData.parcelId);
-    await setDoc(propertyRef, propertyWithHistory);
+    setDocumentNonBlocking(propertyRef, propertyWithHistory, { merge: false });
 }
 
 export async function getPropertyByParcelId(db: Firestore, parcelId: string): Promise<Property | null> {
@@ -82,17 +82,17 @@ export async function getAllProperties(db: Firestore): Promise<Property[]> {
     return querySnapshot.docs.map(doc => doc.data() as Property);
 }
 
-export async function listPropertyForSale(db: Firestore, parcelId: string, price: string): Promise<void> {
+export function listPropertyForSale(db: Firestore, parcelId: string, price: string): void {
     const propRef = doc(db, PROPERTIES_COLLECTION, parcelId);
-    await updateDoc(propRef, {
+    updateDocumentNonBlocking(propRef, {
         forSale: true,
         price: price
     });
 }
 
-export async function unlistPropertyForSale(db: Firestore, parcelId: string): Promise<void> {
+export function unlistPropertyForSale(db: Firestore, parcelId: string): void {
     const propRef = doc(db, PROPERTIES_COLLECTION, parcelId);
-    await updateDoc(propRef, {
+    updateDocumentNonBlocking(propRef, {
         forSale: false,
         price: null
     });
@@ -119,6 +119,8 @@ export async function updatePropertyOwner(db: Firestore, parcelId: string, newOw
 
     const updatedHistory = currentData.history ? [...currentData.history, newHistoryEntry] : [newHistoryEntry];
 
+    // This is a critical state update, so we'll use a blocking update for now
+    // to ensure the UI can react correctly upon completion.
     await updateDoc(propRef, {
         owner: newOwner,
         forSale: false,

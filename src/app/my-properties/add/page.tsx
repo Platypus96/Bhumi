@@ -16,7 +16,7 @@ import { FileUp, Loader2, AlertCircle } from "lucide-react";
 import { useState } from "react";
 import { useIPFS } from "@/hooks/use-ipfs";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
-import { useFirebase } from "@/firebase/provider";
+import { useFirebase } from "@/firebase";
 
 const formSchema = z.object({
   title: z.string().min(5, "Title must be at least 5 characters."),
@@ -33,7 +33,7 @@ export default function AddPropertyPage() {
   const { uploadFile: uploadToIpfs, isUploading: isIpfsUploading } = useIPFS();
   // For now, we use the same IPFS hook for storage upload as a placeholder.
   const { uploadFile: uploadToStorage, isUploading: isStorageUploading } = useIPFS();
-  const { db } = useFirebase();
+  const { firestore } = useFirebase();
   
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -51,7 +51,7 @@ export default function AddPropertyPage() {
         toast({ variant: "destructive", title: "Wallet not connected" });
         return;
     }
-    if (!db) {
+    if (!firestore) {
         toast({ variant: "destructive", title: "Database Error", description: "Firestore is not available." });
         return;
     }
@@ -71,7 +71,7 @@ export default function AddPropertyPage() {
       const documentUploadResult = await uploadToIpfs(documentFile);
       if (!documentUploadResult) throw new Error("IPFS upload failed.");
 
-      const submissionId = await createSubmission(db, {
+      const newSubmission = {
         owner: account,
         title: values.title,
         description: values.description,
@@ -79,7 +79,10 @@ export default function AddPropertyPage() {
         // The CID from useIPFS is a full gateway URL, which works for imageUrl
         imageUrl: imageUploadResult.cid, 
         proofCID: documentUploadResult.cid,
-      });
+      };
+
+      const docRef = await createSubmission(firestore, newSubmission);
+      const submissionId = docRef.id;
 
       toast({
         title: "Submission Received!",

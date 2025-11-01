@@ -14,7 +14,7 @@ import { listPropertyForSale, unlistPropertyForSale } from "@/lib/data";
 import { useBlockchain } from "@/hooks/use-blockchain";
 import type { Property } from "@/lib/types";
 import { parseEther } from "ethers";
-import { useFirebase } from "@/firebase/provider";
+import { useFirebase } from "@/firebase";
 
 const listSaleFormSchema = z.object({
   price: z.string().refine(val => !isNaN(parseFloat(val)) && parseFloat(val) > 0, {
@@ -30,7 +30,7 @@ interface ManageSaleProps {
 export function ManageSale({ property, onSaleStatusChanged }: ManageSaleProps) {
   const { toast } = useToast();
   const { listForSale, cancelListing } = useBlockchain();
-  const { db } = useFirebase();
+  const { firestore } = useFirebase();
   const [isProcessing, setIsProcessing] = useState(false);
 
   const form = useForm<z.infer<typeof listSaleFormSchema>>({
@@ -38,14 +38,14 @@ export function ManageSale({ property, onSaleStatusChanged }: ManageSaleProps) {
   });
 
   async function onListForSale(values: z.infer<typeof listSaleFormSchema>) {
-    if (!db) return;
+    if (!firestore) return;
     setIsProcessing(true);
     try {
       // 1. Call smart contract
       await listForSale(property.parcelId, values.price);
       
       // 2. Update Firestore
-      await listPropertyForSale(db, property.parcelId, parseEther(values.price).toString());
+      listPropertyForSale(firestore, property.parcelId, parseEther(values.price).toString());
 
       toast({ title: "Property Listed!", description: `Your property is now listed for ${values.price} ETH.` });
       form.reset();
@@ -58,14 +58,14 @@ export function ManageSale({ property, onSaleStatusChanged }: ManageSaleProps) {
   }
 
   async function onCancelListing() {
-    if (!db) return;
+    if (!firestore) return;
     setIsProcessing(true);
     try {
         // 1. Call smart contract
         await cancelListing(property.parcelId);
 
         // 2. Update Firestore
-        await unlistPropertyForSale(db, property.parcelId);
+        unlistPropertyForSale(firestore, property.parcelId);
         
         toast({ title: "Listing Cancelled", description: `Your property has been unlisted.` });
         onSaleStatusChanged();

@@ -7,7 +7,7 @@ import { useBlockchain } from "@/hooks/use-blockchain";
 import { useToast } from "@/hooks/use-toast";
 import type { Submission } from "@/lib/types";
 import { Timestamp } from "firebase/firestore";
-import { useFirebase } from "@/firebase/provider";
+import { useFirebase } from "@/firebase";
 
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
@@ -23,19 +23,19 @@ export default function DashboardPage() {
   const { isRegistrar, account } = useWeb3();
   const { registerProperty } = useBlockchain();
   const { toast } = useToast();
-  const { db } = useFirebase();
+  const { firestore } = useFirebase();
   
   const [submissions, setSubmissions] = useState<Submission[]>([]);
   const [loading, setLoading] = useState(true);
   const [processingId, setProcessingId] = useState<string | null>(null);
 
   const fetchPending = useCallback(async () => {
-    if (!db) return;
+    if (!firestore) return;
     setLoading(true);
-    const pending = await getPendingSubmissions(db);
+    const pending = await getPendingSubmissions(firestore);
     setSubmissions(pending);
     setLoading(false);
-  }, [db]);
+  }, [firestore]);
 
   useEffect(() => {
     if (isRegistrar) {
@@ -46,7 +46,7 @@ export default function DashboardPage() {
   }, [isRegistrar, fetchPending]);
 
   const handleApprove = async (submission: Submission) => {
-    if (!db) return;
+    if (!firestore) return;
     setProcessingId(submission.id);
     try {
       // 1. Call smart contract to register property
@@ -61,7 +61,7 @@ export default function DashboardPage() {
       }
 
       // 2. Create property in Firestore
-      await createProperty(db, {
+      createProperty(firestore, {
         parcelId: parcelId,
         owner: submission.owner,
         title: submission.title,
@@ -78,7 +78,7 @@ export default function DashboardPage() {
       });
       
       // 3. Update submission status
-      await updateSubmissionStatus(db, submission.id, 'approved');
+      updateSubmissionStatus(firestore, submission.id, 'approved');
 
       toast({
         title: "Submission Approved!",
@@ -100,11 +100,11 @@ export default function DashboardPage() {
     }
   };
   
-  const handleReject = async (submissionId: string) => {
-    if (!db) return;
+  const handleReject = (submissionId: string) => {
+    if (!firestore) return;
     setProcessingId(submissionId);
      try {
-      await updateSubmissionStatus(db, submissionId, 'rejected');
+      updateSubmissionStatus(firestore, submissionId, 'rejected');
       toast({
         title: "Submission Rejected",
         variant: "default",
