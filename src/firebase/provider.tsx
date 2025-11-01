@@ -4,13 +4,24 @@
 import React, { DependencyList, createContext, useContext, ReactNode, useMemo, useState, useEffect } from 'react';
 import { FirebaseApp } from 'firebase/app';
 import { Firestore } from 'firebase/firestore';
-import { Auth, User, onAuthStateChanged, signInAnonymously } from 'firebase/auth';
+import { Auth, User, onAuthStateChanged, signInAnonymously, signInWithCustomToken } from 'firebase/auth';
 import { FirebaseErrorListener } from '@/components/FirebaseErrorListener'
 import { initializeFirebase } from '@/firebase';
 
 interface FirebaseProviderProps {
   children: ReactNode;
 }
+
+// This would be a call to a secure backend to create a custom token
+// As we can't do this from the client, this is a placeholder.
+// The new flow in use-web3.tsx will handle auth differently.
+async function getCustomTokenForAddress(address: string): Promise<string> {
+    console.warn("Client-side token generation is not secure. This is a mock. A real backend is required for this flow.");
+    // In a real backend: admin.auth().createCustomToken(address)
+    // We will simulate a failure here to rely on the fallback.
+    return Promise.reject("Backend for custom token not implemented.");
+}
+
 
 // Combined state for the Firebase context
 export interface FirebaseContextState {
@@ -66,26 +77,23 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
     setFirebase(prev => ({ ...prev, firebaseApp, auth, firestore }));
 
     const unsubscribe = onAuthStateChanged(auth, (user) => {
-      if (user) {
-        // A user is signed in (could be anonymous or custom)
         setFirebase(prev => ({
           ...prev,
           user,
           isUserLoading: false,
           userError: null,
         }));
-      } else {
-        // No user is signed in, sign in anonymously as a fallback.
-        // This is useful for users who haven't connected their wallet yet.
-        signInAnonymously(auth).catch(error => {
-          console.error("FirebaseProvider: Anonymous sign-in failed:", error);
-           setFirebase(prev => ({ ...prev, user: null, isUserLoading: false, userError: error }));
-        });
-      }
     }, (error) => {
       console.error("FirebaseProvider: onAuthStateChanged error:", error);
       setFirebase(prev => ({ ...prev, user: null, isUserLoading: false, userError: error }));
     });
+
+    // Ensure there is at least an anonymous user if no one is signed in.
+    if (!auth.currentUser) {
+        signInAnonymously(auth).catch(error => {
+            console.error("Failed to sign in anonymously on startup:", error);
+        });
+    }
 
     return () => unsubscribe(); // Cleanup
   }, []);
