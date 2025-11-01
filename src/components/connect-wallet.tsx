@@ -23,8 +23,8 @@ export function WalletConnectButton() {
     return (
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="outline">
-            <User className="mr-2 h-4 w-4" />
+          <Button variant="outline" className="flex items-center gap-2">
+             <div className="h-2 w-2 rounded-full bg-green-500"></div>
             <span>{shortAddress}</span>
           </Button>
         </DropdownMenuTrigger>

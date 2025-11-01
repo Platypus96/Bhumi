@@ -15,8 +15,7 @@ import {
   writeBatch,
 } from 'firebase/firestore';
 
-import type { Property, Submission, TransferHistory } from './types';
-import { addDocumentNonBlocking, setDocumentNonBlocking, updateDocumentNonBlocking } from '@/firebase/non-blocking-updates';
+import type { Property, TransferHistory } from './types';
 import { FirestorePermissionError } from '@/firebase/errors';
 import { errorEmitter } from '@/firebase/error-emitter';
 

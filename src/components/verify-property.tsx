@@ -8,13 +8,14 @@ import { Search, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { getPropertyByParcelId } from "@/lib/data";
 import { useFirebase } from "@/firebase/provider";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 
 export function VerifyProperty() {
   const [parcelId, setParcelId] = useState("");
   const [loading, setLoading] = useState(false);
   const router = useRouter();
   const { toast } = useToast();
-  const { db } = useFirebase();
+  const { firestore } = useFirebase();
 
   const handleSearch = async () => {
     if (!parcelId) {
@@ -25,7 +26,7 @@ export function VerifyProperty() {
         });
       return;
     }
-    if (!db) {
+    if (!firestore) {
         toast({
             variant: "destructive",
             title: "Database Error",
@@ -35,7 +36,7 @@ export function VerifyProperty() {
     }
     setLoading(true);
     try {
-        const property = await getPropertyByParcelId(db, parcelId);
+        const property = await getPropertyByParcelId(firestore, parcelId);
         if (property) {
             router.push(`/property/${parcelId}`);
         } else {
@@ -57,22 +58,32 @@ export function VerifyProperty() {
   };
 
   return (
-    <div className="max-w-2xl mx-auto">
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-          <Input
-            type="search"
-            placeholder="Search by Parcel ID (e.g., 0xaddress...-1)"
-            className="w-full pl-10"
-            value={parcelId}
-            onChange={(e) => setParcelId(e.target.value)}
-            onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-          />
-        </div>
-        <Button onClick={handleSearch} disabled={loading} className="mt-4 w-full">
-            {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            Search Property
-        </Button>
-    </div>
+    <Card className="max-w-3xl mx-auto shadow-lg">
+        <CardHeader>
+            <CardTitle>Verify Property</CardTitle>
+            <CardDescription>Search by parcel ID to verify document authenticity</CardDescription>
+        </CardHeader>
+        <CardContent>
+            <form onSubmit={(e) => { e.preventDefault(); handleSearch(); }} className="space-y-4">
+                <div>
+                    <label htmlFor="parcelId" className="text-sm font-medium">Parcel ID</label>
+                    <div className="mt-1 flex rounded-md shadow-sm">
+                        <Input
+                            id="parcelId"
+                            name="parcelId"
+                            type="search"
+                            placeholder="Enter parcel ID"
+                            className="relative w-full rounded-r-none"
+                            value={parcelId}
+                            onChange={(e) => setParcelId(e.target.value)}
+                        />
+                        <Button type="submit" disabled={loading} className="rounded-l-none">
+                            {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : <Search className="h-5 w-5" />}
+                        </Button>
+                    </div>
+                </div>
+            </form>
+        </CardContent>
+    </Card>
   );
 }
