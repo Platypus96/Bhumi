@@ -1,21 +1,39 @@
+import type { Timestamp } from "firebase/firestore";
+
+export interface Submission {
+  id: string;
+  owner: string;
+  title: string;
+  description: string;
+  area: string;
+  imageUrl: string;
+  proofCID: string;
+  pointerCID?: string;
+  status: 'pending' | 'approved' | 'rejected';
+  createdAt: Timestamp;
+}
+
 export interface TransferHistory {
   from: string;
   to: string;
-  date: string;
   txHash: string;
+  timestamp: Timestamp;
+  price: string; // in wei
 }
 
 export interface Property {
-  id: string; // This is the parcelId from your spec
-  ownerAddress: string;
-  ownerName: string;
-  propertyAddress: string;
-  documentCID: string;
-  documentHash: string; // The SHA-256 hash
-  status: 'Registered' | 'Transfer Initiated';
-  transferTo?: string; // Buyer's address during transfer
-  transferHistory: TransferHistory[];
+  parcelId: string;
+  owner: string;
+  title: string;
+  description: string;
+  area: string;
   imageUrl: string;
-  imageHint: string;
-  txHash?: string; // Transaction hash from registration or last transfer
+  ipfsProofCid: string;
+  pointerCid?: string;
+  verified: boolean;
+  txHash: string;
+  forSale: boolean;
+  price: string | null; // in wei
+  history: TransferHistory[];
+  registeredAt: Timestamp;
 }

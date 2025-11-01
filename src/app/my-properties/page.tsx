@@ -1,13 +1,15 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { getProperties } from "@/lib/data";
+import { getPropertiesByOwner } from "@/lib/data";
 import type { Property } from "@/lib/types";
 import { PropertyCard } from "@/components/property-card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useWeb3 } from "@/hooks/use-web3";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { AlertCircle } from "lucide-react";
+import { AlertCircle, PlusCircle } from "lucide-react";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
 
 export default function MyPropertiesPage() {
   const [properties, setProperties] = useState<Property[]>([]);
@@ -18,13 +20,13 @@ export default function MyPropertiesPage() {
     if (account) {
       const fetchProperties = async () => {
         setLoading(true);
-        const allProps = await getProperties();
-        const myProps = allProps.filter(p => p.ownerAddress.toLowerCase() === account.toLowerCase());
+        const myProps = await getPropertiesByOwner(account);
         setProperties(myProps);
         setLoading(false);
       };
       fetchProperties();
     } else {
+      setProperties([]);
       setLoading(false);
     }
   }, [account]);
@@ -41,16 +43,23 @@ export default function MyPropertiesPage() {
     );
   }
 
-
   return (
     <div className="container mx-auto px-4 py-8">
-      <div className="text-center mb-8">
-        <h1 className="text-4xl font-bold tracking-tight text-primary font-headline">
-          My Properties
-        </h1>
-        <p className="mt-2 text-lg text-muted-foreground">
-          A list of properties registered to your wallet address.
-        </p>
+      <div className="flex flex-wrap justify-between items-center mb-8 gap-4">
+        <div className="text-left">
+            <h1 className="text-4xl font-bold tracking-tight text-primary font-headline">
+            My Properties
+            </h1>
+            <p className="mt-2 text-lg text-muted-foreground">
+            A list of properties registered to your wallet address.
+            </p>
+        </div>
+        <Button asChild>
+            <Link href="/my-properties/add">
+                <PlusCircle className="mr-2 h-4 w-4" />
+                Add New Property
+            </Link>
+        </Button>
       </div>
 
       {loading ? (
@@ -66,15 +75,20 @@ export default function MyPropertiesPage() {
           ))}
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {properties.length > 0 ? (
-            properties.map((prop) => (
-              <PropertyCard key={prop.id} property={prop} />
-            ))
-          ) : (
-            <p className="col-span-full text-center text-muted-foreground">You do not own any properties.</p>
-          )}
-        </div>
+        <>
+            {properties.length > 0 ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    {properties.map((prop) => (
+                        <PropertyCard key={prop.parcelId} property={prop} />
+                    ))}
+                </div>
+            ) : (
+                <div className="text-center py-16 border-2 border-dashed rounded-lg">
+                    <h3 className="text-xl font-medium text-muted-foreground">You do not own any properties yet.</h3>
+                    <p className="text-muted-foreground mt-2">Get started by submitting a new property for registration.</p>
+                </div>
+            )}
+        </>
       )}
     </div>
   );

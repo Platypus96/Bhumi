@@ -6,27 +6,33 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Search, Loader2 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { getPropertyById } from "@/lib/data";
+import { getPropertyByParcelId } from "@/lib/data";
 
 export function VerifyProperty() {
-  const [propertyId, setPropertyId] = useState("");
+  const [parcelId, setParcelId] = useState("");
   const [loading, setLoading] = useState(false);
   const router = useRouter();
   const { toast } = useToast();
 
   const handleSearch = async () => {
-    if (!propertyId) return;
+    if (!parcelId) {
+       toast({
+            variant: "destructive",
+            title: "Input Required",
+            description: "Please enter a Parcel ID to search.",
+        });
+      return;
+    }
     setLoading(true);
     try {
-        // TODO: Replace with smart contract call `getProperty(propertyId)`
-        const property = await getPropertyById(propertyId);
+        const property = await getPropertyByParcelId(parcelId);
         if (property) {
-            router.push(`/property/${propertyId}`);
+            router.push(`/property/${parcelId}`);
         } else {
             toast({
                 variant: "destructive",
                 title: "Not Found",
-                description: "No property found with that ID.",
+                description: "No property found with that Parcel ID.",
             });
         }
     } catch (error) {
@@ -46,10 +52,10 @@ export function VerifyProperty() {
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
           <Input
             type="search"
-            placeholder="Search by property ID (e.g. prop-001)"
+            placeholder="Search by Parcel ID (e.g., 0xaddress...-1)"
             className="w-full pl-10"
-            value={propertyId}
-            onChange={(e) => setPropertyId(e.target.value)}
+            value={parcelId}
+            onChange={(e) => setParcelId(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
           />
         </div>

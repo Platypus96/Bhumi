@@ -1,8 +1,9 @@
 "use client";
 
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useToast } from './use-toast';
 import { BrowserProvider } from 'ethers';
+import { REGISTRAR_ADDRESS } from '@/config/blockchain';
 
 interface Web3ContextType {
   account: string | null;
@@ -13,9 +14,6 @@ interface Web3ContextType {
 }
 
 const Web3Context = createContext<Web3ContextType | null>(null);
-
-// This is a common default address from Hardhat/Anvil nodes
-const REGISTRAR_ADDRESS = "0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266";
 
 export const Web3Provider = ({ children }: { children: React.ReactNode }) => {
   const [account, setAccount] = useState<string | null>(null);
@@ -100,7 +98,8 @@ export const Web3Provider = ({ children }: { children: React.ReactNode }) => {
             ethereum.removeListener('accountsChanged', handleAccountsChanged);
         }
     }
-  }, [toast]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
 
   return (

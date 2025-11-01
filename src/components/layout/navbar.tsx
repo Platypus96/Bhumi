@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Landmark, Menu, User } from "lucide-react";
+import { Landmark, Menu, Shield } from "lucide-react";
 import { useWeb3 } from "@/hooks/use-web3";
 import { WalletConnectButton } from "@/components/connect-wallet";
 import { Button } from "@/components/ui/button";
@@ -9,22 +9,24 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { useState } from "react";
 
 export function Navbar() {
-  const { account, isRegistrar } = useWeb3();
+  const { isRegistrar } = useWeb3();
   const [isMobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const navLinks = (
     <>
-       <Link href="/" className="transition-colors hover:text-foreground/80" onClick={() => setMobileMenuOpen(false)}>
+      <Link href="/public-portal" className="transition-colors hover:text-foreground/80" onClick={() => setMobileMenuOpen(false)}>
         Public Portal
       </Link>
-      {account && (
-        <Link href="/my-properties" className="transition-colors hover:text-foreground/80" onClick={() => setMobileMenuOpen(false)}>
+      <Link href="/my-properties" className="transition-colors hover:text-foreground/80" onClick={() => setMobileMenuOpen(false)}>
           My Properties
-        </Link>
-      )}
+      </Link>
+       <Link href="/marketplace" className="transition-colors hover:text-foreground/80" onClick={() => setMobileMenuOpen(false)}>
+          Marketplace
+      </Link>
       {isRegistrar && (
-        <Link href="/dashboard" className="transition-colors hover:text-foreground/80" onClick={() => setMobileMenuOpen(false)}>
-          Dashboard
+        <Link href="/dashboard" className="flex items-center text-primary transition-colors hover:text-primary/80 font-semibold" onClick={() => setMobileMenuOpen(false)}>
+          <Shield className="mr-2 h-4 w-4" />
+          Registrar Dashboard
         </Link>
       )}
     </>
