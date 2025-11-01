@@ -1,49 +1,11 @@
-
 rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-    
-    // Helper function to check if the user is authenticated.
-    function isAuthenticated() {
-      return request.auth != null;
-    }
-
-    // Helper function to check if the user is the owner of a document.
-    // NOTE: This now relies on a custom token where the UID is the wallet address.
-    // If using anonymous auth, this check must be handled differently or relaxed.
-    function isOwner(resource) {
-      return request.auth.uid == resource.data.owner;
-    }
-    
-    // Helper function to check if the user is the designated registrar.
-    // This now correctly checks the UID of the logged-in user against the registrar address.
-    // This requires the registrar to be signed in via a custom token where their UID is their wallet address.
-    function isRegistrar() {
-      return request.auth.uid == "0x8b66677cae6466db4fc485dec748d9577d0ef000";
-    }
-
-    // Properties:
-    match /properties/{propertyId} {
-      // Allow create if user is authenticated. We check the owner field integrity in the rule itself.
-      allow create: if isAuthenticated() && request.resource.data.owner != null && request.resource.data.owner is string && request.resource.data.owner.size() > 0;
-      
-      // Allow anyone to read properties (for marketplace, public portal)
-      allow read: if true;
-
-      // Allow listing of properties for any authenticated user
-      allow list: if isAuthenticated();
-      
-      // Allow update if user is the owner OR the registrar.
-      // This is the critical fix.
-      allow update: if isAuthenticated() && (isOwner(resource) || isRegistrar());
-
-      // Nobody can delete a property.
-      allow delete: if false;
-    }
-    
     match /{document=**} {
-      allow read, write: if false;
+      // WARNING: This allows anyone to read and write to your entire database.
+      // This is insecure and not recommended for production environments.
+      allow read, write: if true;
     }
   }
 }
