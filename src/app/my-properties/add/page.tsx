@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useForm } from "react-hook-form";
@@ -12,12 +13,13 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { FileUp, Loader2, AlertCircle } from "lucide-react";
+import { FileUp, Loader2, AlertCircle, Sparkles } from "lucide-react";
 import { useState } from "react";
 import { useIPFS } from "@/hooks/use-ipfs";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { useFirebase } from "@/firebase";
 import { useBlockchain } from "@/hooks/use-blockchain";
+import { improveDescription } from "@/ai/flows/improve-description-flow";
 
 const formSchema = z.object({
   title: z.string().min(5, "Title must be at least 5 characters."),
@@ -38,6 +40,7 @@ export default function AddPropertyPage() {
   const { addProperty } = useBlockchain();
   
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isImproving, setIsImproving] = useState(false);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -49,6 +52,25 @@ export default function AddPropertyPage() {
       videoUrl: "",
     },
   });
+
+  const handleImproveDescription = async () => {
+    const currentDescription = form.getValues("description");
+    if (!currentDescription) {
+      toast({ variant: "destructive", title: "Description is empty", description: "Please write a brief description first." });
+      return;
+    }
+    setIsImproving(true);
+    try {
+      const improved = await improveDescription(currentDescription);
+      form.setValue("description", improved);
+      toast({ title: "Description Improved!", description: "The property description has been enhanced by AI." });
+    } catch (error) {
+      console.error(error);
+      toast({ variant: "destructive", title: "AI Error", description: "Could not improve the description at this time." });
+    } finally {
+      setIsImproving(false);
+    }
+  };
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
     if (!account) {
@@ -155,7 +177,13 @@ export default function AddPropertyPage() {
               name="description"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Description</FormLabel>
+                  <div className="flex items-center justify-between">
+                    <FormLabel>Description</FormLabel>
+                    <Button type="button" variant="ghost" size="sm" onClick={handleImproveDescription} disabled={isImproving}>
+                      {isImproving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
+                      <span className="ml-2">Improve with AI</span>
+                    </Button>
+                  </div>
                   <FormControl>
                     <Textarea placeholder="A brief description of the property..." {...field} />
                   </FormControl>
@@ -241,7 +269,7 @@ export default function AddPropertyPage() {
                 </FormItem>
               )}
             />
-            <Button type="submit" className="w-full" disabled={isSubmitting || isUploading}>
+            <Button type="submit" className="w-full" disabled={isSubmitting || isUploading || isImproving}>
               {(isSubmitting || isUploading) && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               {isUploading ? "Uploading to IPFS..." : "Add Property to Blockchain"}
             </Button>
@@ -252,3 +280,5 @@ export default function AddPropertyPage() {
     </div>
   );
 }
+
+    
