@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
@@ -12,7 +13,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { User, ShieldAlert, Key, Loader2, History, Check, Tag, Building } from "lucide-react";
+import { User, ShieldAlert, Key, Loader2, History, Check, Tag, Building, Hourglass } from "lucide-react";
 import { format } from 'date-fns';
 import { VerifyDocument } from "@/components/verify-document";
 import { ManageSale } from "@/components/manage-sale";
@@ -107,8 +108,20 @@ export default function PropertyDetailPage() {
             </CardContent>
           </Card>
 
-          {isOwner && (
+           {isOwner && property.verified && (
             <ManageSale property={property} onSaleStatusChanged={fetchProperty} />
+          )}
+
+           {isOwner && !property.verified && (
+            <Card className="mt-6 border-dashed">
+                <CardHeader className="flex-row items-center gap-4">
+                    <Hourglass className="h-6 w-6 text-muted-foreground"/>
+                    <div>
+                        <CardTitle>Pending Verification</CardTitle>
+                        <CardDescription>This property must be verified by the registrar before it can be listed for sale.</CardDescription>
+                    </div>
+                </CardHeader>
+            </Card>
           )}
 
           {!isOwner && property.forSale && (
