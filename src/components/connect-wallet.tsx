@@ -23,7 +23,7 @@ export function WalletConnectButton() {
     return (
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <Button variant="outline" className="flex items-center gap-2 rounded-md bg-secondary text-secondary-foreground hover:bg-secondary/80">
+          <Button variant="outline" className="flex items-center gap-2 rounded-full font-semibold border-2">
              <div className="h-2.5 w-2.5 rounded-full bg-green-500"></div>
             <span>{shortAddress}</span>
           </Button>
@@ -46,7 +46,7 @@ export function WalletConnectButton() {
   }
 
   return (
-    <Button onClick={connectWallet} className="rounded-full font-bold" size="lg">
+    <Button onClick={connectWallet} className="rounded-full font-bold">
       <Wallet className="mr-2 h-5 w-5" />
       Connect Wallet
     </Button>

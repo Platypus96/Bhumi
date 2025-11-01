@@ -96,7 +96,7 @@ export default function MyPropertiesPage() {
             </div>
           ) : (
              <div className="text-center py-20 border-2 border-dashed rounded-xl bg-card">
-              <h3 className="text-2xl font-semibold text-muted-foreground">
+              <h3 className="text-2xl font-semibold text-muted-foreground font-headline">
                 You do not have any properties yet.
               </h3>
               <p className="text-muted-foreground mt-3">

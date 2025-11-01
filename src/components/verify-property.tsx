@@ -58,12 +58,8 @@ export function VerifyProperty() {
   };
 
   return (
-    <Card className="max-w-3xl mx-auto shadow-lg bg-card/80 backdrop-blur-sm">
-        <CardHeader>
-            <CardTitle>Verify Property</CardTitle>
-            <CardDescription>Search by parcel ID to verify document authenticity</CardDescription>
-        </CardHeader>
-        <CardContent>
+    <Card className="max-w-3xl mx-auto shadow-none border-2 border-dashed">
+        <CardContent className="p-6">
             <form onSubmit={(e) => { e.preventDefault(); handleSearch(); }} className="space-y-4">
                 <div>
                     <label htmlFor="parcelId" className="sr-only">Parcel ID</label>
@@ -72,12 +68,12 @@ export function VerifyProperty() {
                             id="parcelId"
                             name="parcelId"
                             type="search"
-                            placeholder="Enter parcel ID"
-                            className="relative w-full rounded-r-none"
+                            placeholder="Enter property parcel ID to verify..."
+                            className="relative w-full rounded-r-none h-12 text-base"
                             value={parcelId}
                             onChange={(e) => setParcelId(e.target.value)}
                         />
-                        <Button type="submit" disabled={loading} className="rounded-l-none bg-accent hover:bg-accent/90 text-white">
+                        <Button type="submit" disabled={loading} className="rounded-l-none h-12 bg-primary hover:bg-primary/90 text-white">
                             {loading ? <Loader2 className="h-5 w-5 animate-spin" /> : <Search className="h-5 w-5" />}
                         </Button>
                     </div>

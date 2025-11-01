@@ -12,10 +12,10 @@ export default function Home() {
              <div className="bg-primary/10 text-primary p-2 rounded-full">
               <Landmark className="h-8 w-8" />
             </div>
-            <h1 className="text-2xl font-bold tracking-tight text-primary">Land Registry DApp</h1>
+            <h1 className="text-2xl font-bold tracking-tight text-primary font-headline">Bhumi</h1>
           </div>
-          <p className="mt-6 text-4xl font-bold tracking-tight text-gray-900 sm:text-6xl dark:text-white">
-            A Secure & Transparent Land Registry on the Blockchain
+          <p className="mt-6 text-4xl font-bold tracking-tight text-gray-900 sm:text-6xl dark:text-white font-headline">
+            Secure, Transparent Land Registry on the Blockchain
           </p>
           <p className="mt-6 text-lg leading-8 text-gray-600 dark:text-gray-300">
             Leverage the power of decentralization to manage, verify, and transfer property with unparalleled security and transparency. Built with Ethereum and IPFS.

@@ -30,7 +30,7 @@ export function Navbar() {
         href={href} 
         className={cn(
           "px-3 py-2 rounded-md text-sm font-medium transition-colors",
-           isActive ? "bg-accent text-white" : "text-foreground/70 hover:text-foreground/90",
+           isActive ? "bg-secondary text-primary" : "text-foreground/70 hover:text-foreground/90",
            isRegistrarLink && "text-accent-foreground/70 hover:text-accent-foreground/90"
         )}
         onClick={onClick}
@@ -41,7 +41,7 @@ export function Navbar() {
   };
 
   const MobileNavLink = ({ href, children, onClick }: { href: string, children: React.ReactNode, onClick: () => void}) => (
-     <Link href={href} className="block px-3 py-2 rounded-md text-base font-medium text-foreground/80 hover:bg-accent/50" onClick={onClick}>
+     <Link href={href} className="block px-3 py-2 rounded-md text-base font-medium text-foreground/80 hover:bg-secondary/50" onClick={onClick}>
         {children}
       </Link>
   );
@@ -78,10 +78,10 @@ export function Navbar() {
       <div className="container flex h-16 items-center">
         <div className="mr-auto hidden md:flex items-center">
           <Link href="/" className="mr-6 flex items-center space-x-2">
-            <div className="bg-accent/20 text-accent p-2 rounded-lg">
-              <Landmark className="h-6 w-6" />
+            <div className="text-primary">
+              <Landmark className="h-7 w-7" />
             </div>
-            <span className="hidden font-bold sm:inline-block">LandRegistryDApp</span>
+            <span className="hidden font-bold sm:inline-block font-headline text-lg">Bhumi</span>
           </Link>
           <nav className="flex items-center space-x-1 text-sm font-medium">
             {desktopNav}
@@ -104,10 +104,10 @@ export function Navbar() {
               className="mb-4 flex items-center space-x-2"
               onClick={() => setMobileMenuOpen(false)}
             >
-              <div className="bg-accent/20 text-accent p-2 rounded-lg">
-                <Landmark className="h-6 w-6" />
+              <div className="text-primary">
+                <Landmark className="h-7 w-7" />
               </div>
-              <span className="font-bold">LandRegistryDApp</span>
+              <span className="font-bold font-headline text-lg">Bhumi</span>
             </Link>
             <div className="flex flex-col space-y-2">
               {mobileNav}
@@ -117,15 +117,15 @@ export function Navbar() {
         
         <div className="flex flex-1 items-center justify-start md:hidden">
           <Link href="/" className="flex items-center space-x-2">
-             <div className="bg-accent/20 text-accent p-2 rounded-lg">
-                <Landmark className="h-6 w-6" />
+             <div className="text-primary">
+                <Landmark className="h-7 w-7" />
               </div>
-            <span className="font-bold">LandRegistryDApp</span>
+            <span className="font-bold font-headline text-lg">Bhumi</span>
           </Link>
         </div>
         
         <div className="flex items-center justify-end space-x-4">
-          <Link href="/marketplace" className="hidden md:inline-flex px-3 py-2 rounded-md text-sm font-medium text-foreground/70 hover:text-foreground/90 transition-colors">Marketplace</Link>
+          <NavLink href="/marketplace" onClick={() => {}}>Marketplace</NavLink>
           <WalletConnectButton />
         </div>
       </div>

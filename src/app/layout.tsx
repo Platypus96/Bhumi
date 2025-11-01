@@ -5,9 +5,22 @@ import { Navbar } from '@/components/layout/navbar';
 import { Web3Provider } from '@/hooks/use-web3';
 import { FirebaseProvider } from '@/firebase/provider';
 import { FirebaseClientProvider } from '@/firebase/client-provider';
+import { Manrope, Lora } from 'next/font/google';
+
+const manrope = Manrope({
+  subsets: ['latin'],
+  display: 'swap',
+  variable: '--font-manrope',
+});
+
+const lora = Lora({
+  subsets: ['latin'],
+  display: 'swap',
+  variable: '--font-lora',
+});
 
 export const metadata: Metadata = {
-  title: 'LandRegistryDApp',
+  title: 'Bhumi',
   description: 'A secure and transparent land registry system powered by blockchain.',
 };
 
@@ -17,12 +30,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
-      <head>
-        <link rel="preconnect" href="https://fonts.googleapis.com" />
-        <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="" />
-        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
-      </head>
+    <html lang="en" suppressHydrationWarning className={`${manrope.variable} ${lora.variable}`}>
       <body className="font-body antialiased" suppressHydrationWarning>
         <FirebaseProvider>
           <FirebaseClientProvider>
