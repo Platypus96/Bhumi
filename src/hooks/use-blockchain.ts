@@ -38,7 +38,7 @@ export const useBlockchain = () => {
     return await tx.wait();
   };
   
-  const buyProperty = async (parcelId: string, priceInWei: string) => {
+  const buyProperty = async (parcelId: string, priceInWei: bigint) => {
     const c = await getContract();
     const tx = await c.buyProperty(parcelId, { value: priceInWei });
     return await tx.wait();
