@@ -41,15 +41,20 @@ service cloud.firestore {
         return request.auth != null && request.auth.uid == request.resource.data.owner;
       }
       
+      // A user can read a single document if they are the owner.
+      function canReadOwnSubmission() {
+        return request.auth != null && request.auth.uid == resource.data.owner;
+      }
+
+      // A user can perform a list query if that query is scoped to their own documents.
       function canQueryOwnSubmissions() {
-        // Allow list queries if they are scoped to the user's own submissions.
         return request.auth != null && request.query.resource.data.owner == request.auth.uid;
       }
 
       allow create: if isSubmissionOwner();
-      allow read: if request.auth != null && request.auth.uid == resource.data.owner;
+      allow get: if canReadOwnSubmission();
       allow list: if canQueryOwnSubmissions();
-      allow update, delete: if false; // Only registrar should be able to modify. This will be handled by application logic.
+      allow update, delete: if false; // Only registrar should be able to modify.
     }
     
     /**

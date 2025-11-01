@@ -42,11 +42,13 @@ export default function MyPropertiesPage() {
         setLoading(false);
       };
       fetchAll();
-    } else {
+    } else if (!account) {
       setProperties([]);
       setSubmissions([]);
-      // Don't stop loading if we are waiting for account/user
-      setLoading(!!(account && user));
+      setLoading(false);
+    } else {
+      // Don't stop loading if we are waiting for user/firestore
+      setLoading(true);
     }
   }, [account, firestore, user]);
 
