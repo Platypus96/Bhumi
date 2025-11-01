@@ -7,6 +7,8 @@ import { Firestore } from 'firebase/firestore';
 import { Auth, User, onAuthStateChanged, signInAnonymously, signInWithCustomToken } from 'firebase/auth';
 import { FirebaseErrorListener } from '@/components/FirebaseErrorListener'
 import { initializeFirebase } from '@/firebase';
+import { Loader2, University } from 'lucide-react';
+
 
 interface FirebaseProviderProps {
   children: ReactNode;
@@ -99,6 +101,21 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
   }, []);
 
   const contextValue = useMemo(() => firebase, [firebase]);
+
+  // While checking auth, show a loading screen to prevent content flash
+  if (firebase.isUserLoading) {
+    return (
+      <div className="flex h-screen w-full flex-col items-center justify-center bg-background">
+        <div className="flex items-center gap-x-4">
+            <div className="text-primary">
+                <University className="h-10 w-10 animate-pulse" />
+            </div>
+            <span className="font-bold sm:inline-block font-headline text-3xl">Bhumi</span>
+        </div>
+        <p className="mt-4 text-muted-foreground">Initializing...</p>
+      </div>
+    );
+  }
 
   return (
     <FirebaseContext.Provider value={contextValue}>
