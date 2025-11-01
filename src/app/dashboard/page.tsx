@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
@@ -11,7 +12,7 @@ import { useFirebase } from "@/firebase";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { AlertCircle, Check, Loader2, ShieldCheck } from "lucide-react";
+import { AlertCircle, Check, FileText, Loader2, ShieldCheck } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import Image from "next/image";
@@ -107,6 +108,7 @@ export default function DashboardPage() {
         <TableCell><Skeleton className="h-4 w-full" /></TableCell>
         <TableCell><Skeleton className="h-4 w-[150px]" /></TableCell>
         <TableCell><Skeleton className="h-4 w-[100px]" /></TableCell>
+        <TableCell><Skeleton className="h-8 w-24" /></TableCell>
         <TableCell><Skeleton className="h-8 w-20" /></TableCell>
       </TableRow>
     ))
@@ -130,6 +132,7 @@ export default function DashboardPage() {
                         <TableHead>Title & Owner</TableHead>
                         <TableHead>Registered At</TableHead>
                         <TableHead>Status</TableHead>
+                        <TableHead>Proof</TableHead>
                         <TableHead>Actions</TableHead>
                     </TableRow>
                     </TableHeader>
@@ -154,6 +157,14 @@ export default function DashboardPage() {
                                 </Badge>
                             </TableCell>
                             <TableCell>
+                                <Button asChild variant="outline" size="sm">
+                                    <Link href={prop.ipfsProofCid} target="_blank" rel="noopener noreferrer">
+                                        <FileText className="h-4 w-4 mr-2" />
+                                        View
+                                    </Link>
+                                </Button>
+                            </TableCell>
+                            <TableCell>
                                 { !prop.verified && (
                                   <Button size="sm" variant="outline" className="bg-green-50 hover:bg-green-100 text-green-700" onClick={() => handleVerify(prop)} disabled={!!processingId}>
                                       {processingId === prop.parcelId ? <Loader2 className="h-4 w-4 animate-spin"/> : <ShieldCheck className="h-4 w-4 mr-2"/>}
@@ -171,7 +182,7 @@ export default function DashboardPage() {
                         ))
                     ) : (
                         <TableRow>
-                        <TableCell colSpan={5} className="h-24 text-center">
+                        <TableCell colSpan={6} className="h-24 text-center">
                             No properties have been added yet.
                         </TableCell>
                         </TableRow>
