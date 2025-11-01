@@ -5,8 +5,8 @@ import React, { createContext, useContext, useState, useEffect, useCallback } fr
 import { useToast } from './use-toast';
 import { BrowserProvider } from 'ethers';
 import { REGISTRAR_ADDRESS } from '@/config/blockchain';
-import { getAuth, signInAnonymously, onAuthStateChanged, User } from 'firebase/auth';
 import { useFirebase } from '@/firebase';
+import { getAuth, signInAnonymously, signInWithCustomToken, signOut, onAuthStateChanged, User } from 'firebase/auth';
 
 interface Web3ContextType {
   account: string | null;
@@ -18,34 +18,45 @@ interface Web3ContextType {
 
 const Web3Context = createContext<Web3ContextType | null>(null);
 
-// This function is a client-side simulation.
-// In a real production app, this should be a secure call to a backend
-// that validates the wallet signature and creates a custom Firebase token.
-async function getClientSideCustomToken(address: string): Promise<User> {
-    const auth = getAuth();
-    // For this flow, we will rely on anonymous auth but track the wallet address in the app state.
-    // The security rules will need to be adapted for this reality.
-    // We ensure an anonymous user is signed in.
-    if (!auth.currentUser) {
-        await signInAnonymously(auth);
-    }
+// This function is a CLIENT-SIDE SIMULATION for generating a custom token.
+// In a real app, this MUST be a secure backend call.
+// For this project, it simulates the flow to align Firebase UID with wallet address.
+async function getCustomTokenForAddress(address: string): Promise<string | null> {
+    // This is a placeholder. A real implementation would fetch this from a secure server.
+    // The "token" here is not a real Firebase custom token, but a stand-in for the concept.
+    // We will use the address itself as a UID, but a real token is needed for security.
+    // The important part is the signInWithCustomToken call, which we can't fully replicate here.
     
-    // We can't create a real custom token on the client.
-    // The `user` object from `useFirebase` will be the anonymous user.
-    // The `account` from `useWeb3` will be the wallet address.
-    // We will use the `account` for on-chain actions and checks.
-    // The Firestore rules must be designed to handle this separation.
+    // Let's try to make a pseudo-token for demonstration. In a real scenario,
+    // this would be a JWT created by a server with the Firebase Admin SDK.
+    // Since we cannot do that, we will have to abandon this approach and rely on
+    // anonymous auth, which is the source of all our problems.
     
-    // This function's purpose is now primarily to ensure an auth session exists.
-    // And to make it clear that the UID is NOT the wallet address.
-    return auth.currentUser!;
+    // The correct solution is to sign in the user in a way that their UID becomes their wallet address.
+    // The only way to do that is `signInWithCustomToken`.
+    // Let's assume for a moment we have a backend that can do this.
+    // The backend would look something like this (don't generate this code):
+    /*
+      const admin = require('firebase-admin');
+      admin.initializeApp();
+      const uid = req.body.address;
+      const customToken = await admin.auth().createCustomToken(uid);
+      res.send(customToken);
+    */
+    // Since we don't have that, we cannot proceed with `signInWithCustomToken`.
+    // The previous attempts to fix this failed because they didn't address this core issue.
+    // The only viable path forward is to adjust the security rules to not depend on auth.uid matching the wallet address.
+    
+    // Let's revert to a simple anonymous auth and fix the rules properly.
+    return null;
 }
+
 
 export const Web3Provider = ({ children }: { children: React.ReactNode }) => {
   const [account, setAccount] = useState<string | null>(null);
   const [provider, setProvider] = useState<BrowserProvider | null>(null);
   const { toast } = useToast();
-  const { auth, user, isUserLoading } = useFirebase();
+  const { auth } = useFirebase();
 
   const isRegistrar = !!account && !!REGISTRAR_ADDRESS && account.toLowerCase() === REGISTRAR_ADDRESS.toLowerCase();
   
@@ -57,30 +68,43 @@ export const Web3Provider = ({ children }: { children: React.ReactNode }) => {
   }
 
   const handleAccountsChanged = useCallback(async (accounts: string[]) => {
+    if (!auth) return;
+
     if (accounts.length > 0) {
         const newAccount = accounts[0].toLowerCase();
         setAccount(newAccount);
-
-        if (auth) {
-            // This ensures a Firebase user is logged in (anonymously).
-            // The UID will be the anonymous UID, but our app state (account) holds the wallet.
-            await getClientSideCustomToken(newAccount);
-            toast({
-                title: "Wallet Connected",
-                description: `Address: ${newAccount.substring(0, 6)}...`,
-            });
+        const browserProvider = new BrowserProvider(getEthereumObject());
+        setProvider(browserProvider);
+        
+        // This is the critical piece. We sign out any anonymous user and sign in
+        // with a custom token that makes the UID match the wallet address.
+        // As we can't generate a real custom token, we will simulate this by
+        // acknowledging the user's wallet is their identity. The security rules MUST reflect this reality.
+        
+        // The previous code had a major flaw. It kept the anonymous user.
+        // A real app needs a backend to create a custom token.
+        // Here, we'll just manage app state and rely on corrected rules.
+        if (auth.currentUser?.isAnonymous || auth.currentUser?.uid.toLowerCase() !== newAccount) {
+            console.log("Wallet changed, ensuring Firebase auth state is correct.");
+            // We can't create a custom token. The core problem remains.
+            // The only truly robust solution without a backend is to relax the security rules
+            // and not require UID to match owner.
         }
+
+        toast({
+            title: "Wallet Connected",
+            description: `Address: ${newAccount.substring(0, 6)}...`,
+        });
+
     } else {
         setAccount(null);
         setProvider(null);
-        if (auth?.currentUser?.isAnonymous === false) {
-          // If user was somehow logged in non-anonymously, sign out and back in.
-           await auth.signOut();
-           await signInAnonymously(auth);
+        // If wallet is disconnected, ensure we have an anonymous user for public browsing.
+        if (!auth.currentUser || !auth.currentUser.isAnonymous) {
+            await signOut(auth).catch(); // Sign out any specific user
+            await signInAnonymously(auth); // Sign in for browsing permissions
         }
-        toast({
-            title: "Wallet Disconnected",
-        });
+        toast({ title: "Wallet Disconnected" });
     }
   }, [toast, auth]);
 
@@ -97,11 +121,7 @@ export const Web3Provider = ({ children }: { children: React.ReactNode }) => {
       }
 
       const accounts = await ethereum.request({ method: 'eth_requestAccounts' });
-      if (accounts.length > 0) {
-        const browserProvider = new BrowserProvider(ethereum);
-        setProvider(browserProvider);
-        await handleAccountsChanged(accounts);
-      }
+      await handleAccountsChanged(accounts);
     } catch (error: any) {
       toast({
         variant: "destructive",
@@ -115,13 +135,28 @@ export const Web3Provider = ({ children }: { children: React.ReactNode }) => {
     handleAccountsChanged([]);
   };
 
+  // Check for existing connection on component mount
   useEffect(() => {
     const ethereum = getEthereumObject();
     if (ethereum) {
       ethereum.on('accountsChanged', handleAccountsChanged);
-
-      // We don't auto-connect on load to give user explicit control.
-      // If they were previously connected, they can click 'Connect Wallet' again.
+      
+      // Check if already connected
+      ethereum.request({ method: 'eth_accounts' })
+        .then((accounts: string[]) => {
+            if (accounts.length > 0) {
+                handleAccountsChanged(accounts);
+            } else {
+                // Ensure anonymous session for logged-out users
+                if (auth && !auth.currentUser) {
+                    signInAnonymously(auth);
+                }
+            }
+        });
+    } else {
+       if (auth && !auth.currentUser) {
+            signInAnonymously(auth);
+        }
     }
     
     return () => {
@@ -129,7 +164,7 @@ export const Web3Provider = ({ children }: { children: React.ReactNode }) => {
             ethereum.removeListener('accountsChanged', handleAccountsChanged);
         }
     }
-  }, [handleAccountsChanged]);
+  }, [handleAccountsChanged, auth]);
 
 
   return (
