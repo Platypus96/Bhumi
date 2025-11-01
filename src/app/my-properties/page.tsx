@@ -17,15 +17,14 @@ export default function MyPropertiesPage() {
   const [properties, setProperties] = useState<Property[]>([]);
   const [loading, setLoading] = useState(true);
   const { account } = useWeb3();
-  const { firestore, user } = useFirebase();
+  const { firestore } = useFirebase();
 
   useEffect(() => {
-    // We now use `user.uid` which is the wallet address from Firebase Auth.
-    // This is more reliable than the potentially changing `account` from the Web3 provider.
-    if (user?.uid && firestore) {
+    // Use the connected wallet `account` as the source of truth for the owner's address.
+    if (account && firestore) {
       const fetchAll = async () => {
         setLoading(true);
-        const myProps = await getPropertiesByOwner(firestore, user.uid).catch(err => {
+        const myProps = await getPropertiesByOwner(firestore, account).catch(err => {
           console.error(err);
           return [];
         });
@@ -34,10 +33,11 @@ export default function MyPropertiesPage() {
       };
       fetchAll();
     } else {
+      // If no account is connected, clear properties and stop loading.
       setProperties([]);
       setLoading(false);
     }
-  }, [user, firestore]);
+  }, [account, firestore]);
 
   if (!account) {
     return (
