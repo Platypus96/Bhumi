@@ -1,9 +1,10 @@
 // SPDX-License-Identifier: MIT
-// The registrar address from your specification
-export const REGISTRAR_ADDRESS = process.env.NEXT_PUBLIC_REGISTRAR_ADDRESS || "0x8b66677CAe6466Db4fc485Dec748d9577D0eF000";
 
-// TODO: Replace with your actual deployed contract address
-export const CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_CONTRACT_ADDRESS || '0xecfb3676d7165a05953cA8E6667aac79f5Cb64E0';
+// The registrar address is now loaded from your environment variables
+export const REGISTRAR_ADDRESS = process.env.NEXT_PUBLIC_REGISTRAR_ADDRESS || "";
+
+// The contract address is now loaded from your environment variables
+export const CONTRACT_ADDRESS = process.env.NEXT_PUBLIC_CONTRACT_ADDRESS || '';
 
 // ABI from your specification
 export const CONTRACT_ABI = [
@@ -415,5 +416,3 @@ export const CONTRACT_ABI = [
 	}
 ]
 ;
-
-    
