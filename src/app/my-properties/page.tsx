@@ -1,32 +1,32 @@
-"use client";
+'use client';
 
-import { useState, useEffect } from "react";
-import { getPropertiesByOwner, getSubmissionsByOwner } from "@/lib/data";
-import type { Property, Submission } from "@/lib/types";
-import { PropertyCard } from "@/components/property-card";
-import { SubmissionCard } from "@/components/submission-card";
-import { Skeleton } from "@/components/ui/skeleton";
-import { useWeb3 } from "@/hooks/use-web3";
-import { useFirebase } from "@/firebase/provider";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { AlertCircle, PlusCircle } from "lucide-react";
-import Link from "next/link";
-import { Button } from "@/components/ui/button";
+import { useState, useEffect } from 'react';
+import { getPropertiesByOwner, getSubmissionsByOwner } from '@/lib/data';
+import type { Property, Submission } from '@/lib/types';
+import { PropertyCard } from '@/components/property-card';
+import { SubmissionCard } from '@/components/submission-card';
+import { Skeleton } from '@/components/ui/skeleton';
+import { useWeb3 } from '@/hooks/use-web3';
+import { useFirebase } from '@/firebase';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
+import { AlertCircle, PlusCircle } from 'lucide-react';
+import Link from 'next/link';
+import { Button } from '@/components/ui/button';
 
 export default function MyPropertiesPage() {
   const [properties, setProperties] = useState<Property[]>([]);
   const [submissions, setSubmissions] = useState<Submission[]>([]);
   const [loading, setLoading] = useState(true);
   const { account } = useWeb3();
-  const { db } = useFirebase();
+  const { firestore } = useFirebase();
 
   useEffect(() => {
-    if (account && db) {
+    if (account && firestore) {
       const fetchAll = async () => {
         setLoading(true);
         const [myProps, mySubmissions] = await Promise.all([
-            getPropertiesByOwner(db, account),
-            getSubmissionsByOwner(db, account)
+          getPropertiesByOwner(firestore, account),
+          getSubmissionsByOwner(firestore, account),
         ]);
         setProperties(myProps);
         setSubmissions(mySubmissions);
@@ -38,17 +38,19 @@ export default function MyPropertiesPage() {
       setSubmissions([]);
       setLoading(false);
     }
-  }, [account, db]);
+  }, [account, firestore]);
 
   if (!account) {
-     return (
-        <div className="container mx-auto px-4 py-8 text-center">
-            <Alert variant="destructive" className="max-w-md mx-auto">
-                <AlertCircle className="h-4 w-4" />
-                <AlertTitle>Access Denied</AlertTitle>
-                <AlertDescription>Please connect your wallet to view your properties.</AlertDescription>
-            </Alert>
-        </div>
+    return (
+      <div className="container mx-auto px-4 py-8 text-center">
+        <Alert variant="destructive" className="max-w-md mx-auto">
+          <AlertCircle className="h-4 w-4" />
+          <AlertTitle>Access Denied</AlertTitle>
+          <AlertDescription>
+            Please connect your wallet to view your properties.
+          </AlertDescription>
+        </Alert>
+      </div>
     );
   }
 
@@ -58,18 +60,18 @@ export default function MyPropertiesPage() {
     <div className="container mx-auto px-4 py-8">
       <div className="flex flex-wrap justify-between items-center mb-8 gap-4">
         <div className="text-left">
-            <h1 className="text-4xl font-bold tracking-tight text-primary font-headline">
+          <h1 className="text-4xl font-bold tracking-tight text-primary font-headline">
             My Properties
-            </h1>
-            <p className="mt-2 text-lg text-muted-foreground">
+          </h1>
+          <p className="mt-2 text-lg text-muted-foreground">
             A list of your registered properties and pending submissions.
-            </p>
+          </p>
         </div>
         <Button asChild>
-            <Link href="/my-properties/add">
-                <PlusCircle className="mr-2 h-4 w-4" />
-                Add New Property
-            </Link>
+          <Link href="/my-properties/add">
+            <PlusCircle className="mr-2 h-4 w-4" />
+            Add New Property
+          </Link>
         </Button>
       </div>
 
@@ -87,21 +89,25 @@ export default function MyPropertiesPage() {
         </div>
       ) : (
         <>
-            {hasContent ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    {submissions.map((sub) => (
-                        <SubmissionCard key={sub.id} submission={sub} />
-                    ))}
-                    {properties.map((prop) => (
-                        <PropertyCard key={prop.parcelId} property={prop} />
-                    ))}
-                </div>
-            ) : (
-                <div className="text-center py-16 border-2 border-dashed rounded-lg">
-                    <h3 className="text-xl font-medium text-muted-foreground">You do not own any properties yet.</h3>
-                    <p className="text-muted-foreground mt-2">Get started by submitting a new property for registration.</p>
-                </div>
-            )}
+          {hasContent ? (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {submissions.map((sub) => (
+                <SubmissionCard key={sub.id} submission={sub} />
+              ))}
+              {properties.map((prop) => (
+                <PropertyCard key={prop.parcelId} property={prop} />
+              ))}
+            </div>
+          ) : (
+            <div className="text-center py-16 border-2 border-dashed rounded-lg">
+              <h3 className="text-xl font-medium text-muted-foreground">
+                You do not have any properties or submissions yet.
+              </h3>
+              <p className="text-muted-foreground mt-2">
+                Get started by submitting a new property for registration.
+              </p>
+            </div>
+          )}
         </>
       )}
     </div>
