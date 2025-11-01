@@ -10,30 +10,32 @@ service cloud.firestore {
     }
 
     // Helper function to check if the user is the owner of a document.
+    // This now compares the user's UID (their wallet address) with the resource's owner field.
     function isOwner(resource) {
       return request.auth.uid == resource.data.owner;
     }
 
     // Helper function to check if the user making the query is the owner.
     function isQueryOwner() {
-      // This is the correct way to check for owner in a query's where clause.
       return request.auth.uid == request.query.where.owner;
     }
 
     // Helper function to check if the user is the designated registrar.
+    // This now correctly checks the UID of the logged-in user.
     function isRegistrar() {
-      // This wallet address is designated as the registrar for the application.
       return request.auth.uid == "0x8b66677CAe6466Db4fc485Dec748d9577D0eF000";
     }
 
     // Properties:
     match /properties/{propertyId} {
-      // Allow create if the owner field is a valid, non-empty string.
-      // This allows creation even if the UID doesn't match the wallet address initially.
-      allow create: if request.resource.data.owner.size() > 0;
+      // Allow create if the user's UID (wallet address) matches the owner field in the new document.
+      allow create: if isAuthenticated() && request.auth.uid == request.resource.data.owner;
       
       // Allow anyone to read properties (for marketplace, public portal)
-      allow read, list: if true;
+      allow read: if true;
+
+      // Allow listing of properties for any authenticated user
+      allow list: if isAuthenticated();
       
       // Allow update if user is the owner OR the registrar.
       allow update: if isAuthenticated() && (isOwner(resource) || isRegistrar());

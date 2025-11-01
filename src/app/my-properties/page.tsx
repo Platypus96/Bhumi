@@ -20,10 +20,12 @@ export default function MyPropertiesPage() {
   const { firestore, user } = useFirebase();
 
   useEffect(() => {
-    if (account && firestore && user) {
+    // We now use `user.uid` which is the wallet address from Firebase Auth.
+    // This is more reliable than the potentially changing `account` from the Web3 provider.
+    if (user?.uid && firestore) {
       const fetchAll = async () => {
         setLoading(true);
-        const myProps = await getPropertiesByOwner(firestore, account).catch(err => {
+        const myProps = await getPropertiesByOwner(firestore, user.uid).catch(err => {
           console.error(err);
           return [];
         });
@@ -35,7 +37,7 @@ export default function MyPropertiesPage() {
       setProperties([]);
       setLoading(false);
     }
-  }, [account, firestore, user]);
+  }, [user, firestore]);
 
   if (!account) {
     return (

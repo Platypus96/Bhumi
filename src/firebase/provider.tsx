@@ -1,13 +1,12 @@
+
 'use client';
 
 import React, { DependencyList, createContext, useContext, ReactNode, useMemo, useState, useEffect } from 'react';
 import { FirebaseApp } from 'firebase/app';
 import { Firestore } from 'firebase/firestore';
-import { Auth, User, onAuthStateChanged } from 'firebase/auth';
+import { Auth, User, onAuthStateChanged, signInAnonymously } from 'firebase/auth';
 import { FirebaseErrorListener } from '@/components/FirebaseErrorListener'
 import { initializeFirebase } from '@/firebase';
-import { initiateAnonymousSignIn } from './non-blocking-login';
-
 
 interface FirebaseProviderProps {
   children: ReactNode;
@@ -63,26 +62,24 @@ export const FirebaseProvider: React.FC<FirebaseProviderProps> = ({
   useEffect(() => {
     const { firebaseApp, auth, firestore } = initializeFirebase();
 
+    // Set services immediately
+    setFirebase(prev => ({ ...prev, firebaseApp, auth, firestore }));
+
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       if (user) {
-        setFirebase({
-          firebaseApp,
-          auth,
-          firestore,
+        // A user is signed in (could be anonymous or custom)
+        setFirebase(prev => ({
+          ...prev,
           user,
           isUserLoading: false,
           userError: null,
-        });
+        }));
       } else {
-        // User is not signed in, so we sign them in anonymously.
-        initiateAnonymousSignIn(auth);
-        setFirebase({
-          firebaseApp,
-          auth,
-          firestore,
-          user: null, // User will be updated on next onAuthStateChanged call
-          isUserLoading: true,
-          userError: null,
+        // No user is signed in, sign in anonymously as a fallback.
+        // This is useful for users who haven't connected their wallet yet.
+        signInAnonymously(auth).catch(error => {
+          console.error("FirebaseProvider: Anonymous sign-in failed:", error);
+           setFirebase(prev => ({ ...prev, user: null, isUserLoading: false, userError: error }));
         });
       }
     }, (error) => {
