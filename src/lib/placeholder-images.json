@@ -1,3 +1,34 @@
 {
-  "placeholderImages": []
+  "placeholderImages": [
+    {
+      "id": "property-1",
+      "description": "Modern suburban house",
+      "imageUrl": "https://images.unsplash.com/photo-1531971589569-0d9370cbe1e5?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwzfHxtb2Rlcm4lMjBob3VzZXxlbnwwfHx8fDE3NjE5NDU1ODh8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "modern house"
+    },
+    {
+      "id": "property-2",
+      "description": "Urban apartment building",
+      "imageUrl": "https://images.unsplash.com/photo-1594484208280-efa00f96fc21?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHxhcGFydG1lbnQlMjBidWlsZGluZ3xlbnwwfHx8fDE3NjE5Nzc5NDh8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "apartment building"
+    },
+    {
+      "id": "property-3",
+      "description": "Luxury villa with a pool",
+      "imageUrl": "https://images.unsplash.com/photo-1613977257365-aaae5a9817ff?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwzfHxsdXh1cnklMjB2aWxsYXxlbnwwfHx8fDE3NjE5NjM1Mzh8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "luxury villa"
+    },
+    {
+      "id": "property-4",
+      "description": "Cozy cottage in the countryside",
+      "imageUrl": "https://images.unsplash.com/photo-1561033318-86d027e3e814?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw1fHxjb3p5JTIwY290dGFnZXxlbnwwfHx8fDE3NjE5Nzc5NDh8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "cozy cottage"
+    },
+    {
+      "id": "property-5",
+      "description": "Downtown office space",
+      "imageUrl": "https://images.unsplash.com/photo-1497215842964-222b430dc094?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHw0fHxvZmZpY2UlMjBzcGFjZXxlbnwwfHx8fDE3NjE5MTEwODl8MA&ixlib=rb-4.1.0&q=80&w=1080",
+      "imageHint": "office space"
+    }
+  ]
 }
