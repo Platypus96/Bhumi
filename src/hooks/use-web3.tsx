@@ -36,7 +36,8 @@ export const Web3Provider = ({ children }: { children: React.ReactNode }) => {
         console.log("No authorized account found");
       }
     } catch (error) {
-      console.error(error);
+      // It's better to not log this as an error to the user in the console
+      // console.error(error);
     }
   }, []);
 
@@ -80,11 +81,10 @@ export const Web3Provider = ({ children }: { children: React.ReactNode }) => {
         description: `Connected with address: ${accounts[0].substring(0, 6)}...${accounts[0].substring(accounts[0].length - 4)}`,
       });
     } catch (error) {
-      console.error(error);
       toast({
         variant: "destructive",
         title: "Connection Failed",
-        description: "Failed to connect to wallet.",
+        description: "Failed to connect to wallet. The request may have been rejected.",
       });
     }
   };
