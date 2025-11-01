@@ -3,7 +3,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useToast } from './use-toast';
 import { BrowserProvider } from 'ethers';
-import { REGISTRAR_ADDRESS } from '@/config/blockchain';
 
 interface Web3ContextType {
   account: string | null;
@@ -15,12 +14,15 @@ interface Web3ContextType {
 
 const Web3Context = createContext<Web3ContextType | null>(null);
 
+const REGISTRAR_ADDRESS = process.env.NEXT_PUBLIC_REGISTRAR_ADDRESS || "";
+
+
 export const Web3Provider = ({ children }: { children: React.ReactNode }) => {
   const [account, setAccount] = useState<string | null>(null);
   const [provider, setProvider] = useState<BrowserProvider | null>(null);
   const { toast } = useToast();
 
-  const isRegistrar = account?.toLowerCase() === REGISTRAR_ADDRESS.toLowerCase();
+  const isRegistrar = !!account && !!REGISTRAR_ADDRESS && account.toLowerCase() === REGISTRAR_ADDRESS.toLowerCase();
   
   const getEthereumObject = () => {
     if (typeof window !== 'undefined') {
