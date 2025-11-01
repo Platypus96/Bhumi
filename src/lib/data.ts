@@ -16,16 +16,6 @@ import {
 import { getApps, initializeApp } from 'firebase/app';
 import type { Property, Submission, TransferHistory } from './types';
 
-// This is a temporary solution to get the db instance.
-// Ideally, this should be passed down from the provider or a centralized firebase service.
-const getDb = () => {
-    const app = getApps()[0];
-    if (!app) {
-        throw new Error("Firebase has not been initialized. Please ensure FirebaseProvider is set up correctly.");
-    }
-    return getFirestore(app);
-}
-
 
 const SUBMISSIONS_COLLECTION = 'submissions';
 const PROPERTIES_COLLECTION = 'properties';
