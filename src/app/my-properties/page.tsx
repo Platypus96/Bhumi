@@ -9,7 +9,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { useWeb3 } from '@/hooks/use-web3';
 import { useFirebase } from '@/firebase';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { AlertCircle, PlusCircle } from 'lucide-react';
+import { AlertCircle, PlusCircle, Building2, Home } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 
@@ -20,7 +20,6 @@ export default function MyPropertiesPage() {
   const { firestore } = useFirebase();
 
   useEffect(() => {
-    // Use the connected wallet `account` as the source of truth for the owner's address.
     if (account && firestore) {
       const fetchAll = async () => {
         setLoading(true);
@@ -33,7 +32,6 @@ export default function MyPropertiesPage() {
       };
       fetchAll();
     } else {
-      // If no account is connected, clear properties and stop loading.
       setProperties([]);
       setLoading(false);
     }
@@ -56,23 +54,27 @@ export default function MyPropertiesPage() {
   const hasContent = properties.length > 0;
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="flex flex-wrap justify-between items-center mb-12 gap-4">
-        <div className="text-left">
-          <h1 className="text-4xl font-bold tracking-tight text-primary font-headline">
-            My Properties
-          </h1>
-          <p className="mt-2 text-lg text-muted-foreground">
-            A list of your registered properties on the blockchain.
-          </p>
+    <div className="container mx-auto px-4 py-8 space-y-12">
+        <div className="flex flex-wrap items-center justify-between gap-6">
+            <div className="text-left">
+                <h1 className="text-4xl font-bold tracking-tight text-primary font-headline flex items-center">
+                   <div className="bg-primary/10 text-primary p-3 rounded-xl mr-4">
+                      <Home className="h-8 w-8" />
+                  </div>
+                  My Properties
+                </h1>
+                <p className="mt-2 text-lg text-muted-foreground">
+                    A list of your registered properties on the blockchain.
+                </p>
+            </div>
+             <Button asChild size="lg" className="rounded-full font-semibold">
+              <Link href="/my-properties/add">
+                <PlusCircle className="mr-2 h-5 w-5" />
+                Add New Property
+              </Link>
+            </Button>
         </div>
-        <Button asChild size="lg" className="rounded-full">
-          <Link href="/my-properties/add">
-            <PlusCircle className="mr-2 h-5 w-5" />
-            Add New Property
-          </Link>
-        </Button>
-      </div>
+
 
       {loading ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
@@ -95,12 +97,15 @@ export default function MyPropertiesPage() {
               ))}
             </div>
           ) : (
-             <div className="text-center py-20 border-2 border-dashed rounded-xl bg-card">
-              <h3 className="text-2xl font-semibold text-muted-foreground font-headline">
-                You do not have any properties yet.
+             <div className="flex flex-col items-center justify-center text-center py-20 bg-card/50 rounded-2xl border-2 border-dashed">
+                <div className="bg-secondary p-4 rounded-full mb-6">
+                    <Building2 className="h-12 w-12 text-muted-foreground" />
+                </div>
+              <h3 className="text-2xl font-semibold text-foreground font-headline">
+                You haven't added any properties yet.
               </h3>
-              <p className="text-muted-foreground mt-3">
-                Get started by adding a new property to the blockchain.
+              <p className="text-muted-foreground mt-2 max-w-md">
+                Get started by registering a new property on the blockchain to see it appear here.
               </p>
             </div>
           )}
