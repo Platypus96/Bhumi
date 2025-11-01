@@ -51,13 +51,7 @@ npm install
 
 ### 3. Set Up Environment Variables
 
-Create a `.env` file in the root of the project by copying the example:
-
-```bash
-cp .env.example .env
-```
-
-Now, open the `.env` file and fill in the required values:
+Create a file named `.env` in the root of your project and add the following variables, replacing the placeholder values with your actual credentials.
 
 ```
 # Address of the Ethereum account designated as the registrar
@@ -71,7 +65,7 @@ PINATA_API_KEY="YourPinataAPIKey"
 PINATA_API_SECRET="YourPinataSecretAPIKey"
 ```
 
-**Note**: You will also need to have your Firebase project configuration available in `src/firebase/config.ts`.
+**Note**: Your Firebase project configuration will be automatically handled. You do not need to add it to the `.env` file.
 
 ### 4. Run the Development Server
 
