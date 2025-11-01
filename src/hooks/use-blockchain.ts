@@ -31,9 +31,8 @@ export const useBlockchain = () => {
     return await tx.wait();
   };
 
-  const markForSale = async (parcelId: string, priceInEth: string) => {
+  const markForSale = async (parcelId: string, priceInWei: bigint) => {
     const c = await getContract();
-    const priceInWei = parseEther(priceInEth);
     const tx = await c.markForSale(parcelId, priceInWei);
     return await tx.wait();
   };

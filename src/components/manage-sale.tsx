@@ -50,7 +50,7 @@ export function ManageSale({ property, onSaleStatusChanged }: ManageSaleProps) {
       const priceInWei = parseEther(values.price);
       
       // 1. Call smart contract
-      await markForSale(property.parcelId, values.price); // Pass ETH string as per hook update
+      await markForSale(property.parcelId, priceInWei);
       
       // 2. Update Firestore
       await listPropertyForSale(firestore, property.parcelId, priceInWei.toString());
@@ -69,8 +69,8 @@ export function ManageSale({ property, onSaleStatusChanged }: ManageSaleProps) {
     if (!firestore) return;
     setIsProcessing(true);
     try {
-      // To unlist, we mark it for sale with a price of 0.
-      await markForSale(property.parcelId, "0");
+      // To unlist, we mark it for sale with a price of 0 wei.
+      await markForSale(property.parcelId, BigInt(0));
       
       // Update firestore
       await unlistPropertyForSale(firestore, property.parcelId);
