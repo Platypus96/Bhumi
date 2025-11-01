@@ -48,7 +48,7 @@ service cloud.firestore {
 
       // A user can perform a list query if that query is scoped to their own documents.
       function canQueryOwnSubmissions() {
-        return request.auth != null && request.query.resource.data.owner == request.auth.uid;
+        return request.auth != null && request.query.where.owner == request.auth.uid;
       }
 
       allow create: if isSubmissionOwner();
