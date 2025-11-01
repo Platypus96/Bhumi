@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from "react";
@@ -20,7 +21,7 @@ export function BuyProperty({ property, onPurchase }: BuyPropertyProps) {
     const { account } = useWeb3();
     const { toast } = useToast();
     const { buyProperty } = useBlockchain();
-    const { db } = useFirebase();
+    const { firestore } = useFirebase();
     const [isBuying, setIsBuying] = useState(false);
 
     const handleBuy = async () => {
@@ -29,7 +30,7 @@ export function BuyProperty({ property, onPurchase }: BuyPropertyProps) {
             toast({ variant: "destructive", title: "Wallet not connected" });
             return;
         }
-        if (!db) {
+        if (!firestore) {
             toast({ variant: "destructive", title: "Database Error", description: "Firestore is not available." });
             return;
         }
@@ -43,7 +44,7 @@ export function BuyProperty({ property, onPurchase }: BuyPropertyProps) {
             const buyerAddress = account;
 
             // 2. Update Firestore
-            await updatePropertyOwner(db, property.parcelId, buyerAddress, receipt.hash, property.price);
+            await updatePropertyOwner(firestore, property.parcelId, buyerAddress, receipt.hash, property.price);
 
             toast({
                 title: "Purchase Successful!",
