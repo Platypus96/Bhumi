@@ -6,11 +6,13 @@ import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { LogIn, LogOut, User } from "lucide-react";
 
-export function ConnectWallet() {
+export function WalletConnectButton() {
   const { account, connectWallet, disconnectWallet, isRegistrar } = useWeb3();
 
   if (account) {
@@ -27,7 +29,10 @@ export function ConnectWallet() {
           </Button>
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
-          {isRegistrar && <DropdownMenuItem disabled>Role: Registrar</DropdownMenuItem>}
+          <DropdownMenuLabel>
+            {isRegistrar ? "Role: Registrar" : "Role: User"}
+          </DropdownMenuLabel>
+          <DropdownMenuSeparator />
           <DropdownMenuItem onClick={disconnectWallet}>
             <LogOut className="mr-2 h-4 w-4" />
             <span>Disconnect</span>

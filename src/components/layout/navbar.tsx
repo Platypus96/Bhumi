@@ -1,28 +1,31 @@
 "use client";
 
 import Link from "next/link";
-import { Landmark, Menu } from "lucide-react";
+import { Landmark, Menu, User } from "lucide-react";
 import { useWeb3 } from "@/hooks/use-web3";
-import { ConnectWallet } from "@/components/connect-wallet";
+import { WalletConnectButton } from "@/components/connect-wallet";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { useState } from "react";
 
-export function Header() {
-  const { isRegistrar } = useWeb3();
+export function Navbar() {
+  const { account, isRegistrar } = useWeb3();
   const [isMobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const navLinks = (
     <>
+       <Link href="/" className="transition-colors hover:text-foreground/80" onClick={() => setMobileMenuOpen(false)}>
+        Public Portal
+      </Link>
+      {account && (
+        <Link href="/my-properties" className="transition-colors hover:text-foreground/80" onClick={() => setMobileMenuOpen(false)}>
+          My Properties
+        </Link>
+      )}
       {isRegistrar && (
-        <>
-          <Link href="/register" className="transition-colors hover:text-foreground/80" onClick={() => setMobileMenuOpen(false)}>
-            Register Property
-          </Link>
-          <Link href="/dashboard" className="transition-colors hover:text-foreground/80" onClick={() => setMobileMenuOpen(false)}>
-            Dashboard
-          </Link>
-        </>
+        <Link href="/dashboard" className="transition-colors hover:text-foreground/80" onClick={() => setMobileMenuOpen(false)}>
+          Dashboard
+        </Link>
       )}
     </>
   );
@@ -33,7 +36,7 @@ export function Header() {
         <div className="mr-4 hidden md:flex">
           <Link href="/" className="mr-6 flex items-center space-x-2">
             <Landmark className="h-6 w-6 text-primary" />
-            <span className="hidden font-bold sm:inline-block">Bhumi</span>
+            <span className="hidden font-bold sm:inline-block">LandRegistryDApp</span>
           </Link>
           <nav className="flex items-center space-x-6 text-sm font-medium text-foreground/60">
             {navLinks}
@@ -57,7 +60,7 @@ export function Header() {
               onClick={() => setMobileMenuOpen(false)}
             >
               <Landmark className="h-6 w-6 text-primary" />
-              <span className="font-bold">Bhumi</span>
+              <span className="font-bold">LandRegistryDApp</span>
             </Link>
             <div className="flex flex-col space-y-3">
               {navLinks}
@@ -67,11 +70,11 @@ export function Header() {
         
         <Link href="/" className="flex items-center space-x-2 md:hidden">
           <Landmark className="h-6 w-6 text-primary" />
-          <span className="font-bold">Bhumi</span>
+          <span className="font-bold">LandRegistryDApp</span>
         </Link>
         
         <div className="flex flex-1 items-center justify-end space-x-2">
-          <ConnectWallet />
+          <WalletConnectButton />
         </div>
       </div>
     </header>

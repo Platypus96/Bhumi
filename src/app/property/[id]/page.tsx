@@ -1,9 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
 import Image from "next/image";
-import { getPropertyById, initiateTransfer, approveTransfer } from "@/lib/data";
+import { getPropertyById, approveTransfer } from "@/lib/data";
 import type { Property } from "@/lib/types";
 import { useWeb3 } from "@/hooks/use-web3";
 import { useToast } from "@/hooks/use-toast";
@@ -12,18 +12,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { User, ShieldAlert, FileText, Landmark, Key, Loader2, Send, History, Check, CheckCircle } from "lucide-react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import { User, ShieldAlert, FileText, Landmark, Key, Loader2, History, Check, CheckCircle } from "lucide-react";
 import { format } from 'date-fns';
-
-const transferFormSchema = z.object({
-  buyerAddress: z.string().regex(/^0x[a-fA-F0-9]{40}$/, "Invalid Ethereum address."),
-});
+import { TransferProperty } from "@/components/transfer-property";
+import { VerifyDocument } from "@/components/verify-document";
 
 export default function PropertyDetailPage() {
   const params = useParams();
@@ -32,16 +25,10 @@ export default function PropertyDetailPage() {
   
   const [property, setProperty] = useState<Property | null>(null);
   const [loading, setLoading] = useState(true);
-  const [verificationStatus, setVerificationStatus] = useState<'idle' | 'verifying' | 'verified' | 'failed'>('idle');
-  const [isTransferring, setIsTransferring] = useState(false);
   const [isApproving, setIsApproving] = useState(false);
 
   const id = Array.isArray(params.id) ? params.id[0] : params.id;
   const isOwner = account?.toLowerCase() === property?.ownerAddress.toLowerCase();
-
-  const transferForm = useForm<z.infer<typeof transferFormSchema>>({
-    resolver: zodResolver(transferFormSchema),
-  });
 
   useEffect(() => {
     if (id) {
@@ -58,31 +45,7 @@ export default function PropertyDetailPage() {
       fetchProperty();
     }
   }, [id, toast]);
-
-  const handleVerify = () => {
-    setVerificationStatus('verifying');
-    setTimeout(() => {
-      // Simulate re-hashing and comparison
-      const isAuthentic = Math.random() > 0.1; // 90% chance of success
-      setVerificationStatus(isAuthentic ? 'verified' : 'failed');
-    }, 1500);
-  };
   
-  async function onInitiateTransfer(values: z.infer<typeof transferFormSchema>) {
-    if (!property) return;
-    setIsTransferring(true);
-    try {
-      const updatedProperty = await initiateTransfer(property.id, values.buyerAddress);
-      setProperty(updatedProperty!);
-      toast({ title: "Transfer Initiated", description: `Request to transfer to ${values.buyerAddress.substring(0,8)}... sent for registrar approval.` });
-      transferForm.reset();
-    } catch {
-      toast({ variant: 'destructive', title: 'Error', description: 'Failed to initiate transfer.' });
-    } finally {
-      setIsTransferring(false);
-    }
-  }
-
   async function onApproveTransfer() {
     if (!property) return;
     setIsApproving(true);
@@ -112,6 +75,10 @@ export default function PropertyDetailPage() {
       </div>
     );
   }
+  
+  const onTransferInitiated = (updatedProperty: Property) => {
+    setProperty(updatedProperty);
+  };
 
   return (
     <div className="container mx-auto px-4 py-8">
@@ -128,27 +95,8 @@ export default function PropertyDetailPage() {
             </div>
           </Card>
 
-          <Card className="mt-6">
-            <CardHeader>
-              <CardTitle className="flex items-center"><FileText className="mr-2" /> Document Verification</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-sm text-muted-foreground mb-4">Verify the integrity of the property document by comparing its hash with the one stored on the blockchain.</p>
-              <div className="space-y-2 text-sm break-all mb-4">
-                <p><strong>IPFS CID:</strong> {property.documentCID}</p>
-                <p><strong>On-Chain Hash (SHA-256):</strong> {property.documentHash}</p>
-              </div>
-              <Button onClick={handleVerify} disabled={verificationStatus === 'verifying'}>
-                {verificationStatus === 'verifying' && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                {verificationStatus === 'idle' && 'Verify Integrity'}
-                {verificationStatus === 'verifying' && 'Verifying...'}
-                {verificationStatus === 'verified' && 'Verified'}
-                {verificationStatus === 'failed' && 'Verification Failed'}
-              </Button>
-              {verificationStatus === 'verified' && <Alert className="mt-4 border-green-500 text-green-700"><CheckCircle className="h-4 w-4 text-green-500" /><AlertTitle>Success</AlertTitle><AlertDescription>Document hash matches the on-chain record. The document is authentic.</AlertDescription></Alert>}
-              {verificationStatus === 'failed' && <Alert variant="destructive" className="mt-4"><ShieldAlert className="h-4 w-4" /><AlertTitle>Warning</AlertTitle><AlertDescription>Document hash does not match the on-chain record. The document may have been tampered with.</AlertDescription></Alert>}
-            </CardContent>
-          </Card>
+          <VerifyDocument property={property} />
+          
         </div>
 
         <div>
@@ -175,26 +123,7 @@ export default function PropertyDetailPage() {
           </Card>
 
           {isOwner && property.status === 'Registered' && (
-            <Card className="mt-6">
-              <CardHeader><CardTitle className="flex items-center"><Send className="mr-2" />Initiate Property Transfer</CardTitle></CardHeader>
-              <CardContent>
-                <Form {...transferForm}>
-                  <form onSubmit={transferForm.handleSubmit(onInitiateTransfer)} className="space-y-4">
-                    <FormField control={transferForm.control} name="buyerAddress" render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Buyer&apos;s Wallet Address</FormLabel>
-                        <FormControl><Input placeholder="0x..." {...field} /></FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )} />
-                    <Button type="submit" className="w-full" disabled={isTransferring}>
-                       {isTransferring && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                       Initiate Transfer
-                    </Button>
-                  </form>
-                </Form>
-              </CardContent>
-            </Card>
+            <TransferProperty property={property} onTransferInitiated={onTransferInitiated} />
           )}
 
           {isRegistrar && property.status === 'Transfer Initiated' && (

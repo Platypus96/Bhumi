@@ -6,15 +6,16 @@ export interface TransferHistory {
 }
 
 export interface Property {
-  id: string;
+  id: string; // This is the parcelId from your spec
   ownerAddress: string;
   ownerName: string;
   propertyAddress: string;
   documentCID: string;
-  documentHash: string;
+  documentHash: string; // The SHA-256 hash
   status: 'Registered' | 'Transfer Initiated';
   transferTo?: string; // Buyer's address during transfer
   transferHistory: TransferHistory[];
   imageUrl: string;
   imageHint: string;
+  txHash?: string; // Transaction hash from registration or last transfer
 }

@@ -1,11 +1,11 @@
 import type {Metadata} from 'next';
 import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
-import { Header } from '@/components/layout/header';
+import { Navbar } from '@/components/layout/navbar';
 import { Web3Provider } from '@/hooks/use-web3';
 
 export const metadata: Metadata = {
-  title: 'Bhumi - Decentralized Land Registry',
+  title: 'LandRegistryDApp',
   description: 'A secure and transparent land registry system powered by blockchain.',
 };
 
@@ -24,7 +24,7 @@ export default function RootLayout({
       <body className="font-body antialiased" suppressHydrationWarning>
         <Web3Provider>
           <div className="relative flex min-h-screen flex-col">
-            <Header />
+            <Navbar />
             <main className="flex-1">{children}</main>
           </div>
           <Toaster />

@@ -2,9 +2,11 @@
 
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { useToast } from './use-toast';
+import { BrowserProvider } from 'ethers';
 
 interface Web3ContextType {
   account: string | null;
+  provider: BrowserProvider | null;
   connectWallet: () => Promise<void>;
   disconnectWallet: () => void;
   isRegistrar: boolean;
@@ -17,54 +19,34 @@ const REGISTRAR_ADDRESS = "0xf39fd6e51aad88f6f4ce6ab8827279cfffb92266";
 
 export const Web3Provider = ({ children }: { children: React.ReactNode }) => {
   const [account, setAccount] = useState<string | null>(null);
+  const [provider, setProvider] = useState<BrowserProvider | null>(null);
   const { toast } = useToast();
 
   const isRegistrar = account?.toLowerCase() === REGISTRAR_ADDRESS.toLowerCase();
-
-  const checkIfWalletIsConnected = useCallback(async () => {
-    try {
-      const { ethereum } = window as any;
-      if (!ethereum) {
-        console.log("Make sure you have MetaMask!");
-        return;
-      }
-
-      const accounts = await ethereum.request({ method: 'eth_accounts' });
-      if (accounts.length !== 0) {
-        setAccount(accounts[0]);
-      } else {
-        console.log("No authorized account found");
-      }
-    } catch (error) {
-      // It's better to not log this as an error to the user in the console
-      // console.error(error);
+  
+  const getEthereumObject = () => {
+    if (typeof window !== 'undefined') {
+      return (window as any).ethereum;
     }
-  }, []);
+    return null;
+  }
 
-  useEffect(() => {
-    checkIfWalletIsConnected();
-
-    const { ethereum } = window as any;
-    if (ethereum) {
-      const handleAccountsChanged = (accounts: string[]) => {
-        if (accounts.length > 0) {
-          setAccount(accounts[0]);
-        } else {
-          setAccount(null);
-          toast({
-            title: "Wallet Disconnected",
-            description: "Your MetaMask wallet has been disconnected.",
-          });
-        }
-      };
-      ethereum.on('accountsChanged', handleAccountsChanged);
-      return () => ethereum.removeListener('accountsChanged', handleAccountsChanged);
+  const handleAccountsChanged = (accounts: string[]) => {
+    if (accounts.length > 0) {
+      setAccount(accounts[0]);
+    } else {
+      setAccount(null);
+      setProvider(null);
+      toast({
+        title: "Wallet Disconnected",
+        description: "Your MetaMask wallet has been disconnected.",
+      });
     }
-  }, [checkIfWalletIsConnected, toast]);
+  };
 
   const connectWallet = async () => {
     try {
-      const { ethereum } = window as any;
+      const ethereum = getEthereumObject();
       if (!ethereum) {
         toast({
           variant: "destructive",
@@ -75,7 +57,11 @@ export const Web3Provider = ({ children }: { children: React.ReactNode }) => {
       }
 
       const accounts = await ethereum.request({ method: 'eth_requestAccounts' });
-      setAccount(accounts[0]);
+      handleAccountsChanged(accounts);
+
+      const browserProvider = new BrowserProvider(ethereum);
+      setProvider(browserProvider);
+      
       toast({
         title: "Wallet Connected",
         description: `Connected with address: ${accounts[0].substring(0, 6)}...${accounts[0].substring(accounts[0].length - 4)}`,
@@ -90,15 +76,35 @@ export const Web3Provider = ({ children }: { children: React.ReactNode }) => {
   };
 
   const disconnectWallet = () => {
-    setAccount(null);
-    toast({
-      title: "Wallet Disconnected",
-      description: "You have successfully disconnected your wallet.",
-    });
+    handleAccountsChanged([]);
   };
 
+  useEffect(() => {
+    const ethereum = getEthereumObject();
+    if (ethereum) {
+      ethereum.on('accountsChanged', handleAccountsChanged);
+
+      // Check for already connected wallet
+      (async () => {
+          const accounts = await ethereum.request({ method: 'eth_accounts' });
+          if (accounts.length > 0) {
+              handleAccountsChanged(accounts);
+              const browserProvider = new BrowserProvider(ethereum);
+              setProvider(browserProvider);
+          }
+      })();
+    }
+    
+    return () => {
+        if (ethereum) {
+            ethereum.removeListener('accountsChanged', handleAccountsChanged);
+        }
+    }
+  }, [toast]);
+
+
   return (
-    <Web3Context.Provider value={{ account, connectWallet, disconnectWallet, isRegistrar }}>
+    <Web3Context.Provider value={{ account, provider, connectWallet, disconnectWallet, isRegistrar }}>
       {children}
     </Web3Context.Provider>
   );
