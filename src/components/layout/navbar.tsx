@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Landmark, Menu, Shield } from "lucide-react";
+import { University, Menu, Shield } from "lucide-react";
 import { useWeb3 } from "@/hooks/use-web3";
 import { WalletConnectButton } from "@/components/connect-wallet";
 import { Button } from "@/components/ui/button";
@@ -79,7 +79,7 @@ export function Navbar() {
         <div className="mr-auto hidden md:flex items-center">
           <Link href="/" className="mr-6 flex items-center space-x-2">
             <div className="text-primary">
-              <Landmark className="h-7 w-7" />
+              <University className="h-7 w-7" />
             </div>
             <span className="hidden font-bold sm:inline-block font-headline text-lg">Bhumi</span>
           </Link>
@@ -105,7 +105,7 @@ export function Navbar() {
               onClick={() => setMobileMenuOpen(false)}
             >
               <div className="text-primary">
-                <Landmark className="h-7 w-7" />
+                <University className="h-7 w-7" />
               </div>
               <span className="font-bold font-headline text-lg">Bhumi</span>
             </Link>
@@ -118,7 +118,7 @@ export function Navbar() {
         <div className="flex flex-1 items-center justify-start md:hidden">
           <Link href="/" className="flex items-center space-x-2">
              <div className="text-primary">
-                <Landmark className="h-7 w-7" />
+                <University className="h-7 w-7" />
               </div>
             <span className="font-bold font-headline text-lg">Bhumi</span>
           </Link>

@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import { Landmark } from 'lucide-react';
+import { University } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
 export default function Home() {
@@ -10,7 +10,7 @@ export default function Home() {
           {/* Header */}
           <div className="flex items-center justify-center gap-x-3">
             <div className="bg-primary/10 p-3 rounded-full text-primary shadow-sm">
-              <Landmark className="h-7 w-7" />
+              <University className="h-7 w-7" />
             </div>
             <h1 className="text-3xl font-bold tracking-tight text-primary font-headline">
               Bhumi
