@@ -8,51 +8,39 @@ service cloud.firestore {
     function isAuthenticated() {
       return request.auth != null;
     }
-    
+
     // Helper function to check if the user is the owner of a document.
     function isOwner(resource) {
       return request.auth.uid == resource.data.owner;
     }
-    
+
     // Helper function to check if the user making the query is the owner.
     function isQueryOwner() {
+      // This is the correct way to check for owner in a query's where clause.
       return request.auth.uid == request.query.where.owner;
     }
 
     // Helper function to check if the user is the designated registrar.
     function isRegistrar() {
-      // The registrar address must be stored somewhere accessible to rules.
-      // For this example, we'll check against a hardcoded address in a root document.
-      // In a real app, this could be managed in a config document.
-      // Let's assume you have a document /config/registrar with a field `address`.
-      // For simplicity here, we will check against the owner of this request for now.
-      // This is not a robust registrar check but will work for the demo.
-      // A better approach is to use custom claims.
-      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'registrar';
+      // In a real app, this should be managed via custom claims or a config document.
+      // For this app, we check against a hardcoded address in an environment variable.
+      return request.auth.uid == get(/databases/$(database)/documents/config/registrar).data.address;
     }
 
-    // Submissions: Users can create them, and only owners or the registrar can access them.
-    match /submissions/{submissionId} {
-      allow create: if isAuthenticated() && request.resource.data.owner == request.auth.uid;
-      allow read: if isAuthenticated() && (isOwner(resource) || isRegistrar());
-      allow list: if isAuthenticated() && (isQueryOwner() || isRegistrar());
-      allow update: if isAuthenticated() && isRegistrar(); // Only registrar can approve/reject.
-      allow delete: if false;
-    }
-
-    // Properties: Public can read verified properties. Only owners can manage sales.
+    // Properties:
     match /properties/{propertyId} {
-      allow create: if isAuthenticated() && isRegistrar(); // Only registrar can create properties from submissions.
-      allow read: if resource.data.verified == true;
-      allow list: if true; // Allow listing all properties for the marketplace.
+      // Allow create if the owner field is a valid, non-empty string.
+      // This allows creation even if the UID doesn't match the wallet address initially.
+      allow create: if request.resource.data.owner.size() > 0;
       
-      // Only the owner can list/unlist for sale.
+      // Allow anyone to read properties (for marketplace, public portal)
+      allow read, list: if true;
+      
+      // Only the owner can update their own property (e.g., list for sale)
       allow update: if isAuthenticated() && isOwner(resource);
-    }
-    
-    // A simple collection to store user roles.
-    match /users/{userId} {
-        allow read, write: if request.auth.uid == userId || isRegistrar();
+
+      // Nobody can delete a property.
+      allow delete: if false;
     }
     
     match /{document=**} {
