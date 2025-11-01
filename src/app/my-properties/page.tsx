@@ -12,38 +12,28 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { AlertCircle, PlusCircle } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { useUser } from '@/firebase/provider';
 
 export default function MyPropertiesPage() {
   const [properties, setProperties] = useState<Property[]>([]);
   const [loading, setLoading] = useState(true);
   const { account } = useWeb3();
-  const { firestore } = useFirebase();
-  const { user } = useUser();
+  const { firestore, user } = useFirebase();
 
   useEffect(() => {
-    // We need account for wallet actions, and user for data fetching.
     if (account && firestore && user) {
       const fetchAll = async () => {
         setLoading(true);
-        // Use the wallet account for fetching data, as it's the source of truth for ownership.
         const myProps = await getPropertiesByOwner(firestore, account).catch(err => {
           console.error(err);
-          // If there's a permission error, we might get an empty array.
-          // The error is thrown to the overlay, so we can just show empty state here.
           return [];
         });
         setProperties(myProps);
         setLoading(false);
       };
       fetchAll();
-    } else if (!account) {
-      // If wallet is not connected, clear data and stop loading.
+    } else {
       setProperties([]);
       setLoading(false);
-    } else {
-      // Don't stop loading if we are waiting for user/firestore/account
-      setLoading(true);
     }
   }, [account, firestore, user]);
 
@@ -65,7 +55,7 @@ export default function MyPropertiesPage() {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <div className="flex flex-wrap justify-between items-center mb-8 gap-4">
+      <div className="flex flex-wrap justify-between items-center mb-12 gap-4">
         <div className="text-left">
           <h1 className="text-4xl font-bold tracking-tight text-primary font-headline">
             My Properties
@@ -74,19 +64,19 @@ export default function MyPropertiesPage() {
             A list of your registered properties on the blockchain.
           </p>
         </div>
-        <Button asChild>
+        <Button asChild size="lg" className="rounded-full">
           <Link href="/my-properties/add">
-            <PlusCircle className="mr-2 h-4 w-4" />
+            <PlusCircle className="mr-2 h-5 w-5" />
             Add New Property
           </Link>
         </Button>
       </div>
 
       {loading ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {Array.from({ length: 3 }).map((_, i) => (
             <div key={i} className="flex flex-col space-y-3">
-              <Skeleton className="h-[225px] w-full rounded-xl" />
+              <Skeleton className="h-[250px] w-full rounded-xl" />
               <div className="space-y-2">
                 <Skeleton className="h-4 w-[250px]" />
                 <Skeleton className="h-4 w-[200px]" />
@@ -97,17 +87,17 @@ export default function MyPropertiesPage() {
       ) : (
         <>
           {hasContent ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
               {properties.map((prop) => (
                 <PropertyCard key={prop.parcelId} property={prop} />
               ))}
             </div>
           ) : (
-            <div className="text-center py-16 border-2 border-dashed rounded-lg">
-              <h3 className="text-xl font-medium text-muted-foreground">
+             <div className="text-center py-20 border-2 border-dashed rounded-xl bg-card">
+              <h3 className="text-2xl font-semibold text-muted-foreground">
                 You do not have any properties yet.
               </h3>
-              <p className="text-muted-foreground mt-2">
+              <p className="text-muted-foreground mt-3">
                 Get started by adding a new property to the blockchain.
               </p>
             </div>

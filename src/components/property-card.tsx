@@ -3,7 +3,7 @@ import Image from 'next/image';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import type { Property } from '@/lib/types';
-import { Fingerprint, Tag } from 'lucide-react';
+import { Fingerprint, Tag, CheckCircle } from 'lucide-react';
 import { formatEther } from 'ethers';
 
 interface PropertyCardProps {
@@ -12,40 +12,46 @@ interface PropertyCardProps {
 
 export function PropertyCard({ property }: PropertyCardProps) {
   return (
-    <Link href={`/property/${property.parcelId}`} className="block">
-      <Card className="h-full flex flex-col hover:shadow-lg transition-shadow duration-300 overflow-hidden">
+    <Link href={`/property/${property.parcelId}`} className="block group">
+      <Card className="h-full flex flex-col hover:shadow-xl transition-all duration-300 overflow-hidden rounded-xl border-2 hover:border-primary">
         <CardHeader className="p-0">
-          <div className="relative aspect-video">
+          <div className="relative aspect-video overflow-hidden">
             <Image
               src={property.imageUrl}
               alt={property.title}
               fill
-              className="object-cover"
+              className="object-cover group-hover:scale-105 transition-transform duration-500"
             />
             {property.forSale && (
-              <Badge variant="destructive" className="absolute top-2 right-2">
+              <Badge variant="destructive" className="absolute top-3 right-3 text-sm">
                 For Sale
               </Badge>
             )}
+             <div className="absolute bottom-0 w-full h-16 bg-gradient-to-t from-black/60 to-transparent"></div>
           </div>
         </CardHeader>
-        <CardContent className="flex-grow p-4">
-          <CardTitle className="text-lg font-semibold mb-1">{property.title}</CardTitle>
-           <CardDescription className="text-sm text-muted-foreground mb-2">{property.area}</CardDescription>
+        <CardContent className="flex-grow p-5">
+          <CardTitle className="text-xl font-bold mb-2 truncate">{property.title}</CardTitle>
+           <CardDescription className="text-sm text-muted-foreground mb-3">{property.area}</CardDescription>
           <div className="text-sm text-muted-foreground space-y-2">
             <div className="flex items-center">
-              <Fingerprint className="h-4 w-4 mr-2 flex-shrink-0" />
-              <span className="truncate">ID: {property.parcelId}</span>
+              <Fingerprint className="h-4 w-4 mr-2 flex-shrink-0 text-primary" />
+              <span className="truncate font-mono text-xs">ID: {property.parcelId}</span>
             </div>
           </div>
         </CardContent>
-        <CardFooter className="p-4 pt-0 flex justify-between items-center">
-           <Badge variant={property.verified ? 'secondary' : 'destructive'}>
-            {property.verified ? 'Verified' : 'Unverified'}
+        <CardFooter className="p-4 pt-0 flex justify-between items-center bg-secondary/30">
+           <Badge variant={property.verified ? 'default' : 'secondary'} className={property.verified ? 'bg-green-100 text-green-800' : 'bg-amber-100 text-amber-800'}>
+            {property.verified ? (
+                <>
+                    <CheckCircle className="h-4 w-4 mr-1.5" />
+                    Verified
+                </>
+            ) : 'Unverified'}
           </Badge>
           {property.forSale && property.price && (
-            <div className="font-semibold text-primary flex items-center">
-                <Tag className="h-4 w-4 mr-1"/>
+            <div className="font-bold text-primary flex items-center text-lg">
+                <Tag className="h-4 w-4 mr-1.5"/>
                 {formatEther(property.price)} ETH
             </div>
           )}
