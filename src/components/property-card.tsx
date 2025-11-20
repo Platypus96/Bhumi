@@ -1,10 +1,13 @@
+
 import Link from 'next/link';
 import Image from 'next/image';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import type { Property } from '@/lib/types';
-import { Fingerprint, MapPin, Square, Copy, CheckCircle, Clock, ShieldX } from 'lucide-react';
+import { Fingerprint, MapPin, Square, CheckCircle, Clock, ShieldX } from 'lucide-react';
 import { CopyButton } from './copy-button';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Button } from './ui/button';
 
 interface PropertyCardProps {
   property: Property;
@@ -16,6 +19,7 @@ function truncateHash(hash: string, startChars = 6, endChars = 4) {
 }
 
 export function PropertyCard({ property }: PropertyCardProps) {
+  const showReadMore = property.description.length > 100;
 
   const StatusBadge = () => {
     if (property.status === 'verified') {
@@ -42,12 +46,11 @@ export function PropertyCard({ property }: PropertyCardProps) {
     );
   };
 
-
   return (
-    <Link href={`/property/${property.parcelId}`} className="block group">
-      <Card className="h-full flex flex-col overflow-hidden rounded-xl border border-border/50 shadow-md hover:shadow-xl hover:border-primary/60 transition-all duration-300 bg-card">
-        {/* Image Section */}
-        <CardHeader className="p-0 relative">
+    <Card className="h-full flex flex-col overflow-hidden rounded-xl border border-border/50 shadow-md hover:shadow-xl hover:border-primary/60 transition-all duration-300 bg-card">
+      {/* Image Section */}
+      <CardHeader className="p-0 relative">
+        <Link href={`/property/${property.parcelId}`} className="block group">
           <div className="relative aspect-video overflow-hidden">
             <Image
               src={property.imageUrl}
@@ -58,42 +61,59 @@ export function PropertyCard({ property }: PropertyCardProps) {
             <StatusBadge />
             <div className="absolute bottom-0 w-full h-20 bg-gradient-to-t from-black/80 via-black/30 to-transparent"></div>
           </div>
-        </CardHeader>
+        </Link>
+      </CardHeader>
 
-        {/* Content Section */}
-        <div className="p-4 flex-grow flex flex-col">
-            <CardTitle className="text-lg font-semibold tracking-tight text-foreground line-clamp-1">
+      {/* Content Section */}
+      <div className="p-4 flex-grow flex flex-col">
+        <CardTitle className="text-lg font-semibold tracking-tight text-foreground line-clamp-1">
+            <Link href={`/property/${property.parcelId}`} className="hover:underline">
                 {property.title}
-            </CardTitle>
+            </Link>
+        </CardTitle>
 
-            <p className="text-sm text-muted-foreground line-clamp-2 leading-relaxed mt-1 min-h-[40px] flex-grow">
-                {property.description}
-            </p>
-
-            {/* Specs Row */}
-            <div className="mt-4 pt-4 border-t border-border/60 space-y-2 text-sm">
-                <div className="flex items-center text-muted-foreground">
-                    <Square className="h-4 w-4 mr-2 text-primary shrink-0" />
-                    <span className="font-medium text-foreground/90">{property.area || "Not specified"}</span>
-                </div>
-                <div className="flex items-center text-muted-foreground">
-                    <MapPin className="h-4 w-4 mr-2 text-primary shrink-0" />
-                    <span className="truncate">{property.location || "Not specified"}</span>
-                </div>
-            </div>
+        <div className="text-sm text-muted-foreground leading-relaxed mt-1 min-h-[40px] flex-grow">
+          <p className="line-clamp-2">{property.description}</p>
+          {showReadMore && (
+            <Dialog>
+              <DialogTrigger asChild>
+                <Button variant="link" className="p-0 h-auto text-xs -mt-1">Read more...</Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader>
+                  <DialogTitle>{property.title}</DialogTitle>
+                </DialogHeader>
+                <DialogDescription className="max-h-[60vh] overflow-y-auto">
+                  {property.description}
+                </DialogDescription>
+              </DialogContent>
+            </Dialog>
+          )}
         </div>
 
-        {/* Footer Section */}
-        <CardFooter className="p-3 bg-secondary/30">
-             <div className="flex items-center text-xs text-muted-foreground font-mono">
-                <Fingerprint className="h-4 w-4 mr-2 text-primary shrink-0" />
-                <span className="truncate">
-                    ID: {truncateHash(property.parcelId, 10, 6)}
-                </span>
-                <CopyButton textToCopy={property.parcelId} size="sm" className="ml-2 h-6 w-6" />
+        {/* Specs Row */}
+        <div className="mt-4 pt-4 border-t border-border/60 space-y-2 text-sm">
+            <div className="flex items-center text-muted-foreground">
+                <Square className="h-4 w-4 mr-2 text-primary shrink-0" />
+                <span className="font-medium text-foreground/90">{property.area || "Not specified"}</span>
             </div>
-        </CardFooter>
-      </Card>
-    </Link>
+            <div className="flex items-center text-muted-foreground">
+                <MapPin className="h-4 w-4 mr-2 text-primary shrink-0" />
+                <span className="truncate">{property.location || "Not specified"}</span>
+            </div>
+        </div>
+      </div>
+
+      {/* Footer Section */}
+      <CardFooter className="p-3 bg-secondary/30">
+           <div className="flex items-center text-xs text-muted-foreground font-mono">
+              <Fingerprint className="h-4 w-4 mr-2 text-primary shrink-0" />
+              <span className="truncate">
+                  ID: {truncateHash(property.parcelId, 10, 6)}
+              </span>
+              <CopyButton textToCopy={property.parcelId} size="sm" className="ml-2 h-6 w-6" />
+          </div>
+      </CardFooter>
+    </Card>
   );
 }
