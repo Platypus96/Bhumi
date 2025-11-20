@@ -131,8 +131,8 @@ export default function PropertyDetailPage() {
                           <li key={index} className="flex items-start space-x-3">
                             <Check className="h-5 w-5 text-green-500 mt-1 flex-shrink-0" />
                             <div>
-                              <p className="font-semibold">From: <HashPill type="address" hash={item.from} /></p>
-                              <p className="font-semibold">To: <HashPill type="address" hash={item.to} /></p>
+                              <div className="font-semibold">From: <HashPill type="address" hash={item.from} /></div>
+                              <div className="font-semibold">To: <HashPill type="address" hash={item.to} /></div>
                               {item.price && item.price !== "0" && <p className="text-sm">Price: {formatEther(item.price)} ETH</p>}
                               <p className="text-xs text-muted-foreground">{format(item.timestamp.toDate(), "PPP p")}</p>
                             </div>

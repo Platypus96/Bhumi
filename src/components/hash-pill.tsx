@@ -18,10 +18,10 @@ export function HashPill({ hash, type, className }: HashPillProps) {
   const truncated = type === 'address' ? truncateHash(hash) : truncateHash(hash, 10, 6);
 
   return (
-    <div className={cn("inline-flex items-center gap-2 rounded-full bg-secondary text-secondary-foreground px-2 py-1 text-xs font-mono", className)}>
+    <span className={cn("inline-flex items-center gap-2 rounded-full bg-secondary text-secondary-foreground px-2 py-1 text-xs font-mono", className)}>
       <Icon className="h-3.5 w-3.5" />
       <span className="font-semibold">{truncated}</span>
       <CopyButton textToCopy={hash} size="sm" className="h-6 w-6" />
-    </div>
+    </span>
   );
 }
