@@ -14,13 +14,15 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { User, ShieldAlert, Key, Loader2, History, Check, Tag, Building, Hourglass, MapPin, Video, Calendar, Square, Fingerprint } from "lucide-react";
+import { User, ShieldAlert, Key, Loader2, History, Check, Tag, Building, Hourglass, MapPin, Video, Calendar, Square, Fingerprint, ExternalLink, FileText } from "lucide-react";
 import { format } from 'date-fns';
 import { VerifyDocument } from "@/components/verify-document";
 import { ManageSale } from "@/components/manage-sale";
 import { BuyProperty } from "@/components/buy-property";
 import { formatEther } from "ethers";
 import { Button } from "@/components/ui/button";
+import { HashPill } from "@/components/hash-pill";
+import { Separator } from "@/components/ui/separator";
 
 export default function PropertyDetailPage() {
   const params = useParams();
@@ -119,15 +121,36 @@ export default function PropertyDetailPage() {
                 </CardContent>
             </Card>
            )}
+
+            {property.history && property.history.length > 0 && (
+                <Card>
+                  <CardHeader><CardTitle className="flex items-center text-2xl"><History className="mr-3" />Transfer History</CardTitle></CardHeader>
+                  <CardContent>
+                     <ul className="space-y-4">
+                        {property.history.slice().reverse().map((item, index) => (
+                          <li key={index} className="flex items-start space-x-3">
+                            <Check className="h-5 w-5 text-green-500 mt-1 flex-shrink-0" />
+                            <div>
+                              <p className="font-semibold">From: <HashPill type="address" hash={item.from} /></p>
+                              <p className="font-semibold">To: <HashPill type="address" hash={item.to} /></p>
+                              {item.price && item.price !== "0" && <p className="text-sm">Price: {formatEther(item.price)} ETH</p>}
+                              <p className="text-xs text-muted-foreground">{format(item.timestamp.toDate(), "PPP p")}</p>
+                            </div>
+                          </li>
+                        ))}
+                     </ul>
+                  </CardContent>
+                </Card>
+            )}
           
         </div>
 
         <div className="space-y-6">
           <Card>
-            <CardHeader>
-              <CardTitle className="text-2xl break-all">Property Details</CardTitle>
+             <CardHeader>
+              <CardTitle className="text-2xl break-all">Asset Information</CardTitle>
               {property.forSale && property.price && (
-                <Alert className="border-accent !mt-4">
+                <Alert className="border-accent !mt-4 bg-accent/10">
                   <Tag className="h-4 w-4 text-accent" />
                   <AlertTitle className="text-accent">This property is for sale!</AlertTitle>
                   <AlertDescription>
@@ -136,28 +159,30 @@ export default function PropertyDetailPage() {
                 </Alert>
               )}
             </CardHeader>
+
             <CardContent className="space-y-4 text-sm">
-              <div className="flex items-start break-all"><Key className="mr-3 h-5 w-5 text-primary flex-shrink-0 mt-1" /> <div><strong>Owner:</strong> <span className="font-mono text-xs">{property.owner}</span></div></div>
-              <div className="flex items-start break-all"><Fingerprint className="mr-3 h-5 w-5 text-primary flex-shrink-0 mt-1" /> <div><strong>Parcel ID:</strong> <span className="font-mono text-xs">{property.parcelId}</span></div></div>
-              {property.registeredAt && <div className="flex items-center"><Calendar className="mr-3 h-5 w-5 text-primary" /> <div><strong>Registered:</strong> {format(property.registeredAt.toDate(), "PPP")}</div></div>}
-              <div className="flex items-center"><Building className="mr-3 h-5 w-5 text-primary" /> <div><strong>Status:</strong> <Badge variant={property.verified ? 'secondary' : 'destructive'}>{property.verified ? "Verified" : "Unverified"}</Badge></div></div>
-               <div className="flex items-center"><Square className="mr-3 h-5 w-5 text-primary" /> <div><strong>Area:</strong> {property.area}</div></div>
-               <div className="flex items-start">
-                <MapPin className="mr-3 h-5 w-5 text-primary flex-shrink-0 mt-1" />
-                <div>
-                  <strong>Location:</strong>
-                  <p>
-                    <Link href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(property.location)}`} target="_blank" rel="noopener noreferrer" className="text-primary underline hover:text-primary/80">
-                        {property.location}
-                    </Link>
-                  </p>
+                <div className="space-y-3">
+                    <div className="flex items-start justify-between"><strong className="text-muted-foreground">Owner</strong> <HashPill type="address" hash={property.owner}/></div>
+                    <div className="flex items-start justify-between"><strong className="text-muted-foreground">Parcel ID</strong> <HashPill type="parcel" hash={property.parcelId}/></div>
+                    {property.registeredAt && <div className="flex items-center justify-between"><strong className="text-muted-foreground">Registered</strong> <span>{format(property.registeredAt.toDate(), "PPP")}</span></div>}
+                    <div className="flex items-center justify-between"><strong className="text-muted-foreground">Status</strong> <Badge variant={property.verified ? 'secondary' : 'destructive'}>{property.verified ? "Verified" : "Unverified"}</Badge></div>
+                    <div className="flex items-center justify-between"><strong className="text-muted-foreground">Area</strong> <span>{property.area}</span></div>
+                    {property.location && (
+                        <div className="flex items-center justify-between">
+                            <strong className="text-muted-foreground">Location</strong>
+                            <Button variant="link" asChild className="p-0 h-auto">
+                                <Link href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(property.location)}`} target="_blank" rel="noopener noreferrer">
+                                    {property.location} <ExternalLink className="ml-2 h-3 w-3" />
+                                </Link>
+                            </Button>
+                        </div>
+                    )}
                 </div>
-              </div>
+                <Separator className="my-4" />
+                <VerifyDocument property={property} />
             </CardContent>
           </Card>
           
-          <VerifyDocument property={property} />
-
            {isOwner && property.verified && (
             <ManageSale property={property} onSaleStatusChanged={fetchProperty} />
           )}
@@ -177,29 +202,6 @@ export default function PropertyDetailPage() {
           {!isOwner && property.forSale && (
             <BuyProperty property={property} onPurchase={fetchProperty} />
           )}
-
-          {property.history && property.history.length > 0 && (
-            <Card>
-              <CardHeader><CardTitle className="flex items-center"><History className="mr-2" />Transfer History</CardTitle></CardHeader>
-              <CardContent>
-                 <ul className="space-y-4">
-                    {property.history.slice().reverse().map((item, index) => (
-                      <li key={index} className="flex items-start space-x-3">
-                        <Check className="h-5 w-5 text-green-500 mt-1 flex-shrink-0" />
-                        <div>
-                          <p className="font-semibold">From: <span className="font-mono text-xs">{item.from}</span></p>
-
-                          <p className="font-semibold">To: <span className="font-mono text-xs">{item.to}</span></p>
-                          {item.price && item.price !== "0" && <p className="text-sm">Price: {formatEther(item.price)} ETH</p>}
-                          <p className="text-xs text-muted-foreground">{format(item.timestamp.toDate(), "PPP p")}</p>
-                        </div>
-                      </li>
-                    ))}
-                 </ul>
-              </CardContent>
-            </Card>
-          )}
-
         </div>
       </div>
     </div>

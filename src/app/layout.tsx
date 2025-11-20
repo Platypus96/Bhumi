@@ -5,19 +5,13 @@ import { Navbar } from '@/components/layout/navbar';
 import { Web3Provider } from '@/hooks/use-web3';
 import { FirebaseProvider } from '@/firebase/provider';
 import { FirebaseClientProvider } from '@/firebase/client-provider';
-import { Manrope, Lora } from 'next/font/google';
+import { Inter } from 'next/font/google';
 
 // Font configuration
-const manrope = Manrope({
+const inter = Inter({
   subsets: ['latin'],
   display: 'swap',
-  variable: '--font-manrope',
-});
-
-const lora = Lora({
-  subsets: ['latin'],
-  display: 'swap',
-  variable: '--font-lora',
+  variable: '--font-inter',
 });
 
 // SEO metadata
@@ -33,7 +27,7 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className={`${manrope.variable} ${lora.variable}`}
+      className={`${inter.variable}`}
     >
        <head>
         <link
@@ -43,7 +37,7 @@ export default function RootLayout({
       </head>
       <body 
         suppressHydrationWarning
-        className="font-body antialiased bg-background text-foreground transition-colors duration-200"
+        className="antialiased bg-background text-foreground transition-colors duration-200"
       >
         <FirebaseProvider>
           <FirebaseClientProvider>
