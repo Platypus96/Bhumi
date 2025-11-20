@@ -17,20 +17,18 @@ const firebaseConfig = {
 
 // IMPORTANT: DO NOT MODIFY THIS FUNCTION
 export function initializeFirebase() {
+  // Check if the essential environment variables are missing or are placeholders.
+  if (!firebaseConfig.apiKey || firebaseConfig.apiKey.includes('YOUR_FIREBASE_API_KEY')) {
+    console.error("Firebase API key is not configured. Please set NEXT_PUBLIC_FIREBASE_API_KEY in your .env file.");
+    // Return null services to prevent the app from crashing.
+    return {
+      firebaseApp: null,
+      auth: null,
+      firestore: null,
+    };
+  }
+
   if (!getApps().length) {
-    // Ensure all required Firebase env vars are present before initializing
-    if (!firebaseConfig.apiKey || !firebaseConfig.projectId) {
-      // In a server component, you could throw an error.
-      // In a client component, you might want to show a UI error.
-      // For now, we'll log a clear error.
-      console.error("Firebase environment variables are not set. The app cannot connect to Firebase.");
-      // Return a "null" version of the services
-      return {
-        firebaseApp: null,
-        auth: null,
-        firestore: null,
-      };
-    }
     const firebaseApp = initializeApp(firebaseConfig);
     return getSdks(firebaseApp);
   }
