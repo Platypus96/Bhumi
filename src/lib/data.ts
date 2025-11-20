@@ -21,11 +21,12 @@ import { errorEmitter } from '@/firebase/error-emitter';
 
 const PROPERTIES_COLLECTION = 'properties';
 
-export async function createProperty(db: Firestore, propertyData: Omit<Property, 'history' | 'verified' | 'forSale' | 'price' | 'txHash' | 'registeredAt'>, txHash: string): Promise<void> {
+export async function createProperty(db: Firestore, propertyData: Omit<Property, 'history' | 'verified' | 'forSale' | 'price' | 'txHash' | 'registeredAt' | 'status'>, txHash: string): Promise<void> {
     const propertyWithDefaults = {
         ...propertyData,
         videoUrl: propertyData.videoUrl || "",
-        verified: false,
+        status: 'unverified' as const,
+        verified: false, // For contract state
         forSale: false,
         price: null,
         history: [],
@@ -99,11 +100,26 @@ export async function getAllProperties(db: Firestore): Promise<Property[]> {
 
 export async function verifyPropertyInDb(db: Firestore, parcelId: string): Promise<void> {
   const propRef = doc(db, PROPERTIES_COLLECTION, parcelId);
-  await updateDoc(propRef, { verified: true }).catch(error => {
+  const updateData = { verified: true, status: 'verified' as const };
+  await updateDoc(propRef, updateData).catch(error => {
     const contextualError = new FirestorePermissionError({
       operation: 'update',
       path: propRef.path,
-      requestResourceData: { verified: true }
+      requestResourceData: updateData
+    });
+    errorEmitter.emit('permission-error', contextualError);
+    throw contextualError;
+  });
+}
+
+export async function rejectPropertyInDb(db: Firestore, parcelId: string): Promise<void> {
+  const propRef = doc(db, PROPERTIES_COLLECTION, parcelId);
+  const updateData = { status: 'rejected' as const };
+  await updateDoc(propRef, updateData).catch(error => {
+    const contextualError = new FirestorePermissionError({
+      operation: 'update',
+      path: propRef.path,
+      requestResourceData: updateData
     });
     errorEmitter.emit('permission-error', contextualError);
     throw contextualError;

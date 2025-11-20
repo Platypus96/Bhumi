@@ -3,7 +3,7 @@ import Image from 'next/image';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import type { Property } from '@/lib/types';
-import { Fingerprint, MapPin, Square, Copy, CheckCircle, Clock } from 'lucide-react';
+import { Fingerprint, MapPin, Square, Copy, CheckCircle, Clock, ShieldX } from 'lucide-react';
 import { CopyButton } from './copy-button';
 
 interface PropertyCardProps {
@@ -16,6 +16,33 @@ function truncateHash(hash: string, startChars = 6, endChars = 4) {
 }
 
 export function PropertyCard({ property }: PropertyCardProps) {
+
+  const StatusBadge = () => {
+    if (property.status === 'verified') {
+      return (
+        <Badge variant="default" className="absolute top-3 right-3 flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium shadow-md bg-green-100 text-green-800">
+          <CheckCircle className="h-3.5 w-3.5" />
+          Verified
+        </Badge>
+      );
+    }
+    if (property.status === 'rejected') {
+       return (
+        <Badge variant="destructive" className="absolute top-3 right-3 flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium shadow-md">
+          <ShieldX className="h-3.5 w-3.5" />
+          Rejected
+        </Badge>
+      );
+    }
+    return (
+      <Badge variant="secondary" className="absolute top-3 right-3 flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium shadow-md bg-amber-100 text-amber-800">
+        <Clock className="h-3.5 w-3.5" />
+        Pending
+      </Badge>
+    );
+  };
+
+
   return (
     <Link href={`/property/${property.parcelId}`} className="block group">
       <Card className="h-full flex flex-col overflow-hidden rounded-xl border border-border/50 shadow-md hover:shadow-xl hover:border-primary/60 transition-all duration-300 bg-card">
@@ -28,26 +55,7 @@ export function PropertyCard({ property }: PropertyCardProps) {
               fill
               className="object-cover transition-transform duration-500 ease-out group-hover:scale-105"
             />
-             <Badge
-                variant={property.verified ? 'default' : 'secondary'}
-                className={`absolute top-3 right-3 flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium shadow-md ${
-                  property.verified
-                    ? 'bg-green-100 text-green-800'
-                    : 'bg-amber-100 text-amber-800'
-                }`}
-              >
-                {property.verified ? (
-                  <>
-                    <CheckCircle className="h-3.5 w-3.5" />
-                    Verified
-                  </>
-                ) : (
-                  <>
-                    <Clock className="h-3.5 w-3.5" />
-                    Unverified
-                  </>
-                )}
-              </Badge>
+            <StatusBadge />
             <div className="absolute bottom-0 w-full h-20 bg-gradient-to-t from-black/80 via-black/30 to-transparent"></div>
           </div>
         </CardHeader>

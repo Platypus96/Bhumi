@@ -1,24 +1,26 @@
 
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { useWeb3 } from "@/hooks/use-web3";
-import { getAllProperties, verifyPropertyInDb } from "@/lib/data";
+import { getAllProperties, rejectPropertyInDb, verifyPropertyInDb } from "@/lib/data";
 import { useBlockchain } from "@/hooks/use-blockchain";
 import { useToast } from "@/hooks/use-toast";
-import type { Property } from "@/lib/types";
+import type { Property, PropertyStatus } from "@/lib/types";
 import { useFirebase } from "@/firebase";
-
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { AlertCircle, Check, FileText, Loader2, ShieldCheck } from "lucide-react";
+import { AlertCircle, Check, FileText, Loader2, ShieldCheck, ShieldX, X } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import Image from "next/image";
 import Link from "next/link";
 import { format } from "date-fns";
 import { Badge } from "@/components/ui/badge";
+import { HashPill } from "@/components/hash-pill";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { cn } from "@/lib/utils";
 
 export default function DashboardPage() {
   const { isRegistrar, account } = useWeb3();
@@ -29,6 +31,7 @@ export default function DashboardPage() {
   const [properties, setProperties] = useState<Property[]>([]);
   const [loading, setLoading] = useState(true);
   const [processingId, setProcessingId] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<PropertyStatus>("unverified");
 
   const fetchAllProperties = useCallback(async () => {
     if (!firestore) return;
@@ -50,31 +53,56 @@ export default function DashboardPage() {
     if (!firestore) return;
     setProcessingId(property.parcelId);
     try {
-      // 1. Call smart contract to verify property
       await verifyProperty(property.parcelId);
-
-      // 2. Update property in Firestore
       await verifyPropertyInDb(firestore, property.parcelId);
-
       toast({
         title: "Property Verified!",
-        description: `Property ${property.parcelId.substring(0, 10)}... is now verified on-chain.`,
+        description: `Property is now verified on-chain.`,
       });
-
-      // Refresh list
       fetchAllProperties();
-
     } catch (error: any) {
-      console.error(error);
       toast({
         variant: "destructive",
         title: "Verification Failed",
-        description: error.message || "An error occurred during the verification process.",
+        description: error.message || "An error occurred.",
       });
     } finally {
       setProcessingId(null);
     }
   };
+
+  const handleReject = async (property: Property) => {
+     if (!firestore) return;
+    setProcessingId(property.parcelId);
+    try {
+      await rejectPropertyInDb(firestore, property.parcelId);
+      toast({
+        variant: "destructive",
+        title: "Property Rejected",
+        description: `The property registration has been marked as rejected.`,
+      });
+      fetchAllProperties();
+    } catch (error: any) {
+      toast({
+        variant: "destructive",
+        title: "Rejection Failed",
+        description: error.message || "An error occurred.",
+      });
+    } finally {
+      setProcessingId(null);
+    }
+  }
+
+  const filteredProperties = useMemo(() => {
+    return properties.filter(p => p.status === activeTab);
+  }, [properties, activeTab]);
+
+  const propertyCounts = useMemo(() => {
+    return properties.reduce((acc, prop) => {
+      acc[prop.status] = (acc[prop.status] || 0) + 1;
+      return acc;
+    }, {} as Record<PropertyStatus, number>);
+  }, [properties]);
 
 
   if (!account) {
@@ -104,92 +132,135 @@ export default function DashboardPage() {
   const renderSkeletons = () => (
     Array.from({ length: 3 }).map((_, i) => (
       <TableRow key={i}>
-        <TableCell><Skeleton className="h-10 w-16" /></TableCell>
-        <TableCell><Skeleton className="h-4 w-full" /></TableCell>
-        <TableCell><Skeleton className="h-4 w-[150px]" /></TableCell>
-        <TableCell><Skeleton className="h-4 w-[100px]" /></TableCell>
-        <TableCell><Skeleton className="h-8 w-24" /></TableCell>
-        <TableCell><Skeleton className="h-8 w-20" /></TableCell>
+        <TableCell><Skeleton className="h-12 w-20 rounded-md" /></TableCell>
+        <TableCell><Skeleton className="h-5 w-full" /><Skeleton className="h-4 w-3/4 mt-2" /></TableCell>
+        <TableCell><Skeleton className="h-4 w-[120px]" /></TableCell>
+        <TableCell><Skeleton className="h-6 w-24 rounded-full" /></TableCell>
+        <TableCell><Skeleton className="h-9 w-24" /></TableCell>
+        <TableCell><Skeleton className="h-9 w-28" /></TableCell>
       </TableRow>
     ))
   );
 
+  const StatusBadge = ({ status }: { status: PropertyStatus }) => {
+    const variants: Record<PropertyStatus, { className: string, text: string }> = {
+      unverified: { className: "bg-amber-100 text-amber-800 border-amber-200", text: "Pending"},
+      verified: { className: "bg-green-100 text-green-800 border-green-200", text: "Verified"},
+      rejected: { className: "bg-red-100 text-red-800 border-red-200", text: "Rejected"},
+    }
+    return (
+      <Badge variant="outline" className={cn("font-semibold", variants[status].className)}>
+        {variants[status].text}
+      </Badge>
+    );
+  };
+
+  const renderTable = (propertiesToRender: Property[]) => (
+    <div className="rounded-lg border">
+      <Table>
+          <TableHeader>
+          <TableRow>
+              <TableHead className="w-[100px]">Image</TableHead>
+              <TableHead>Title & Owner</TableHead>
+              <TableHead className="w-[170px]">Registered At</TableHead>
+              <TableHead className="w-[120px]">Status</TableHead>
+              <TableHead className="w-[130px]">Proof</TableHead>
+              <TableHead className="w-[200px] text-center">Actions</TableHead>
+          </TableRow>
+          </TableHeader>
+          <TableBody>
+          {loading ? renderSkeletons() : 
+          propertiesToRender.length > 0 ? (
+              propertiesToRender.map((prop) => (
+              <TableRow key={prop.parcelId}>
+                  <TableCell>
+                      <div className="relative h-12 w-20 group">
+                          <Image src={prop.imageUrl} alt={prop.title} fill className="rounded-md object-cover transition-transform duration-300 group-hover:scale-125" />
+                      </div>
+                  </TableCell>
+                  <TableCell>
+                      <div className="font-bold text-base">{prop.title}</div>
+                      <HashPill type="address" hash={prop.owner} className="mt-1"/>
+                  </TableCell>
+                  <TableCell>{format(prop.registeredAt.toDate(), "dd MMM, yyyy")}</TableCell>
+                    <TableCell>
+                      <StatusBadge status={prop.status || 'unverified'} />
+                  </TableCell>
+                  <TableCell>
+                      <Button asChild variant="outline" size="sm">
+                          <Link href={prop.ipfsProofCid} target="_blank" rel="noopener noreferrer">
+                              <FileText className="h-4 w-4 mr-2" />
+                              Document
+                          </Link>
+                      </Button>
+                  </TableCell>
+                  <TableCell className="text-center">
+                      {prop.status === 'unverified' ? (
+                        <div className="flex gap-2 justify-center">
+                          <Button size="sm" variant="outline" className="bg-green-50 hover:bg-green-100 text-green-700 border-green-200" onClick={() => handleVerify(prop)} disabled={!!processingId}>
+                              {processingId === prop.parcelId ? <Loader2 className="h-4 w-4 animate-spin"/> : <ShieldCheck className="h-4 w-4"/>}
+                              Verify
+                          </Button>
+                          <Button size="sm" variant="destructive" className="bg-red-50 hover:bg-red-100 text-red-700 border-red-200" onClick={() => handleReject(prop)} disabled={!!processingId}>
+                              <X className="h-4 w-4"/>
+                          </Button>
+                        </div>
+                      ) : (
+                          <div className="flex items-center justify-center text-sm text-muted-foreground italic">
+                            <Check className="h-4 w-4 mr-2 text-green-500"/>
+                            Completed
+                          </div>
+                      )}
+                  </TableCell>
+              </TableRow>
+              ))
+          ) : (
+              <TableRow>
+              <TableCell colSpan={6} className="h-32 text-center">
+                  No properties in this category.
+              </TableCell>
+              </TableRow>
+          )}
+          </TableBody>
+      </Table>
+    </div>
+  );
+
   return (
     <div className="container mx-auto px-4 py-8 space-y-8">
-        <h1 className="text-3xl font-bold text-primary font-headline">Registrar Dashboard</h1>
         
         <Card>
             <CardHeader>
-                <CardTitle>Property Verification</CardTitle>
-                <CardDescription>Review and verify new property registrations on the blockchain.</CardDescription>
+                <CardTitle className="text-3xl">Registrar Dashboard</CardTitle>
+                <CardDescription>Review and manage new property registrations on the blockchain.</CardDescription>
             </CardHeader>
             <CardContent>
-                <div className="rounded-lg border">
-                <Table>
-                    <TableHeader>
-                    <TableRow>
-                        <TableHead>Image</TableHead>
-                        <TableHead>Title & Owner</TableHead>
-                        <TableHead>Registered At</TableHead>
-                        <TableHead>Status</TableHead>
-                        <TableHead>Proof</TableHead>
-                        <TableHead>Actions</TableHead>
-                    </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                    {loading ? renderSkeletons() : 
-                    properties.length > 0 ? (
-                        properties.map((prop) => (
-                        <TableRow key={prop.parcelId}>
-                            <TableCell>
-                                <div className="relative h-10 w-16">
-                                    <Image src={prop.imageUrl} alt={prop.title} fill className="rounded-md object-cover" />
-                                </div>
-                            </TableCell>
-                            <TableCell>
-                                <div className="font-medium">{prop.title}</div>
-                                <div className="text-xs text-muted-foreground font-mono break-all">{prop.owner}</div>
-                            </TableCell>
-                            <TableCell>{format(prop.registeredAt.toDate(), "PPP")}</TableCell>
-                             <TableCell>
-                                <Badge variant={prop.verified ? 'secondary' : 'destructive'}>
-                                    {prop.verified ? "Verified" : "Unverified"}
-                                </Badge>
-                            </TableCell>
-                            <TableCell>
-                                <Button asChild variant="outline" size="sm">
-                                    <Link href={prop.ipfsProofCid} target="_blank" rel="noopener noreferrer">
-                                        <FileText className="h-4 w-4 mr-2" />
-                                        View
-                                    </Link>
-                                </Button>
-                            </TableCell>
-                            <TableCell>
-                                { !prop.verified && (
-                                  <Button size="sm" variant="outline" className="bg-green-50 hover:bg-green-100 text-green-700" onClick={() => handleVerify(prop)} disabled={!!processingId}>
-                                      {processingId === prop.parcelId ? <Loader2 className="h-4 w-4 animate-spin"/> : <ShieldCheck className="h-4 w-4 mr-2"/>}
-                                      Verify
-                                  </Button>
-                                )}
-                                { prop.verified && (
-                                    <div className="flex items-center text-green-600">
-                                        <Check className="h-4 w-4 mr-2"/>
-                                        Verified
-                                    </div>
-                                )}
-                            </TableCell>
-                        </TableRow>
-                        ))
-                    ) : (
-                        <TableRow>
-                        <TableCell colSpan={6} className="h-24 text-center">
-                            No properties have been added yet.
-                        </TableCell>
-                        </TableRow>
-                    )}
-                    </TableBody>
-                </Table>
-                </div>
+              <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as PropertyStatus)}>
+                  <TabsList>
+                      <TabsTrigger value="unverified">
+                        Pending 
+                        <Badge variant="secondary" className="ml-2">{propertyCounts.unverified || 0}</Badge>
+                      </TabsTrigger>
+                      <TabsTrigger value="verified">
+                        Verified
+                        <Badge variant="secondary" className="ml-2">{propertyCounts.verified || 0}</Badge>
+                      </TabsTrigger>
+                      <TabsTrigger value="rejected">
+                        Rejected
+                        <Badge variant="secondary" className="ml-2">{propertyCounts.rejected || 0}</Badge>
+                      </TabsTrigger>
+                  </TabsList>
+
+                  <TabsContent value="unverified" className="mt-4">
+                    {renderTable(filteredProperties)}
+                  </TabsContent>
+                  <TabsContent value="verified" className="mt-4">
+                    {renderTable(filteredProperties)}
+                  </TabsContent>
+                   <TabsContent value="rejected" className="mt-4">
+                    {renderTable(filteredProperties)}
+                  </TabsContent>
+              </Tabs>
             </CardContent>
         </Card>
     </div>

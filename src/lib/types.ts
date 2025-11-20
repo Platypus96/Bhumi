@@ -9,7 +9,6 @@ export interface Submission {
   area: string;
   imageUrl: string;
   proofCID: string;
-  status: 'pending' | 'approved' | 'rejected';
   createdAt: Timestamp;
 }
 
@@ -21,6 +20,8 @@ export interface TransferHistory {
   price: string; // in wei
 }
 
+export type PropertyStatus = 'unverified' | 'verified' | 'rejected';
+
 export interface Property {
   parcelId: string;
   owner: string;
@@ -31,7 +32,8 @@ export interface Property {
   videoUrl?: string;
   imageUrl: string; // This will now be an IPFS CID URL
   ipfsProofCid: string;
-  verified: boolean;
+  status: PropertyStatus;
+  verified: boolean; // Retained for smart contract compatibility, but status is preferred for UI
   txHash: string;
   forSale: boolean;
   price: string | null; // in wei
