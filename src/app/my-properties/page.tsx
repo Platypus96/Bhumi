@@ -27,7 +27,9 @@ export default function MyPropertiesPage() {
           console.error(err);
           return [];
         });
-        setProperties(myProps);
+        // Filter out unverified properties
+        const filteredProps = myProps.filter(prop => prop.status === 'verified' || prop.status === 'rejected');
+        setProperties(filteredProps);
         setLoading(false);
       };
       fetchAll();
@@ -105,7 +107,7 @@ export default function MyPropertiesPage() {
                 You haven't added any properties yet.
               </h3>
               <p className="text-muted-foreground mt-2 max-w-md">
-                Get started by registering a new property on the blockchain to see it appear here.
+                Get started by registering a new property on the blockchain to see it appear here. Unverified properties will not be shown.
               </p>
             </div>
           )}
