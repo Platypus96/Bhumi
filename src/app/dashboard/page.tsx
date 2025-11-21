@@ -6,7 +6,7 @@ import { useWeb3 } from "@/hooks/use-web3";
 import { useFirebase } from "@/firebase";
 import { useToast } from "@/hooks/use-toast";
 import type { Property } from "@/lib/types";
-import { collection, onSnapshot, query, where } from "firebase/firestore";
+import { collection, onSnapshot, query } from "firebase/firestore";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { AlertCircle, Loader2 } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -23,7 +23,7 @@ export default function DashboardPage() {
   const { firestore } = useFirebase();
   const isMobile = useIsMobile();
 
-  const [properties, setProperties] = useState<Property[]>([]);
+  const [allProperties, setAllProperties] = useState<Property[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedProperty, setSelectedProperty] = useState<Property | null>(
     null
@@ -43,13 +43,7 @@ export default function DashboardPage() {
       "artifacts/default-app-id/public/data/properties"
     );
     
-    let q = query(propertiesCollection);
-
-    if (filter === 'pending') {
-        q = query(propertiesCollection, where('status', 'in', ['unverified', null]));
-    } else if (filter === 'verified') {
-        q = query(propertiesCollection, where('status', '==', 'verified'));
-    }
+    const q = query(propertiesCollection);
 
     const unsubscribe = onSnapshot(
       q,
@@ -60,7 +54,7 @@ export default function DashboardPage() {
             (b.registeredAt?.toMillis() || 0) -
             (a.registeredAt?.toMillis() || 0)
         );
-        setProperties(props);
+        setAllProperties(props);
         setLoading(false);
       },
       (error) => {
@@ -75,33 +69,44 @@ export default function DashboardPage() {
     );
 
     return () => unsubscribe();
-  }, [firestore, isRegistrar, toast, filter]);
+  }, [firestore, isRegistrar, toast]);
   
   const handleSelectProperty = useCallback((property: Property) => {
     setSelectedProperty(property);
   }, []);
 
   const filteredProperties = useMemo(() => {
-    if (!searchTerm) {
-        return properties;
+    let properties = allProperties;
+
+    // Apply status filter
+    if (filter === 'pending') {
+      properties = properties.filter(p => !p.status || p.status === 'unverified');
+    } else if (filter === 'verified') {
+      properties = properties.filter(p => p.status === 'verified');
     }
-    const lowercasedTerm = searchTerm.toLowerCase();
-    return properties.filter(
+
+    // Apply search term filter
+    if (searchTerm) {
+      const lowercasedTerm = searchTerm.toLowerCase();
+      properties = properties.filter(
         (p) =>
         p.parcelId.toLowerCase().includes(lowercasedTerm) ||
         p.owner.toLowerCase().includes(lowercasedTerm)
-    );
-  }, [properties, searchTerm]);
+      );
+    }
+    
+    return properties;
+  }, [allProperties, filter, searchTerm]);
 
   const stats = useMemo(
     () => ({
-      pending: properties.filter(
+      pending: allProperties.filter(
         (p) => !p.status || p.status === "unverified"
       ).length,
-      verified: properties.filter((p) => p.status === "verified").length,
-      rejected: properties.filter((p) => p.status === "rejected").length,
+      verified: allProperties.filter((p) => p.status === "verified").length,
+      rejected: allProperties.filter((p) => p.status === "rejected").length,
     }),
-    [properties]
+    [allProperties]
   );
 
   if (!account) {
@@ -133,7 +138,7 @@ export default function DashboardPage() {
   }
 
   const renderContent = () => {
-    if (loading && properties.length === 0) {
+    if (loading && allProperties.length === 0) {
       return (
         <div className="flex items-center justify-center h-96">
           <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -204,4 +209,3 @@ export default function DashboardPage() {
     </div>
   );
 }
-
