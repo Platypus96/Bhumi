@@ -30,6 +30,7 @@ const MapPicker = ({ onLocationSelect, onPolygonCreated, center, zoom }: MapPick
   const handleCreated = (e: any) => {
     const layer = e.layer;
 
+    // Clear previous drawings
     if (featureGroupRef.current) {
       featureGroupRef.current.clearLayers();
       featureGroupRef.current.addLayer(layer);
@@ -41,6 +42,7 @@ const MapPicker = ({ onLocationSelect, onPolygonCreated, center, zoom }: MapPick
     } else if (layer instanceof L.Polygon) {
       const geoJson = layer.toGeoJSON();
       onPolygonCreated(geoJson);
+      // Also update location to the polygon's center
       const center = layer.getBounds().getCenter();
       onLocationSelect(center.lat, center.lng);
     }
@@ -61,6 +63,8 @@ const MapPicker = ({ onLocationSelect, onPolygonCreated, center, zoom }: MapPick
             circle: false,
             circlemarker: false,
             polyline: false,
+            marker: true,
+            polygon: true
           }}
           edit={{
             featureGroup: featureGroupRef.current || undefined,
