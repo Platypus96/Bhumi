@@ -35,7 +35,7 @@ export function MapDisplay({ properties, selectedProperty }: MapDisplayProps) {
   const [activeLayer, setActiveLayer] = useState<TileLayerKey>("street");
 
   return (
-    <Card className="h-full shadow-lg relative overflow-hidden">
+    <div className="h-full w-full relative">
       <div className="absolute top-4 right-4 z-[1001] bg-background/80 backdrop-blur-sm rounded-lg p-1 space-x-1">
         <Button 
             size="sm" 
@@ -57,9 +57,8 @@ export function MapDisplay({ properties, selectedProperty }: MapDisplayProps) {
         properties={properties}
         selectedProperty={selectedProperty}
         tileLayer={TILE_LAYERS[activeLayer]}
-        className="h-full w-full"
+        className="h-full w-full rounded-b-lg"
       />
-    </Card>
+    </div>
   );
 }
-

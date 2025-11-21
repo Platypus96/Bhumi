@@ -118,8 +118,13 @@ export function PropertyVerification({ property, onBack }: PropertyVerificationP
                             <Map className="mr-2 h-4 w-4"/> View on Map
                         </Button>
                     </DialogTrigger>
-                    <DialogContent className="max-w-4xl h-[80vh] p-0">
+                    <DialogContent className="max-w-4xl h-[80vh] flex flex-col p-0">
+                        <DialogHeader className="p-4 border-b">
+                            <DialogTitle>Map View: {property.title}</DialogTitle>
+                        </DialogHeader>
+                        <div className="flex-grow">
                          <MapDisplay properties={[property]} selectedProperty={property}/>
+                        </div>
                     </DialogContent>
                 </Dialog>
 
@@ -155,4 +160,3 @@ export function PropertyVerification({ property, onBack }: PropertyVerificationP
         </Card>
     );
 }
-
