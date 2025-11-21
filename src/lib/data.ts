@@ -1,4 +1,3 @@
-
 import {
   collection,
   doc,
@@ -27,6 +26,24 @@ const appId = typeof window !== 'undefined' && (window as any).__app_id
 // The path MUST be: artifacts/{appId}/public/data/{collectionName}
 const PROPERTIES_COLLECTION = `artifacts/${appId}/public/data/properties`;
 
+// Helper to handle errors consistently
+function handleFirestoreError(error: any, operation: 'create' | 'get' | 'list' | 'update' | 'delete', path: string, data?: any) {
+  console.error(`Firestore Error [${operation}]:`, error);
+
+  if (error.code === 'permission-denied') {
+    const contextualError = new FirestorePermissionError({
+      operation,
+      path,
+      requestResourceData: data
+    });
+    errorEmitter.emit('permission-error', contextualError);
+    throw contextualError;
+  }
+
+  // Throw original error (e.g., 'failed-precondition' for missing indexes)
+  throw error;
+}
+
 export async function createProperty(db: Firestore, propertyData: Omit<Property, 'history' | 'verified' | 'forSale' | 'price' | 'txHash' | 'registeredAt' | 'status' | 'area'>, txHash: string): Promise<void> {
     const propertyWithDefaults = {
         ...propertyData,
@@ -39,15 +56,12 @@ export async function createProperty(db: Firestore, propertyData: Omit<Property,
         registeredAt: Timestamp.now(),
     };
     const propertyRef = doc(db, PROPERTIES_COLLECTION, propertyData.parcelId);
-    await setDoc(propertyRef, propertyWithDefaults).catch(error => {
-      const contextualError = new FirestorePermissionError({
-        operation: 'create',
-        path: propertyRef.path,
-        requestResourceData: propertyWithDefaults
-      });
-      errorEmitter.emit('permission-error', contextualError);
-      throw contextualError;
-    });
+    
+    try {
+      await setDoc(propertyRef, propertyWithDefaults);
+    } catch (error) {
+      handleFirestoreError(error, 'create', propertyRef.path, propertyWithDefaults);
+    }
 }
 
 export async function getPropertyByParcelId(db: Firestore, parcelId: string): Promise<Property | null> {
@@ -59,47 +73,44 @@ export async function getPropertyByParcelId(db: Firestore, parcelId: string): Pr
     }
     return null;
   } catch (error) {
-    const contextualError = new FirestorePermissionError({
-      operation: 'get',
-      path: docRef.path,
-    });
-    errorEmitter.emit('permission-error', contextualError);
-    throw contextualError;
+    handleFirestoreError(error, 'get', docRef.path);
+    return null; // Unreachable due to throw, but keeps TS happy if we changed logic
   }
 }
 
 export async function getPropertiesByOwner(db: Firestore, ownerAddress: string): Promise<Property[]> {
   if (!ownerAddress) return [];
+  
+  // NOTE: This query requires a composite index in Firestore (owner ASC, polygon ASC)
   const q = query(
     collection(db, PROPERTIES_COLLECTION),
     where('owner', '==', ownerAddress),
-    where('polygon', '!=', null) // Only get properties with a boundary
+    where('polygon', '!=', null) 
   );
+
   try {
     const querySnapshot = await getDocs(q);
     return querySnapshot.docs.map(doc => doc.data() as Property);
   } catch (error) {
-    const contextualError = new FirestorePermissionError({
-      operation: 'list',
-      path: PROPERTIES_COLLECTION,
-    });
-    errorEmitter.emit('permission-error', contextualError);
-    throw contextualError;
+    handleFirestoreError(error, 'list', PROPERTIES_COLLECTION);
+    return [];
   }
 }
 
 export async function getAllProperties(db: Firestore): Promise<Property[]> {
-    const q = query(collection(db, PROPERTIES_COLLECTION), where('polygon', '!=', null), orderBy('registeredAt', 'desc'));
+    const q = query(
+      collection(db, PROPERTIES_COLLECTION), 
+      where('polygon', '!=', null)
+    );
+    
     try {
       const querySnapshot = await getDocs(q);
-      return querySnapshot.docs.map(doc => doc.data() as Property).filter(p => !!p.polygon);
+      const properties = querySnapshot.docs.map(doc => doc.data() as Property);
+      // Sort client-side
+      return properties.sort((a, b) => b.registeredAt.toMillis() - a.registeredAt.toMillis());
     } catch (error) {
-      const contextualError = new FirestorePermissionError({
-        operation: 'list',
-        path: PROPERTIES_COLLECTION,
-      });
-      errorEmitter.emit('permission-error', contextualError);
-      throw contextualError;
+      handleFirestoreError(error, 'list', PROPERTIES_COLLECTION);
+      return [];
     }
 }
 
@@ -107,100 +118,81 @@ export async function getAllProperties(db: Firestore): Promise<Property[]> {
 export async function verifyPropertyInDb(db: Firestore, parcelId: string): Promise<void> {
   const propRef = doc(db, PROPERTIES_COLLECTION, parcelId);
   const updateData = { verified: true, status: 'verified' as const };
-  await updateDoc(propRef, updateData).catch(error => {
-    const contextualError = new FirestorePermissionError({
-      operation: 'update',
-      path: propRef.path,
-      requestResourceData: updateData
-    });
-    errorEmitter.emit('permission-error', contextualError);
-    throw contextualError;
-  });
+  
+  try {
+    await updateDoc(propRef, updateData);
+  } catch (error) {
+    handleFirestoreError(error, 'update', propRef.path, updateData);
+  }
 }
 
 export async function rejectPropertyInDb(db: Firestore, parcelId: string): Promise<void> {
   const propRef = doc(db, PROPERTIES_COLLECTION, parcelId);
   const updateData = { status: 'rejected' as const };
-  await updateDoc(propRef, updateData).catch(error => {
-    const contextualError = new FirestorePermissionError({
-      operation: 'update',
-      path: propRef.path,
-      requestResourceData: updateData
-    });
-    errorEmitter.emit('permission-error', contextualError);
-    throw contextualError;
-  });
+  
+  try {
+    await updateDoc(propRef, updateData);
+  } catch (error) {
+    handleFirestoreError(error, 'update', propRef.path, updateData);
+  }
 }
 
 
 export async function listPropertyForSale(db: Firestore, parcelId: string, price: string): Promise<void> {
     const propRef = doc(db, PROPERTIES_COLLECTION, parcelId);
-    await updateDoc(propRef, {
-        forSale: true,
-        price: price
-    }).catch(error => {
-      const contextualError = new FirestorePermissionError({
-        operation: 'update',
-        path: propRef.path,
-        requestResourceData: { forSale: true, price: price }
-      });
-      errorEmitter.emit('permission-error', contextualError);
-      throw contextualError;
-    });
+    const updateData = { forSale: true, price: price };
+
+    try {
+      await updateDoc(propRef, updateData);
+    } catch (error) {
+      handleFirestoreError(error, 'update', propRef.path, updateData);
+    }
 }
 
 export async function unlistPropertyForSale(db: Firestore, parcelId: string): Promise<void> {
     const propRef = doc(db, PROPERTIES_COLLECTION, parcelId);
-    await updateDoc(propRef, {
-        forSale: false,
-        price: null
-    }).catch(error => {
-      const contextualError = new FirestorePermissionError({
-        operation: 'update',
-        path: propRef.path,
-        requestResourceData: { forSale: false, price: null }
-      });
-      errorEmitter.emit('permission-error', contextualError);
-      throw contextualError;
-    });
+    const updateData = { forSale: false, price: null };
+
+    try {
+      await updateDoc(propRef, updateData);
+    } catch (error) {
+      handleFirestoreError(error, 'update', propRef.path, updateData);
+    }
 }
 
 export async function updatePropertyOwner(db: Firestore, parcelId: string, newOwner: string, txHash: string, price: string): Promise<void> {
     const propRef = doc(db, PROPERTIES_COLLECTION, parcelId);
-    const propSnap = await getDoc(propRef);
+    
+    try {
+      const propSnap = await getDoc(propRef);
 
-    if (!propSnap.exists()) {
-        throw new Error("Property not found");
+      if (!propSnap.exists()) {
+          throw new Error("Property not found");
+      }
+
+      const currentData = propSnap.data() as Property;
+      const oldOwner = currentData.owner;
+
+      const newHistoryEntry: Omit<TransferHistory, 'price'> & { price: string } = {
+          from: oldOwner,
+          to: newOwner,
+          txHash: txHash,
+          timestamp: Timestamp.now(),
+          price: price
+      };
+
+      const updatedHistory = currentData.history ? [...currentData.history, newHistoryEntry] : [newHistoryEntry];
+
+      const updateData = {
+          owner: newOwner,
+          forSale: false,
+          price: null,
+          txHash: txHash, // Update the main txHash to the latest transfer
+          history: updatedHistory
+      };
+
+      await updateDoc(propRef, updateData);
+    } catch (error) {
+      handleFirestoreError(error, 'update', propRef.path, { owner: newOwner });
     }
-
-    const currentData = propSnap.data() as Property;
-    const oldOwner = currentData.owner;
-
-    const newHistoryEntry: Omit<TransferHistory, 'price'> & { price: string } = {
-        from: oldOwner,
-        to: newOwner,
-        txHash: txHash,
-        timestamp: Timestamp.now(),
-        price: price
-    };
-
-    const updatedHistory = currentData.history ? [...currentData.history, newHistoryEntry] : [newHistoryEntry];
-
-    const updateData = {
-        owner: newOwner,
-        forSale: false,
-        price: null,
-        txHash: txHash, // Update the main txHash to the latest transfer
-        history: updatedHistory
-    };
-
-    await updateDoc(propRef, updateData).catch(error => {
-      const contextualError = new FirestorePermissionError({
-        operation: 'update',
-        path: propRef.path,
-        requestResourceData: updateData
-      });
-      errorEmitter.emit('permission-error', contextualError);
-      throw contextualError;
-    });
 }

@@ -1,15 +1,9 @@
+rules_version = '10';
 
-rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Allow access to the public data path for your specific app
-    match /artifacts/{appId}/public/data/{document=**} {
-       allow read, write: if true;
-    }
-    
-    // Keep your user-specific rules if you have them
-    match /artifacts/{appId}/users/{userId}/{document=**} {
-      allow read, write: if request.auth != null && request.auth.uid == userId;
+    match /{document=**} {
+      allow read, write: if true;
     }
   }
 }
