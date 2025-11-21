@@ -84,8 +84,8 @@ const PropertiesMap = ({ properties, selectedProperty, tileLayer, className }: P
   const tileLayerRef = useRef<L.TileLayer | null>(null);
 
   const defaultTileLayer = {
-    url: `https://maps.geoapify.com/v1/tile/osm-bright-grey/{z}/{x}/{y}.png?apiKey=${process.env.NEXT_PUBLIC_GEOAPIFY_API_KEY}`,
-    attribution: '&copy; <a href="https://www.geoapify.com/" target="_blank">Geoapify</a> | &copy; <a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap</a> contributors',
+    url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
   };
 
   const currentTileLayer = tileLayer || defaultTileLayer;

@@ -14,7 +14,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { User, ShieldAlert, History, Check, Tag, Hourglass, ExternalLink, FileText } from "lucide-react";
+import { User, ShieldAlert, History, Check, Tag, Hourglass, ExternalLink } from "lucide-react";
 import { format } from 'date-fns';
 import { VerifyDocument } from "@/components/verify-document";
 import { ManageSale } from "@/components/manage-sale";
@@ -24,7 +24,6 @@ import { Button } from "@/components/ui/button";
 import { HashPill } from "@/components/hash-pill";
 import { Separator } from "@/components/ui/separator";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { NearbyPlaces } from "@/components/nearby-places";
 import dynamic from "next/dynamic";
 
 const PropertiesMap = dynamic(() => import('@/components/property-map'), {
@@ -130,10 +129,6 @@ export default function PropertyDetailPage() {
                      </ul>
                   </CardContent>
                 </Card>
-            )}
-
-            {isCoordinate && (
-              <NearbyPlaces latitude={property.latitude!} longitude={property.longitude!} />
             )}
           
         </div>

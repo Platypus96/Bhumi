@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useForm } from "react-hook-form";
@@ -13,7 +12,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { FileUp, Loader2, AlertCircle, Sparkles, Search } from "lucide-react";
+import { FileUp, Loader2, AlertCircle, Sparkles } from "lucide-react";
 import { useState } from "react";
 import { useIPFS } from "@/hooks/use-ipfs";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
@@ -49,9 +48,7 @@ export default function AddPropertyPage() {
   
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isImproving, setIsImproving] = useState(false);
-  const [isSearching, setIsSearching] = useState(false);
   
-  const [searchQuery, setSearchQuery] = useState("");
   const [mapCenter, setMapCenter] = useState<[number, number] | null>([20.5937, 78.9629]); // Default to India
   const [mapZoom, setMapZoom] = useState(5);
 
@@ -92,33 +89,6 @@ export default function AddPropertyPage() {
       title: "Location Selected",
       description: `Coordinates: ${lat.toFixed(6)}, ${lng.toFixed(6)}`,
     });
-  };
-
-  const handleSearchLocation = async () => {
-    if (!searchQuery) {
-      toast({ variant: 'destructive', title: 'Search query is empty' });
-      return;
-    }
-    setIsSearching(true);
-    try {
-      const response = await fetch('/api/geocode', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ query: searchQuery }),
-      });
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || 'Failed to find location');
-      }
-      const { lat, lon } = await response.json();
-      setMapCenter([lat, lon]);
-      setMapZoom(16); // Zoom in on the searched location
-      toast({ title: "Location Found!", description: `Map centered on ${searchQuery}`});
-    } catch (error: any) {
-      toast({ variant: 'destructive', title: 'Search Failed', description: error.message });
-    } finally {
-      setIsSearching(false);
-    }
   };
 
   const handlePolygonCreated = (polygon: any) => {
@@ -247,20 +217,20 @@ export default function AddPropertyPage() {
             />
             
             <div className="space-y-2">
-              <FormLabel>Property Location & Boundary</FormLabel>
-              <div className="flex gap-2">
-                <Input 
-                  placeholder="Search for an address or area" 
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), handleSearchLocation())}
+              <FormLabel>Property Location</FormLabel>
+              <FormField
+                control={form.control}
+                name="location"
+                render={({ field }) => (
+                    <FormItem>
+                    <FormControl>
+                        <Input placeholder="e.g., City, State, Country" {...field} />
+                    </FormControl>
+                    <FormMessage />
+                    </FormItem>
+                )}
                 />
-                <Button type="button" variant="outline" onClick={handleSearchLocation} disabled={isSearching}>
-                  {isSearching ? <Loader2 className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4" />}
-                  <span className="ml-2">Search</span>
-                </Button>
-              </div>
-              <FormDescription>Search for a location, then use the map tools to draw the property boundary.</FormDescription>
+              <FormDescription>Enter a general location. Then use the map to pinpoint coordinates and draw the boundary.</FormDescription>
             </div>
             
             <FormField
@@ -268,6 +238,7 @@ export default function AddPropertyPage() {
               name="polygon"
               render={({ field }) => (
                  <FormItem>
+                    <FormLabel>Property Boundary</FormLabel>
                     <div className="border rounded-xl overflow-hidden shadow-lg h-[500px]">
                       <DynamicMap 
                         onLocationSelect={handleLocationSelect} 
@@ -276,6 +247,7 @@ export default function AddPropertyPage() {
                         zoom={mapZoom}
                       />
                     </div>
+                    <FormDescription>Use the map tools to draw the property boundary.</FormDescription>
                     <FormMessage />
                  </FormItem>
               )}
