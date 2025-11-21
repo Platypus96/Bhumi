@@ -20,7 +20,13 @@ import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { useFirebase } from "@/firebase";
 import { useBlockchain } from "@/hooks/use-blockchain";
 import { improveDescription } from "@/ai/flows/improve-description-flow";
-import DynamicMap from "@/components/dynamic-map";
+import dynamic from "next/dynamic";
+
+const DynamicMap = dynamic(() => import('@/components/dynamic-map'), {
+  ssr: false,
+  loading: () => <div className="h-[500px] w-full bg-muted animate-pulse flex items-center justify-center"><p>Loading Map...</p></div>
+});
+
 
 const formSchema = z.object({
   title: z.string().min(5, "Title must be at least 5 characters."),

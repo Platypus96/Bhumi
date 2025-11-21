@@ -63,13 +63,14 @@ const getStyle = (property: Property) => {
 };
 
 
-export default function PropertiesMap({ properties }: PropertiesMapProps) {
+const PropertiesMap = ({ properties }: PropertiesMapProps) => {
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<L.Map | null>(null);
-  const [mapReady, setMapReady] = useState(false);
 
   useEffect(() => {
-    if (mapContainerRef.current && !mapInstanceRef.current) {
+    if (mapInstanceRef.current) return; // Already initialized
+
+    if (mapContainerRef.current) {
       mapInstanceRef.current = L.map(mapContainerRef.current, {
         center: [20.5937, 78.9629], // Default to India
         zoom: 5,
@@ -81,7 +82,6 @@ export default function PropertiesMap({ properties }: PropertiesMapProps) {
           attribution: '&copy; <a href="https://www.geoapify.com/" target="_blank">Geoapify</a> | &copy; <a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap</a> contributors',
         }
       ).addTo(mapInstanceRef.current);
-      setMapReady(true);
     }
      return () => {
       if (mapInstanceRef.current) {
@@ -92,10 +92,9 @@ export default function PropertiesMap({ properties }: PropertiesMapProps) {
   }, []);
 
   useEffect(() => {
-    if (mapReady && mapInstanceRef.current && properties) {
-        const map = mapInstanceRef.current;
-        
-        // Clear existing layers
+    const map = mapInstanceRef.current;
+    if (map && properties) {
+        // Clear existing layers (except the tile layer)
         map.eachLayer(layer => {
             if (layer instanceof L.Marker || layer instanceof L.GeoJSON) {
                 map.removeLayer(layer);
@@ -133,7 +132,7 @@ export default function PropertiesMap({ properties }: PropertiesMapProps) {
             map.setView([20.5937, 78.9629], 5);
         }
     }
-  }, [mapReady, properties]);
+  }, [properties]);
 
   return (
     <div className="rounded-xl overflow-hidden shadow-lg h-[600px] border">
@@ -141,3 +140,5 @@ export default function PropertiesMap({ properties }: PropertiesMapProps) {
     </div>
   );
 }
+
+export default PropertiesMap;

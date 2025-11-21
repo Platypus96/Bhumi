@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, useMemo } from 'react';
@@ -22,9 +23,9 @@ interface Place {
 }
 
 const CATEGORIES = {
-  education: { icon: School, label: "Schools", color: "bg-blue-100 text-blue-800" },
-  healthcare: { icon: Briefcase, label: "Hospitals", color: "bg-red-100 text-red-800" },
-  public_transport: { icon: Bus, label: "Transport", color: "bg-yellow-100 text-yellow-800" },
+  education: { Icon: School, label: "Schools", color: "bg-blue-100 text-blue-800" },
+  healthcare: { Icon: Briefcase, label: "Hospitals", color: "bg-red-100 text-red-800" },
+  public_transport: { Icon: Bus, label: "Transport", color: "bg-yellow-100 text-yellow-800" },
 };
 
 type CategoryKey = keyof typeof CATEGORIES;
@@ -112,7 +113,7 @@ export function NearbyPlaces({ latitude, longitude }: NearbyPlacesProps) {
             {(Object.keys(categorizedPlaces) as CategoryKey[]).map(key => {
               if (categorizedPlaces[key].length === 0) return null;
               
-              const Icon = CATEGORIES[key].icon;
+              const { Icon } = CATEGORIES[key];
               
               return (
                 <div key={key}>
