@@ -20,7 +20,6 @@ import { format } from "date-fns";
 import { Badge } from "@/components/ui/badge";
 import { HashPill } from "@/components/hash-pill";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { cn } from "@/lib/utils";
 
 export default function DashboardPage() {
   const { isRegistrar, account } = useWeb3();
@@ -149,7 +148,7 @@ export default function DashboardPage() {
       rejected: { className: "bg-red-100 text-red-800 border-red-200", text: "Rejected"},
     }
     return (
-      <Badge variant="outline" className={cn("font-semibold", variants[status].className)}>
+      <Badge variant="outline" className={`font-semibold ${variants[status].className}`}>
         {variants[status].text}
       </Badge>
     );
@@ -266,3 +265,5 @@ export default function DashboardPage() {
     </div>
   );
 }
+
+    
