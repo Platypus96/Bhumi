@@ -17,18 +17,21 @@ export async function improveDescription(description: string): Promise<string> {
     return result;
 }
 
+const promptTemplate = `You are an expert real estate agent. Rewrite the following property description to be more professional, appealing, and descriptive.
+Focus on highlighting the key features and creating an attractive summary for potential buyers.
+The output should be a list of 5-6 bullet points.
+
+Original Description:
+"{{prompt}}"
+
+Improved Description (as a list of 5-6 bullet points):
+`;
+
 const prompt = ai.definePrompt({
   name: 'improveDescriptionPrompt',
   input: { schema: ImproveDescriptionInputSchema },
   output: { schema: ImproveDescriptionOutputSchema },
-  prompt: `You are an expert real estate agent. Rewrite the following property description to be more professional, appealing, and descriptive.
-  Focus on highlighting the key features and creating an attractive narrative for potential buyers.
-
-  Original Description:
-  "{{prompt}}"
-  
-  Improved Description:
-  `,
+  prompt: promptTemplate,
 });
 
 const improveDescriptionFlow = ai.defineFlow(
@@ -39,16 +42,8 @@ const improveDescriptionFlow = ai.defineFlow(
   },
   async (input) => {
     const { text } = await ai.generate({
-        prompt: `You are an expert real estate agent. Rewrite the following property description to be more professional, appealing, and descriptive.
-  Focus on highlighting the key features and creating an attractive narrative for potential buyers.
-
-  Original Description:
-  "${input}"
-  
-  Improved Description:`,
+        prompt: promptTemplate.replace('{{prompt}}', input),
     });
     return text;
   }
 );
-
-    
