@@ -43,7 +43,14 @@ export default function DashboardPage() {
     const propertiesQuery = query(collection(firestore, 'properties'), orderBy('registeredAt', 'desc'));
 
     const unsubscribe = onSnapshot(propertiesQuery, (querySnapshot) => {
-        const props = querySnapshot.docs.map(doc => doc.data() as Property);
+        const props = querySnapshot.docs.map(doc => {
+            const data = doc.data() as Property;
+            // Backward compatibility: If status is missing, it's 'unverified'.
+            if (!data.status) {
+                data.status = 'unverified';
+            }
+            return data;
+        });
         setProperties(props);
         setLoading(false);
     }, (error) => {
@@ -101,12 +108,13 @@ export default function DashboardPage() {
   }
 
   const filteredProperties = useMemo(() => {
-    return properties.filter(p => p.status === activeTab);
+    return properties.filter(p => (p.status || 'unverified') === activeTab);
   }, [properties, activeTab]);
 
   const propertyCounts = useMemo(() => {
     return properties.reduce((acc, prop) => {
-      acc[prop.status] = (acc[prop.status] || 0) + 1;
+      const status = prop.status || 'unverified';
+      acc[status] = (acc[status] || 0) + 1;
       return acc;
     }, {} as Record<PropertyStatus, number>);
   }, [properties]);
@@ -150,14 +158,15 @@ export default function DashboardPage() {
   );
 
   const StatusBadge = ({ status }: { status: PropertyStatus }) => {
+    const currentStatus = status || 'unverified';
     const variants: Record<PropertyStatus, { className: string, text: string }> = {
       unverified: { className: "bg-amber-100 text-amber-800 border-amber-200", text: "Pending"},
       verified: { className: "bg-green-100 text-green-800 border-green-200", text: "Verified"},
       rejected: { className: "bg-red-100 text-red-800 border-red-200", text: "Rejected"},
     }
     return (
-      <Badge variant="outline" className={`font-semibold ${variants[status].className}`}>
-        {variants[status].text}
+      <Badge variant="outline" className={`font-semibold ${variants[currentStatus].className}`}>
+        {variants[currentStatus].text}
       </Badge>
     );
   };
@@ -202,7 +211,7 @@ export default function DashboardPage() {
                       </Button>
                   </TableCell>
                   <TableCell className="text-center">
-                      {prop.status === 'unverified' ? (
+                      {(prop.status === 'unverified' || !prop.status) ? (
                         <div className="flex gap-2 justify-center">
                           <Button size="sm" variant="outline" className="bg-green-50 hover:bg-green-100 text-green-700 border-green-200" onClick={() => handleVerify(prop)} disabled={!!processingId}>
                               {processingId === prop.parcelId ? <Loader2 className="h-4 w-4 animate-spin"/> : <ShieldCheck className="h-4 w-4"/>}
@@ -273,3 +282,5 @@ export default function DashboardPage() {
     </div>
   );
 }
+
+    
