@@ -14,7 +14,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { User, ShieldAlert, Loader2, History, Check, Tag, Hourglass, ExternalLink, FileText } from "lucide-react";
+import { User, ShieldAlert, History, Check, Tag, Hourglass, ExternalLink, FileText } from "lucide-react";
 import { format } from 'date-fns';
 import { VerifyDocument } from "@/components/verify-document";
 import { ManageSale } from "@/components/manage-sale";
@@ -25,10 +25,11 @@ import { HashPill } from "@/components/hash-pill";
 import { Separator } from "@/components/ui/separator";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { NearbyPlaces } from "@/components/nearby-places";
+import PropertiesMap from "@/components/property-map";
 
 export default function PropertyDetailPage() {
   const params = useParams();
-  const { account } => useWeb3();
+  const { account } = useWeb3();
   const { firestore } = useFirebase();
   
   const [property, setProperty] = useState<Property | null>(null);
@@ -70,24 +71,15 @@ export default function PropertyDetailPage() {
   const showReadMore = property.description.length > 200;
   
   const isCoordinate = property.latitude && property.longitude;
-  const gmapsLink = isCoordinate
-    ? `https://www.google.com/maps/search/?api=1&query=${property.latitude},${property.longitude}`
-    : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(property.location)}`;
-
 
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="grid md:grid-cols-2 gap-8 lg:gap-12">
         <div className="space-y-6">
           <Card className="overflow-hidden">
-            <div className="relative aspect-video">
-              <Image src={property.imageUrl} alt={property.title} fill className="object-cover" />
-               {property.forSale && (
-                <Badge variant="destructive" className="absolute top-4 right-4 text-base px-3 py-1">
-                  For Sale
-                </Badge>
-              )}
-            </div>
+             <div className="h-[400px] w-full">
+                <PropertiesMap properties={[property]} />
+             </div>
              <CardContent className="p-6">
                 <CardTitle className="text-3xl font-bold">{property.title}</CardTitle>
                 <div className="mt-4 text-muted-foreground">
@@ -165,11 +157,7 @@ export default function PropertyDetailPage() {
                     {property.location && (
                         <div className="flex items-center justify-between">
                             <strong className="text-muted-foreground">Location</strong>
-                            <Button variant="link" asChild className="p-0 h-auto">
-                                <Link href={gmapsLink} target="_blank" rel="noopener noreferrer">
-                                    {property.location} <ExternalLink className="ml-2 h-3 w-3" />
-                                </Link>
-                            </Button>
+                            <span className="text-right">{property.location}</span>
                         </div>
                     )}
                 </div>

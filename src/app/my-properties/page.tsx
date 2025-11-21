@@ -10,9 +10,11 @@ import { useWeb3 } from '@/hooks/use-web3';
 import { useFirebase } from '@/firebase';
 import { useToast } from '@/hooks/use-toast';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { AlertCircle, PlusCircle, Building2, Home } from 'lucide-react';
+import { AlertCircle, PlusCircle, Building2, Home, Map } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
+import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
+import PropertiesMap from '@/components/property-map';
 
 export default function MyPropertiesPage() {
   const [properties, setProperties] = useState<Property[]>([]);
@@ -72,30 +74,8 @@ export default function MyPropertiesPage() {
 
   const hasContent = properties.length > 0;
 
-  return (
-    <div className="container mx-auto px-4 py-8 space-y-12">
-        <div className="flex flex-wrap items-center justify-between gap-6">
-            <div className="text-left">
-                <h1 className="text-4xl font-bold tracking-tight text-primary font-headline flex items-center">
-                   <div className="bg-primary/10 text-primary p-3 rounded-xl mr-4">
-                      <Home className="h-8 w-8" />
-                  </div>
-                  My Properties
-                </h1>
-                <p className="mt-2 text-lg text-muted-foreground">
-                    A list of all your registered properties, including pending and verified ones.
-                </p>
-            </div>
-             <Button asChild size="lg" className="rounded-full font-semibold">
-              <Link href="/my-properties/add">
-                <PlusCircle className="mr-2 h-5 w-5" />
-                Add New Property
-              </Link>
-            </Button>
-        </div>
-
-
-      {loading ? (
+  const renderGrid = () => (
+      loading ? (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {Array.from({ length: 3 }).map((_, i) => (
             <div key={i} className="flex flex-col space-y-3">
@@ -129,9 +109,43 @@ export default function MyPropertiesPage() {
             </div>
           )}
         </>
-      )}
+      )
+  );
+
+  return (
+    <div className="container mx-auto px-4 py-8 space-y-12">
+        <div className="flex flex-wrap items-center justify-between gap-6">
+            <div className="text-left">
+                <h1 className="text-4xl font-bold tracking-tight text-primary font-headline flex items-center">
+                   <div className="bg-primary/10 text-primary p-3 rounded-xl mr-4">
+                      <Home className="h-8 w-8" />
+                  </div>
+                  My Properties
+                </h1>
+                <p className="mt-2 text-lg text-muted-foreground">
+                    A list of all your registered properties, including pending and verified ones.
+                </p>
+            </div>
+             <Button asChild size="lg" className="rounded-full font-semibold">
+              <Link href="/my-properties/add">
+                <PlusCircle className="mr-2 h-5 w-5" />
+                Add New Property
+              </Link>
+            </Button>
+        </div>
+
+      <Tabs defaultValue="grid">
+        <TabsList>
+            <TabsTrigger value="grid">Grid View</TabsTrigger>
+            <TabsTrigger value="map">Map View</TabsTrigger>
+        </TabsList>
+        <TabsContent value="grid" className="mt-6">
+            {renderGrid()}
+        </TabsContent>
+        <TabsContent value="map" className="mt-6">
+            {hasContent ? <PropertiesMap properties={properties} /> : <p className="text-center text-muted-foreground">No properties to show on map.</p>}
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
-
-    

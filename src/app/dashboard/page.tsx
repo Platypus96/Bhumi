@@ -21,6 +21,7 @@ import { format } from "date-fns";
 import { Badge } from "@/components/ui/badge";
 import { HashPill } from "@/components/hash-pill";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import PropertiesMap from "@/components/property-map";
 
 export default function DashboardPage() {
   const { isRegistrar, account } = useWeb3();
@@ -170,74 +171,85 @@ export default function DashboardPage() {
   };
 
   const renderTable = (propertiesToRender: Property[]) => (
-    <div className="rounded-lg border">
-      <Table>
-          <TableHeader>
-          <TableRow>
-              <TableHead className="w-[100px]">Image</TableHead>
-              <TableHead>Title & Owner</TableHead>
-              <TableHead className="w-[170px]">Registered At</TableHead>
-              <TableHead className="w-[120px]">Status</TableHead>
-              <TableHead className="w-[130px]">Proof</TableHead>
-              <TableHead className="w-[200px] text-center">Actions</TableHead>
-          </TableRow>
-          </TableHeader>
-          <TableBody>
-          {loading ? renderSkeletons() : 
-          propertiesToRender.length > 0 ? (
-              propertiesToRender.map((prop) => (
-              <TableRow key={prop.parcelId}>
-                  <TableCell>
-                      <div className="relative h-12 w-20 group">
-                          <Image src={prop.imageUrl} alt={prop.title} fill className="rounded-md object-cover transition-transform duration-300 group-hover:scale-125" />
-                      </div>
-                  </TableCell>
-                  <TableCell>
-                      <div className="font-bold text-base">{prop.title}</div>
-                      <HashPill type="address" hash={prop.owner} className="mt-1"/>
-                  </TableCell>
-                  <TableCell>{format(prop.registeredAt.toDate(), "dd MMM, yyyy")}</TableCell>
-                    <TableCell>
-                      <StatusBadge status={prop.status || 'unverified'} />
-                  </TableCell>
-                  <TableCell>
-                      <Button asChild variant="outline" size="sm">
-                          <Link href={prop.ipfsProofCid} target="_blank" rel="noopener noreferrer">
-                              <FileText className="h-4 w-4 mr-2" />
-                              Document
-                          </Link>
-                      </Button>
-                  </TableCell>
-                  <TableCell className="text-center">
-                      {(prop.status === 'unverified' || !prop.status) ? (
-                        <div className="flex gap-2 justify-center">
-                          <Button size="sm" variant="outline" className="bg-green-50 hover:bg-green-100 text-green-700 border-green-200" onClick={() => handleVerify(prop)} disabled={!!processingId}>
-                              {processingId === prop.parcelId ? <Loader2 className="h-4 w-4 animate-spin"/> : <ShieldCheck className="h-4 w-4"/>}
-                              Verify
-                          </Button>
-                          <Button size="sm" variant="destructive" className="bg-red-50 hover:bg-red-100 text-red-700 border-red-200" onClick={() => handleReject(prop)} disabled={!!processingId}>
-                              <X className="h-4 w-4"/>
-                          </Button>
-                        </div>
-                      ) : prop.status === 'verified' ? (
-                          <div className="flex items-center justify-center text-sm text-muted-foreground italic">
-                            <Check className="h-4 w-4 mr-2 text-green-500"/>
-                            Completed
-                          </div>
-                      ) : null }
-                  </TableCell>
-              </TableRow>
-              ))
-          ) : (
-              <TableRow>
-              <TableCell colSpan={6} className="h-32 text-center">
-                  No properties in this category.
-              </TableCell>
-              </TableRow>
-          )}
-          </TableBody>
-      </Table>
-    </div>
+    <Tabs defaultValue="list">
+        <TabsList>
+            <TabsTrigger value="list">List View</TabsTrigger>
+            <TabsTrigger value="map">Map View</TabsTrigger>
+        </TabsList>
+        <TabsContent value="list" className="mt-4">
+            <div className="rounded-lg border">
+            <Table>
+                <TableHeader>
+                <TableRow>
+                    <TableHead className="w-[100px]">Image</TableHead>
+                    <TableHead>Title & Owner</TableHead>
+                    <TableHead className="w-[170px]">Registered At</TableHead>
+                    <TableHead className="w-[120px]">Status</TableHead>
+                    <TableHead className="w-[130px]">Proof</TableHead>
+                    <TableHead className="w-[200px] text-center">Actions</TableHead>
+                </TableRow>
+                </TableHeader>
+                <TableBody>
+                {loading ? renderSkeletons() : 
+                propertiesToRender.length > 0 ? (
+                    propertiesToRender.map((prop) => (
+                    <TableRow key={prop.parcelId}>
+                        <TableCell>
+                            <div className="relative h-12 w-20 group">
+                                <Image src={prop.imageUrl} alt={prop.title} fill className="rounded-md object-cover transition-transform duration-300 group-hover:scale-125" />
+                            </div>
+                        </TableCell>
+                        <TableCell>
+                            <div className="font-bold text-base">{prop.title}</div>
+                            <HashPill type="address" hash={prop.owner} className="mt-1"/>
+                        </TableCell>
+                        <TableCell>{format(prop.registeredAt.toDate(), "dd MMM, yyyy")}</TableCell>
+                            <TableCell>
+                            <StatusBadge status={prop.status || 'unverified'} />
+                        </TableCell>
+                        <TableCell>
+                            <Button asChild variant="outline" size="sm">
+                                <Link href={prop.ipfsProofCid} target="_blank" rel="noopener noreferrer">
+                                    <FileText className="h-4 w-4 mr-2" />
+                                    Document
+                                </Link>
+                            </Button>
+                        </TableCell>
+                        <TableCell className="text-center">
+                            {(prop.status === 'unverified' || !prop.status) ? (
+                                <div className="flex gap-2 justify-center">
+                                <Button size="sm" variant="outline" className="bg-green-50 hover:bg-green-100 text-green-700 border-green-200" onClick={() => handleVerify(prop)} disabled={!!processingId}>
+                                    {processingId === prop.parcelId ? <Loader2 className="h-4 w-4 animate-spin"/> : <ShieldCheck className="h-4 w-4"/>}
+                                    Verify
+                                </Button>
+                                <Button size="sm" variant="destructive" className="bg-red-50 hover:bg-red-100 text-red-700 border-red-200" onClick={() => handleReject(prop)} disabled={!!processingId}>
+                                    <X className="h-4 w-4"/>
+                                </Button>
+                                </div>
+                            ) : prop.status === 'verified' ? (
+                                <div className="flex items-center justify-center text-sm text-muted-foreground italic">
+                                    <Check className="h-4 w-4 mr-2 text-green-500"/>
+                                    Completed
+                                </div>
+                            ) : null }
+                        </TableCell>
+                    </TableRow>
+                    ))
+                ) : (
+                    <TableRow>
+                    <TableCell colSpan={6} className="h-32 text-center">
+                        No properties in this category.
+                    </TableCell>
+                    </TableRow>
+                )}
+                </TableBody>
+            </Table>
+            </div>
+        </TabsContent>
+        <TabsContent value="map" className="mt-4">
+            <PropertiesMap properties={propertiesToRender} />
+        </TabsContent>
+    </Tabs>
   );
 
   return (
@@ -280,5 +292,3 @@ export default function DashboardPage() {
     </div>
   );
 }
-
-    
