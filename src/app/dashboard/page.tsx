@@ -3,15 +3,16 @@
 
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { useWeb3 } from "@/hooks/use-web3";
-import { getAllProperties, rejectPropertyInDb, verifyPropertyInDb } from "@/lib/data";
+import { rejectPropertyInDb, verifyPropertyInDb } from "@/lib/data";
 import { useBlockchain } from "@/hooks/use-blockchain";
 import { useToast } from "@/hooks/use-toast";
 import type { Property, PropertyStatus } from "@/lib/types";
 import { useFirebase } from "@/firebase";
+import { collection, onSnapshot, query, orderBy } from "firebase/firestore";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { AlertCircle, Check, FileText, Loader2, ShieldCheck, ShieldX, X } from "lucide-react";
+import { AlertCircle, Check, FileText, Loader2, ShieldCheck, X } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import Image from "next/image";
@@ -32,21 +33,28 @@ export default function DashboardPage() {
   const [processingId, setProcessingId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<PropertyStatus>("unverified");
 
-  const fetchAllProperties = useCallback(async () => {
-    if (!firestore) return;
-    setLoading(true);
-    const allProps = await getAllProperties(firestore);
-    setProperties(allProps);
-    setLoading(false);
-  }, [firestore]);
-
   useEffect(() => {
-    if (isRegistrar) {
-      fetchAllProperties();
-    } else {
-      setLoading(false);
+    if (!firestore || !isRegistrar) {
+        setLoading(false);
+        return;
     }
-  }, [isRegistrar, fetchAllProperties]);
+
+    setLoading(true);
+    const propertiesQuery = query(collection(firestore, 'properties'), orderBy('registeredAt', 'desc'));
+
+    const unsubscribe = onSnapshot(propertiesQuery, (querySnapshot) => {
+        const props = querySnapshot.docs.map(doc => doc.data() as Property);
+        setProperties(props);
+        setLoading(false);
+    }, (error) => {
+        console.error("Error fetching properties:", error);
+        toast({ variant: 'destructive', title: 'Error', description: 'Could not fetch properties.' });
+        setLoading(false);
+    });
+
+    return () => unsubscribe(); // Cleanup listener on unmount
+  }, [firestore, isRegistrar, toast]);
+
 
   const handleVerify = async (property: Property) => {
     if (!firestore) return;
@@ -58,7 +66,7 @@ export default function DashboardPage() {
         title: "Property Verified!",
         description: `Property is now verified on-chain.`,
       });
-      fetchAllProperties();
+      // Real-time listener will update the UI
     } catch (error: any) {
       toast({
         variant: "destructive",
@@ -80,7 +88,7 @@ export default function DashboardPage() {
         title: "Property Rejected",
         description: `The property registration has been marked as rejected.`,
       });
-      fetchAllProperties();
+      // Real-time listener will update the UI
     } catch (error: any) {
       toast({
         variant: "destructive",
@@ -265,5 +273,3 @@ export default function DashboardPage() {
     </div>
   );
 }
-
-    
