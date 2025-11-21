@@ -25,7 +25,13 @@ import { HashPill } from "@/components/hash-pill";
 import { Separator } from "@/components/ui/separator";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { NearbyPlaces } from "@/components/nearby-places";
-import PropertiesMap from "@/components/property-map";
+import dynamic from "next/dynamic";
+
+const PropertiesMap = dynamic(() => import('@/components/property-map'), {
+  ssr: false,
+  loading: () => <div className="h-[400px] w-full bg-muted animate-pulse flex items-center justify-center"><p>Loading Map...</p></div>
+});
+
 
 export default function PropertyDetailPage() {
   const params = useParams();
