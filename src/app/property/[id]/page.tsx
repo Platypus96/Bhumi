@@ -154,10 +154,22 @@ export default function PropertyDetailPage() {
                     {property.registeredAt && <div className="flex items-center justify-between"><strong className="text-muted-foreground">Registered</strong> <span>{format(property.registeredAt.toDate(), "PPP")}</span></div>}
                     <div className="flex items-center justify-between"><strong className="text-muted-foreground">Status</strong> <Badge variant={property.verified ? 'secondary' : 'destructive'}>{property.verified ? "Verified" : "Unverified"}</Badge></div>
                     {property.location && (
-                        <div className="flex items-center justify-between">
-                            <strong className="text-muted-foreground">Location</strong>
+                      <div className="flex items-center justify-between">
+                        <strong className="text-muted-foreground">Location</strong>
+                        {isCoordinate ? (
+                          <a
+                            href={`https://www.google.com/maps?q=${property.latitude},${property.longitude}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-primary hover:underline flex items-center gap-1"
+                          >
                             <span className="text-right">{property.location}</span>
-                        </div>
+                            <ExternalLink className="h-3 w-3" />
+                          </a>
+                        ) : (
+                          <span className="text-right">{property.location}</span>
+                        )}
+                      </div>
                     )}
                 </div>
                 <Separator className="my-4" />
