@@ -89,7 +89,7 @@ export async function getPropertiesByOwner(db: Firestore, ownerAddress: string):
 }
 
 export async function getAllProperties(db: Firestore): Promise<Property[]> {
-    const q = query(collection(db, PROPERTIES_COLLECTION), where('polygon', '!=', null), orderBy('polygon'), orderBy('registeredAt', 'desc'));
+    const q = query(collection(db, PROPERTIES_COLLECTION), where('polygon', '!=', null), orderBy('registeredAt', 'desc'));
     try {
       const querySnapshot = await getDocs(q);
       return querySnapshot.docs.map(doc => doc.data() as Property).filter(p => !!p.polygon);
