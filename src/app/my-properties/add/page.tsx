@@ -13,13 +13,14 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { FileUp, Loader2, AlertCircle, Sparkles } from "lucide-react";
+import { FileUp, Loader2, AlertCircle, Sparkles, MapPin } from "lucide-react";
 import { useState } from "react";
 import { useIPFS } from "@/hooks/use-ipfs";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
 import { useFirebase } from "@/firebase";
 import { useBlockchain } from "@/hooks/use-blockchain";
 import { improveDescription } from "@/ai/flows/improve-description-flow";
+import DynamicMap from "@/components/dynamic-map";
 
 const formSchema = z.object({
   title: z.string().min(5, "Title must be at least 5 characters."),
@@ -28,6 +29,8 @@ const formSchema = z.object({
   location: z.string().min(3, "Location is required."),
   image: z.any().refine(files => files?.length == 1, "Property image is required."),
   document: z.any().refine(files => files?.length == 1, "Proof document is required."),
+  latitude: z.number().optional(),
+  longitude: z.number().optional(),
 });
 
 export default function AddPropertyPage() {
@@ -40,6 +43,7 @@ export default function AddPropertyPage() {
   
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isImproving, setIsImproving] = useState(false);
+  const [showMap, setShowMap] = useState(false);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -70,6 +74,17 @@ export default function AddPropertyPage() {
     }
   };
 
+  const handleLocationSelect = (lat: number, lng: number) => {
+    form.setValue("latitude", lat);
+    form.setValue("longitude", lng);
+    form.setValue("location", `${lat.toFixed(6)}, ${lng.toFixed(6)}`);
+    toast({
+      title: "Location Selected",
+      description: `Coordinates: ${lat.toFixed(6)}, ${lng.toFixed(6)}`,
+    });
+    setShowMap(false); // Close map after selection
+  };
+
   async function onSubmit(values: z.infer<typeof formSchema>) {
     if (!account) {
         toast({ variant: "destructive", title: "Wallet not connected" });
@@ -94,15 +109,11 @@ export default function AddPropertyPage() {
       const documentUploadResult = await uploadToIpfs(documentFile);
       if (!documentUploadResult) throw new Error("Proof upload to IPFS failed.");
 
-      // A unique identifier for the property. Can be anything, but for simplicity,
-      // we'll combine owner address and current timestamp.
       const parcelId = `${account}-${Date.now()}`;
 
-      // 1. Add property to the blockchain
       toast({ description: "Adding property to the blockchain..." });
       const receipt = await addProperty(parcelId, imageUploadResult.cid, documentUploadResult.cid);
 
-      // 2. Add property to Firestore
       toast({ description: "Saving property details..." });
       await createProperty(firestore, {
         parcelId: parcelId,
@@ -111,6 +122,8 @@ export default function AddPropertyPage() {
         description: values.description,
         area: values.area,
         location: values.location,
+        latitude: values.latitude,
+        longitude: values.longitude,
         imageUrl: imageUploadResult.cid,
         ipfsProofCid: documentUploadResult.cid,
       }, receipt.hash);
@@ -208,14 +221,27 @@ export default function AddPropertyPage() {
               render={({ field }) => (
                 <FormItem>
                   <FormLabel>Location</FormLabel>
-                  <FormControl>
-                    <Input placeholder="e.g., New York, USA" {...field} />
-                  </FormControl>
-                  <FormDescription>A Google Maps link or a general address.</FormDescription>
+                   <div className="flex gap-2">
+                    <FormControl>
+                      <Input placeholder="Click map or enter manually" {...field} />
+                    </FormControl>
+                    <Button type="button" variant="outline" onClick={() => setShowMap(!showMap)}>
+                      <MapPin className="mr-2 h-4 w-4" />
+                      {showMap ? "Close Map" : "Select on Map"}
+                    </Button>
+                  </div>
+                  <FormDescription>Select location on the map or enter a general address.</FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
             />
+            
+            {showMap && (
+              <div className="border rounded-xl overflow-hidden shadow-lg">
+                <DynamicMap onLocationSelect={handleLocationSelect} />
+              </div>
+            )}
+
 
             <FormField
               control={form.control}

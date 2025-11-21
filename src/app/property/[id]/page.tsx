@@ -69,6 +69,12 @@ export default function PropertyDetailPage() {
 
   const showReadMore = property.description.length > 200;
   
+  const isCoordinate = property.latitude && property.longitude;
+  const gmapsLink = isCoordinate
+    ? `https://www.google.com/maps/search/?api=1&query=${property.latitude},${property.longitude}`
+    : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(property.location)}`;
+
+
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="grid md:grid-cols-2 gap-8 lg:gap-12">
@@ -156,7 +162,7 @@ export default function PropertyDetailPage() {
                         <div className="flex items-center justify-between">
                             <strong className="text-muted-foreground">Location</strong>
                             <Button variant="link" asChild className="p-0 h-auto">
-                                <Link href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(property.location)}`} target="_blank" rel="noopener noreferrer">
+                                <Link href={gmapsLink} target="_blank" rel="noopener noreferrer">
                                     {property.location} <ExternalLink className="ml-2 h-3 w-3" />
                                 </Link>
                             </Button>

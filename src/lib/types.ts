@@ -1,3 +1,4 @@
+
 import type { Timestamp } from "firebase/firestore";
 
 // This is now effectively a subset of the Property type, used during creation.
@@ -29,6 +30,8 @@ export interface Property {
   description: string;
   area: string;
   location: string;
+  latitude?: number;
+  longitude?: number;
   imageUrl: string; // This will now be an IPFS CID URL
   ipfsProofCid: string;
   status: PropertyStatus;
