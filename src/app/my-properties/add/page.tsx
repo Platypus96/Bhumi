@@ -266,7 +266,7 @@ export default function AddPropertyPage() {
               control={form.control}
               name="location"
               render={({ field }) => (
-                <FormItem className="sr-only">
+                <FormItem>
                   <FormLabel>Location Coordinates</FormLabel>
                    <FormControl>
                       <Input {...field} />
@@ -331,3 +331,5 @@ export default function AddPropertyPage() {
     </div>
   );
 }
+
+    
