@@ -19,12 +19,17 @@ import type { Property, TransferHistory } from './types';
 import { FirestorePermissionError } from '@/firebase/errors';
 import { errorEmitter } from '@/firebase/error-emitter';
 
-const PROPERTIES_COLLECTION = 'properties';
+// We need to get the App ID from the global scope or define a default
+const appId = typeof window !== 'undefined' && (window as any).__app_id 
+  ? (window as any).__app_id 
+  : 'default-app-id';
+
+// The path MUST be: artifacts/{appId}/public/data/{collectionName}
+const PROPERTIES_COLLECTION = `artifacts/${appId}/public/data/properties`;
 
 export async function createProperty(db: Firestore, propertyData: Omit<Property, 'history' | 'verified' | 'forSale' | 'price' | 'txHash' | 'registeredAt' | 'status' | 'area'>, txHash: string): Promise<void> {
     const propertyWithDefaults = {
         ...propertyData,
-        area: "N/A", // Area is now determined by polygon, but schema needs a value.
         status: 'unverified' as const,
         verified: false, // For contract state
         forSale: false,
