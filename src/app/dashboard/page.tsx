@@ -73,7 +73,6 @@ export default function DashboardPage() {
         title: "Property Verified!",
         description: `Property is now verified on-chain.`,
       });
-      // Real-time listener will update the UI
     } catch (error: any) {
       toast({
         variant: "destructive",
@@ -95,7 +94,6 @@ export default function DashboardPage() {
         title: "Property Rejected",
         description: `The property registration has been marked as rejected.`,
       });
-      // Real-time listener will update the UI
     } catch (error: any) {
       toast({
         variant: "destructive",
@@ -221,12 +219,12 @@ export default function DashboardPage() {
                               <X className="h-4 w-4"/>
                           </Button>
                         </div>
-                      ) : (
+                      ) : prop.status === 'verified' ? (
                           <div className="flex items-center justify-center text-sm text-muted-foreground italic">
                             <Check className="h-4 w-4 mr-2 text-green-500"/>
                             Completed
                           </div>
-                      )}
+                      ) : null }
                   </TableCell>
               </TableRow>
               ))
