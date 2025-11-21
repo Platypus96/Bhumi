@@ -31,39 +31,10 @@ export default function MyPropertiesPage() {
   const { toast } = useToast();
 
   useEffect(() => {
-    if (!account || !firestore) {
-      setProperties([]);
-      setLoading(false);
-      return;
-    }
-
-    setLoading(true);
-
-    const q = query(
-      collection(firestore, 'properties'),
-      where('owner', '==', account)
-    );
-
-    const unsubscribe = onSnapshot(
-      q,
-      (querySnapshot) => {
-        const myProps = querySnapshot.docs.map((doc) => doc.data() as Property);
-        setProperties(myProps);
-        setLoading(false);
-      },
-      (error) => {
-        console.error('Error fetching properties:', error);
-        toast({
-          variant: 'destructive',
-          title: 'Error',
-          description: 'Could not fetch your properties.',
-        });
-        setLoading(false);
-      }
-    );
-
-    return () => unsubscribe(); // Cleanup listener on component unmount
-  }, [account, firestore, toast]);
+    // Clear properties for a clean slate
+    setProperties([]);
+    setLoading(false);
+  }, [account, firestore]);
 
   if (!account) {
     return (
@@ -158,5 +129,7 @@ export default function MyPropertiesPage() {
     </div>
   );
 }
+
+    
 
     

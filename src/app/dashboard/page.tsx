@@ -43,33 +43,10 @@ export default function DashboardPage() {
 
 
   useEffect(() => {
-    if (!firestore || !isRegistrar) {
-        setLoading(false);
-        return;
-    }
-
-    setLoading(true);
-    const propertiesQuery = query(collection(firestore, 'properties'), orderBy('registeredAt', 'desc'));
-
-    const unsubscribe = onSnapshot(propertiesQuery, (querySnapshot) => {
-        const props = querySnapshot.docs.map(doc => {
-            const data = doc.data() as Property;
-            // Backward compatibility: If status is missing, it's 'unverified'.
-            if (!data.status) {
-                data.status = 'unverified';
-            }
-            return data;
-        });
-        setProperties(props);
-        setLoading(false);
-    }, (error) => {
-        console.error("Error fetching properties:", error);
-        toast({ variant: 'destructive', title: 'Error', description: 'Could not fetch properties.' });
-        setLoading(false);
-    });
-
-    return () => unsubscribe(); // Cleanup listener on unmount
-  }, [firestore, isRegistrar, toast]);
+    // Clear properties for a clean slate
+    setProperties([]);
+    setLoading(false);
+  }, []);
 
 
   const handleVerify = async (property: Property) => {
@@ -300,5 +277,7 @@ export default function DashboardPage() {
     </div>
   );
 }
+
+    
 
     
