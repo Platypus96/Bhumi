@@ -30,12 +30,11 @@ const MapPicker = ({ onLocationSelect }: MapPickerProps) => {
     if (typeof window === 'undefined' || !mapContainerRef.current) return;
 
     // THE GUARD CLAUSE: If the map instance already exists, do nothing.
-    // This is the key to preventing the "Map container already initialized" error.
     if (mapInstanceRef.current) return;
     
     // --- Map Initialization ---
     const apiKey = process.env.NEXT_PUBLIC_GEOAPIFY_API_KEY;
-    const tileUrl = `https://maps.geoapify.com/v1/tile/satellite/{z}/{x}/{y}.png?apiKey=${apiKey}`;
+    const tileUrl = `https://maps.geoapify.com/v1/tile/osm-bright-grey/{z}/{x}/{y}.png?apiKey=${apiKey}`;
     const attribution = '&copy; <a href="https://www.geoapify.com/" target="_blank">Geoapify</a> | &copy; <a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap</a> contributors';
 
     // Initialize the map on the container ref
@@ -47,7 +46,6 @@ const MapPicker = ({ onLocationSelect }: MapPickerProps) => {
     L.tileLayer(tileUrl, { attribution }).addTo(mapInstanceRef.current);
 
     // --- Event Handling ---
-    // Handle map click events
     mapInstanceRef.current.on('click', (e: L.LeafletMouseEvent) => {
       const { lat, lng } = e.latlng;
       
@@ -58,21 +56,18 @@ const MapPicker = ({ onLocationSelect }: MapPickerProps) => {
         markerRef.current = L.marker(e.latlng).addTo(mapInstanceRef.current!);
       }
       
-      // Call the parent component's callback
       onLocationSelect(lat, lng);
     });
 
     // --- Cleanup Function ---
-    // This runs when the component is unmounted
     return () => {
       if (mapInstanceRef.current) {
         mapInstanceRef.current.remove();
         mapInstanceRef.current = null;
       }
     };
-  }, [onLocationSelect]); // Only re-run if onLocationSelect changes
+  }, [onLocationSelect]);
 
-  // The div that will contain the map
   return (
     <div 
       ref={mapContainerRef} 
