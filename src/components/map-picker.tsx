@@ -1,12 +1,11 @@
 
 "use client";
 
-import { useState, useEffect, useRef } from 'react';
-import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet';
-import 'leaflet/dist/leaflet.css';
+import { useEffect, useRef } from 'react';
 import L from 'leaflet';
+import 'leaflet/dist/leaflet.css';
 
-// Fix for missing Leaflet markers - this should run once when the module is loaded.
+// Fix for missing Leaflet markers
 // @ts-ignore
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
@@ -15,66 +14,72 @@ L.Icon.Default.mergeOptions({
   shadowUrl: 'https://unpkg.com/leaflet@1.9.4/dist/images/marker-shadow.png',
 });
 
-
-// Interface for the props
+// Interface for the component props
 interface MapPickerProps {
   onLocationSelect: (lat: number, lng: number) => void;
 }
 
-// Helper component to handle clicks
-function LocationMarker({ onLocationSelect }: { onLocationSelect: (lat: number, lng: number) => void }) {
-  const [position, setPosition] = useState<L.LatLng | null>(null);
-
-  useMapEvents({
-    click(e) {
-      setPosition(e.latlng);
-      onLocationSelect(e.latlng.lat, e.latlng.lng);
-    },
-  });
-
-  return position === null ? null : (
-    <Marker position={position}></Marker>
-  );
-}
-
-// Main Component
 const MapPicker = ({ onLocationSelect }: MapPickerProps) => {
-  const [isClient, setIsClient] = useState(false);
+  // Create refs for the map container and the map instance
+  const mapContainerRef = useRef<HTMLDivElement>(null);
+  const mapInstanceRef = useRef<L.Map | null>(null);
+  const markerRef = useRef<L.Marker | null>(null);
 
-  // This ensures that the component only renders on the client side.
   useEffect(() => {
-    setIsClient(true);
-  }, []);
+    // Ensure this code runs only in the browser and the container is available
+    if (typeof window === 'undefined' || !mapContainerRef.current) return;
 
+    // THE GUARD CLAUSE: If the map instance already exists, do nothing.
+    // This is the key to preventing the "Map container already initialized" error.
+    if (mapInstanceRef.current) return;
+    
+    // --- Map Initialization ---
+    const apiKey = process.env.NEXT_PUBLIC_GEOAPIFY_API_KEY;
+    const tileUrl = `https://maps.geoapify.com/v1/tile/satellite/{z}/{x}/{y}.png?apiKey=${apiKey}`;
+    const attribution = '&copy; <a href="https://www.geoapify.com/" target="_blank">Geoapify</a> | &copy; <a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap</a> contributors';
 
-  const apiKey = process.env.NEXT_PUBLIC_GEOAPIFY_API_KEY;
-  const mapStyle = "satellite"; 
-  const tileUrl = `https://maps.geoapify.com/v1/tile/${mapStyle}/{z}/{x}/{y}.png?apiKey=${apiKey}`;
-  const attribution = '&copy; <a href="https://www.geoapify.com/" target="_blank">Geoapify</a> | &copy; <a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap</a> contributors';
+    // Initialize the map on the container ref
+    mapInstanceRef.current = L.map(mapContainerRef.current, {
+        zoomControl: true, // Ensure zoom controls are enabled
+    }).setView([20.5937, 78.9629], 5); // Default view over India
 
-  // Render a placeholder on the server and during initial client render,
-  // then render the actual map once we're sure we are on the client.
+    // Add the tile layer
+    L.tileLayer(tileUrl, { attribution }).addTo(mapInstanceRef.current);
+
+    // --- Event Handling ---
+    // Handle map click events
+    mapInstanceRef.current.on('click', (e: L.LeafletMouseEvent) => {
+      const { lat, lng } = e.latlng;
+      
+      // Update marker position or create it if it doesn't exist
+      if (markerRef.current) {
+        markerRef.current.setLatLng(e.latlng);
+      } else {
+        markerRef.current = L.marker(e.latlng).addTo(mapInstanceRef.current!);
+      }
+      
+      // Call the parent component's callback
+      onLocationSelect(lat, lng);
+    });
+
+    // --- Cleanup Function ---
+    // This runs when the component is unmounted
+    return () => {
+      if (mapInstanceRef.current) {
+        mapInstanceRef.current.remove();
+        mapInstanceRef.current = null;
+      }
+    };
+  }, [onLocationSelect]); // Only re-run if onLocationSelect changes
+
+  // The div that will contain the map
   return (
-    <div style={{ height: '400px', width: '100%' }}>
-      {isClient ? (
-        <MapContainer 
-          center={[20.5937, 78.9629]} // India
-          zoom={5} 
-          style={{ height: '100%', width: '100%', zIndex: 1 }}
-        >
-          <TileLayer
-            attribution={attribution}
-            url={tileUrl}
-          />
-          <LocationMarker onLocationSelect={onLocationSelect} />
-        </MapContainer>
-      ) : (
-         <div className="h-full w-full bg-muted animate-pulse rounded-xl flex items-center justify-center text-muted-foreground">
-            Initializing Map...
-         </div>
-      )}
-    </div>
+    <div 
+      ref={mapContainerRef} 
+      style={{ width: '100%', height: '400px', zIndex: 1 }} 
+      className="rounded-lg"
+    />
   );
-}
+};
 
 export default MapPicker;
