@@ -5,7 +5,7 @@ import { useFirebase } from "@/firebase";
 import { useToast } from "@/hooks/use-toast";
 import type { Property } from "@/lib/types";
 import { Store } from "lucide-react";
-import { useEffect, useState, useCallback, useMemo } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import dynamic from 'next/dynamic';
 import { collection, query, where, onSnapshot } from "firebase/firestore";

@@ -10,7 +10,7 @@ import { useWeb3 } from '@/hooks/use-web3';
 import { useFirebase } from '@/firebase';
 import { useToast } from '@/hooks/use-toast';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { AlertCircle, PlusCircle, Building2, Home, Map } from 'lucide-react';
+import { AlertCircle, PlusCircle, Building2, Home } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';

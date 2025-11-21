@@ -30,7 +30,7 @@ interface TileLayer {
 interface PropertiesMapProps {
   properties: Property[];
   selectedProperty?: Property | null;
-  tileLayer?: TileLayer; // Made optional
+  tileLayer?: TileLayer;
   className?: string;
 }
 
@@ -91,30 +91,11 @@ const PropertiesMap = ({ properties, selectedProperty, tileLayer, className }: P
   const currentTileLayer = tileLayer || defaultTileLayer;
 
   useEffect(() => {
-    if (!mapContainerRef.current) return;
-    if (!mapInstanceRef.current) {
+    if (mapContainerRef.current && !mapInstanceRef.current) {
         mapInstanceRef.current = L.map(mapContainerRef.current).setView([20.5937, 78.9629], 5);
+        tileLayerRef.current = L.tileLayer(currentTileLayer.url, { attribution: currentTileLayer.attribution }).addTo(mapInstanceRef.current);
     }
-  }, []);
-
-  useEffect(() => {
-    const map = mapInstanceRef.current;
-    if (!map) return;
-
-    // Handle tile layer changes
-    if (!tileLayerRef.current) {
-        tileLayerRef.current = L.tileLayer(currentTileLayer.url, { attribution: currentTileLayer.attribution }).addTo(map);
-    } else if (tileLayerRef.current.getAttribution() !== currentTileLayer.attribution) {
-        tileLayerRef.current.setUrl(currentTileLayer.url);
-        map.attributionControl.removeAttribution(tileLayerRef.current.getAttribution() || '');
-        map.attributionControl.addAttribution(currentTileLayer.attribution);
-        // @ts-ignore
-        tileLayerRef.current.options.attribution = currentTileLayer.attribution;
-    }
-     
-  }, [currentTileLayer]);
-
-  useEffect(() => {
+    
     return () => {
         if (mapInstanceRef.current) {
             mapInstanceRef.current.remove();
@@ -122,6 +103,20 @@ const PropertiesMap = ({ properties, selectedProperty, tileLayer, className }: P
         }
     }
   }, []);
+
+  useEffect(() => {
+    const map = mapInstanceRef.current;
+    if (!map || !tileLayerRef.current) return;
+
+    if (tileLayerRef.current.options.attribution !== currentTileLayer.attribution) {
+        tileLayerRef.current.setUrl(currentTileLayer.url);
+        // @ts-ignore
+        tileLayerRef.current.options.attribution = currentTileLayer.attribution;
+        map.attributionControl.setPrefix(currentTileLayer.attribution);
+    }
+     
+  }, [currentTileLayer]);
+
 
   useEffect(() => {
     const map = mapInstanceRef.current;

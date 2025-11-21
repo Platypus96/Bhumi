@@ -1,3 +1,4 @@
+
 import {
   collection,
   doc,
@@ -8,10 +9,7 @@ import {
   updateDoc,
   where,
   Timestamp,
-  orderBy,
   Firestore,
-  addDoc,
-  writeBatch,
 } from 'firebase/firestore';
 
 import type { Property, TransferHistory } from './types';
@@ -19,12 +17,8 @@ import { FirestorePermissionError } from '@/firebase/errors';
 import { errorEmitter } from '@/firebase/error-emitter';
 
 let appId = 'default-app-id'; // Default value
-if (typeof window !== 'undefined') {
-  // Access window safely
-  const studioConfig = (window as any).__STUDIO_CONFIG__;
-  if (studioConfig && studioConfig.appId) {
-    appId = studioConfig.appId;
-  }
+if (typeof window !== 'undefined' && (window as any)?.__STUDIO_CONFIG__?.appId) {
+    appId = (window as any).__STUDIO_CONFIG__.appId;
 }
 
 
@@ -86,11 +80,9 @@ export async function getPropertyByParcelId(db: Firestore, parcelId: string): Pr
 export async function getPropertiesByOwner(db: Firestore, ownerAddress: string): Promise<Property[]> {
   if (!ownerAddress) return [];
   
-  // NOTE: This query requires a composite index in Firestore (owner ASC, polygon ASC)
   const q = query(
     collection(db, PROPERTIES_COLLECTION),
-    where('owner', '==', ownerAddress),
-    where('polygon', '!=', null) 
+    where('owner', '==', ownerAddress)
   );
 
   try {
@@ -104,8 +96,7 @@ export async function getPropertiesByOwner(db: Firestore, ownerAddress: string):
 
 export async function getAllProperties(db: Firestore): Promise<Property[]> {
     const q = query(
-      collection(db, PROPERTIES_COLLECTION), 
-      where('polygon', '!=', null)
+      collection(db, PROPERTIES_COLLECTION)
     );
     
     try {

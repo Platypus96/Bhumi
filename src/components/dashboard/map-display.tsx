@@ -3,8 +3,6 @@
 
 import dynamic from "next/dynamic";
 import { Property } from "@/lib/types";
-import { Card } from "@/components/ui/card";
-import { MapPinned } from "lucide-react";
 import { useState } from "react";
 import { Button } from "../ui/button";
 

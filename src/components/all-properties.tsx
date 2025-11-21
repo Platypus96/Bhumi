@@ -2,13 +2,13 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { getAllProperties } from "@/lib/data";
+import { collection, query, where, onSnapshot } from "firebase/firestore";
 import type { Property } from "@/lib/types";
 import { PropertyCard } from "@/components/property-card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useFirebase } from "@/firebase/provider";
 import { useToast } from "@/hooks/use-toast";
-import { RefreshCw } from "lucide-react";
+import { RefreshCw, Search } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 interface AllPropertiesProps {
@@ -18,74 +18,47 @@ interface AllPropertiesProps {
 export function AllProperties({ showForSaleOnly = false }: AllPropertiesProps) {
   const [properties, setProperties] = useState<Property[]>([]);
   const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
   const { firestore } = useFirebase();
   const { toast } = useToast();
 
-  const fetchProperties = useCallback(async (isManualRefresh = false) => {
-    if (!firestore) {
-      if (isManualRefresh) {
-         toast({
-          variant: "destructive",
-          title: "Database Error",
-          description: "Firestore is not available. Please try again later.",
-        });
-      }
-      return;
-    }
+  useEffect(() => {
+    if (!firestore) return;
 
-    if (isManualRefresh) {
-      setRefreshing(true);
-    } else {
-      setLoading(true);
-    }
+    setLoading(true);
+    const propertiesCollection = collection(firestore, `artifacts/default-app-id/public/data/properties`);
+    
+    const q = showForSaleOnly 
+      ? query(propertiesCollection, where('forSale', '==', true))
+      : query(propertiesCollection);
 
-    try {
-      let allProps = await getAllProperties(firestore);
-
-      if (showForSaleOnly) {
-        allProps = allProps.filter((p) => p.forSale);
-      }
-
-      setProperties(allProps);
-    } catch (error: any) {
-      console.error(error);
+    const unsubscribe = onSnapshot(q, (querySnapshot) => {
+      const props = querySnapshot.docs.map(doc => doc.data() as Property);
+      // Sort client-side
+      props.sort((a, b) => b.registeredAt.toMillis() - a.registeredAt.toMillis());
+      setProperties(props);
+      setLoading(false);
+    }, (error) => {
+      console.error("Error fetching properties: ", error);
       toast({
         variant: "destructive",
         title: "Error Fetching Properties",
-        description: error.message || "Unable to retrieve property data.",
+        description: "Unable to retrieve property data at this time.",
       });
-    } finally {
       setLoading(false);
-      setRefreshing(false);
-    }
+    });
+
+    return () => unsubscribe();
   }, [firestore, showForSaleOnly, toast]);
-
-
-  useEffect(() => {
-    // Fetch properties only on initial component mount
-    fetchProperties();
-  }, [fetchProperties]);
 
 
   return (
     <div className="space-y-6">
       {/* Header with Refresh Button */}
       <div className="flex justify-between items-center">
-        <h2 className="text-2xl font-semibold tracking-tight text-foreground">
+        <h2 className="text-2xl font-semibold tracking-tight text-foreground flex items-center">
+          <Search className="mr-3 h-6 w-6 text-primary" />
           {showForSaleOnly ? "Available Properties" : "All Registered Properties"}
         </h2>
-        <Button
-          onClick={() => fetchProperties(true)}
-          variant="outline"
-          className="flex items-center gap-2"
-          disabled={refreshing || loading}
-        >
-          <RefreshCw
-            className={`h-4 w-4 ${refreshing ? "animate-spin text-green-500" : ""}`}
-          />
-          {refreshing ? "Refreshing..." : "Refresh"}
-        </Button>
       </div>
 
       {/* Content Section */}
@@ -119,7 +92,7 @@ export function AllProperties({ showForSaleOnly = false }: AllPropertiesProps) {
               <p className="text-muted-foreground mt-2">
                 {showForSaleOnly
                   ? "Check back later!"
-                  : "Wait for the registrar to add new properties."}
+                  : "Register a property to see it here."}
               </p>
             </div>
           )}

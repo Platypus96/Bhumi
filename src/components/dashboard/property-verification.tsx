@@ -89,7 +89,7 @@ export function PropertyVerification({ property, onBack }: PropertyVerificationP
                 <div className="space-y-3 text-sm">
                     <div className="flex items-center justify-between"><strong className="text-muted-foreground flex items-center"><User className="mr-2 h-4 w-4"/>Owner</strong> <HashPill type="address" hash={property.owner}/></div>
                     <div className="flex items-center justify-between"><strong className="text-muted-foreground">Registered</strong> <span>{property.registeredAt ? format(property.registeredAt.toDate(), "PPP") : 'N/A'}</span></div>
-                    <div className="flex items-center justify-between"><strong className="text-muted-foreground">Status</strong> <Badge variant={isPending ? 'destructive' : 'secondary'}>{property.status || 'unverified'}</Badge></div>
+                    <div className="flex items-center justify-between"><strong className="text-muted-foreground">Status</strong> <Badge variant={isPending ? 'destructive' : property.status === 'verified' ? 'secondary' : 'default'}>{property.status || 'unverified'}</Badge></div>
                 </div>
 
                 <Separator/>

@@ -6,7 +6,7 @@ import { useToast } from './use-toast';
 import { BrowserProvider } from 'ethers';
 import { REGISTRAR_ADDRESS } from '@/config/blockchain';
 import { useFirebase } from '@/firebase';
-import { getAuth, signInAnonymously, signInWithCustomToken, signOut, onAuthStateChanged, User } from 'firebase/auth';
+import { getAuth, signInAnonymously, signOut, onAuthStateChanged } from 'firebase/auth';
 
 interface Web3ContextType {
   account: string | null;
@@ -22,7 +22,6 @@ export const Web3Provider = ({ children }: { children: React.ReactNode }) => {
   const [account, setAccount] = useState<string | null>(null);
   const [provider, setProvider] = useState<BrowserProvider | null>(null);
   const { toast } = useToast();
-  // Move useFirebase inside the component body
   const { auth } = useFirebase();
 
   const isRegistrar = !!account && !!REGISTRAR_ADDRESS && account.toLowerCase() === REGISTRAR_ADDRESS.toLowerCase();
