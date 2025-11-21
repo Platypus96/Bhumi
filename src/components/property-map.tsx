@@ -30,7 +30,7 @@ interface TileLayer {
 interface PropertiesMapProps {
   properties: Property[];
   selectedProperty?: Property | null;
-  tileLayer: TileLayer;
+  tileLayer?: TileLayer; // Made optional
   className?: string;
 }
 
@@ -83,6 +83,13 @@ const PropertiesMap = ({ properties, selectedProperty, tileLayer, className }: P
   const layersRef = useRef<Map<string, L.Layer>>(new Map());
   const tileLayerRef = useRef<L.TileLayer | null>(null);
 
+  const defaultTileLayer = {
+    url: `https://maps.geoapify.com/v1/tile/osm-bright-grey/{z}/{x}/{y}.png?apiKey=${process.env.NEXT_PUBLIC_GEOAPIFY_API_KEY}`,
+    attribution: '&copy; <a href="https://www.geoapify.com/" target="_blank">Geoapify</a> | &copy; <a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap</a> contributors',
+  };
+
+  const currentTileLayer = tileLayer || defaultTileLayer;
+
   useEffect(() => {
     if (!mapContainerRef.current) return;
     if (!mapInstanceRef.current) {
@@ -94,21 +101,21 @@ const PropertiesMap = ({ properties, selectedProperty, tileLayer, className }: P
 
     // Handle tile layer changes
     if (!tileLayerRef.current) {
-        tileLayerRef.current = L.tileLayer(tileLayer.url, { attribution: tileLayer.attribution }).addTo(mapInstanceRef.current);
+        tileLayerRef.current = L.tileLayer(currentTileLayer.url, { attribution: currentTileLayer.attribution }).addTo(mapInstanceRef.current);
     } else {
-        tileLayerRef.current.setUrl(tileLayer.url);
+        tileLayerRef.current.setUrl(currentTileLayer.url);
         // Leaflet's setUrl does not update attribution, so we update it manually if needed.
-        if (tileLayerRef.current.options.attribution !== tileLayer.attribution) {
+        if (tileLayerRef.current.options.attribution !== currentTileLayer.attribution) {
             mapInstanceRef.current.attributionControl.removeAttribution(tileLayerRef.current.options.attribution || '');
-            mapInstanceRef.current.attributionControl.addAttribution(tileLayer.attribution);
-            tileLayerRef.current.options.attribution = tileLayer.attribution;
+            mapInstanceRef.current.attributionControl.addAttribution(currentTileLayer.attribution);
+            tileLayerRef.current.options.attribution = currentTileLayer.attribution;
         }
     }
      
      return () => {
       // Defer removal to unmount only
     };
-  }, [tileLayer]);
+  }, [currentTileLayer]);
 
   useEffect(() => {
     // This effect runs on unmount
@@ -124,9 +131,12 @@ const PropertiesMap = ({ properties, selectedProperty, tileLayer, className }: P
     const map = mapInstanceRef.current;
     if (!map) return;
 
+    // Create a set of current property IDs for efficient lookup
+    const currentPropertyIds = new Set(properties.map(p => p.parcelId));
+
     // Remove layers that are no longer in properties
     layersRef.current.forEach((layer, parcelId) => {
-        if (!properties.find(p => p.parcelId === parcelId)) {
+        if (!currentPropertyIds.has(parcelId)) {
             map.removeLayer(layer);
             layersRef.current.delete(parcelId);
         }
@@ -139,16 +149,16 @@ const PropertiesMap = ({ properties, selectedProperty, tileLayer, className }: P
         const existingLayer = layersRef.current.get(prop.parcelId);
 
         let layer: L.Layer | null = null;
+        const style = getStyle(prop, isSelected);
+
         if (prop.polygon) {
             try {
                 const geoJson = JSON.parse(prop.polygon);
-                const style = getStyle(prop, isSelected);
-
                 if (existingLayer && existingLayer instanceof L.GeoJSON) {
                     existingLayer.setStyle(style);
                     layer = existingLayer;
                 } else {
-                    if (existingLayer) map.removeLayer(existingLayer); // remove old marker if type changed
+                    if (existingLayer) map.removeLayer(existingLayer);
                     layer = L.geoJSON(geoJson, { style });
                 }
             } catch (e) {
@@ -157,7 +167,7 @@ const PropertiesMap = ({ properties, selectedProperty, tileLayer, className }: P
         } else if (prop.latitude && prop.longitude) {
              if (existingLayer && existingLayer instanceof L.Marker) {
                 layer = existingLayer;
-            } else {
+             } else {
                  if (existingLayer) map.removeLayer(existingLayer);
                 layer = L.marker([prop.latitude, prop.longitude]);
             }

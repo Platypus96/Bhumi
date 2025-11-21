@@ -3,12 +3,12 @@
 import { AllProperties } from "@/components/all-properties";
 import { useFirebase } from "@/firebase";
 import { useToast } from "@/hooks/use-toast";
-import { getAllProperties } from "@/lib/data";
-import { Property } from "@/lib/types";
+import type { Property } from "@/lib/types";
 import { Store } from "lucide-react";
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useMemo } from "react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import dynamic from 'next/dynamic';
+import { collection, query, where, onSnapshot } from "firebase/firestore";
 
 const PropertiesMap = dynamic(() => import('@/components/property-map'), {
   ssr: false,
@@ -23,28 +23,38 @@ export default function MarketplacePage() {
   const { firestore } = useFirebase();
   const { toast } = useToast();
 
-   const fetchMapProperties = useCallback(async () => {
-    if (!firestore) return;
+  useEffect(() => {
+    if (!firestore) {
+      setProperties([]);
+      setLoading(false);
+      return;
+    }
 
     setLoading(true);
-    try {
-      let allProps = await getAllProperties(firestore);
-      setProperties(allProps.filter(p => p.forSale));
-    } catch (error) {
-      console.error(error);
-      toast({ variant: 'destructive', title: 'Error', description: 'Could not fetch properties for the map.' });
-    } finally {
-      setLoading(false);
-    }
+    const propertiesCollection = collection(firestore, 'artifacts/default-app-id/public/data/properties');
+    const q = query(propertiesCollection, where('forSale', '==', true));
+    
+    const unsubscribe = onSnapshot(q, (querySnapshot) => {
+        const props = querySnapshot.docs.map(doc => doc.data() as Property);
+        setProperties(props);
+        setLoading(false);
+    }, (error) => {
+        console.error("Failed to fetch marketplace properties:", error);
+        toast({ variant: 'destructive', title: 'Error', description: 'Could not fetch marketplace properties.' });
+        setLoading(false);
+    });
+
+    return () => unsubscribe();
   }, [firestore, toast]);
+  
+  const hasContent = properties.length > 0;
 
-
-  useEffect(() => {
-    // Only fetch properties for the map if the map view is active
-    if (activeView === 'map') {
-      fetchMapProperties();
+  const MemoizedPropertiesMap = useMemo(() => {
+    if (activeView === 'map' && hasContent) {
+      return <PropertiesMap properties={properties} />;
     }
-  }, [activeView, fetchMapProperties]);
+    return null;
+  }, [activeView, hasContent, properties]);
 
 
   return (
@@ -73,8 +83,8 @@ export default function MarketplacePage() {
               {activeView === 'map' && (
                 loading ? (
                    <div className="h-[600px] w-full bg-muted animate-pulse flex items-center justify-center"><p>Loading Map Data...</p></div>
-                ) : properties.length > 0 ? (
-                  <PropertiesMap properties={properties} />
+                ) : hasContent ? (
+                  MemoizedPropertiesMap
                 ) : (
                   <p className="text-center text-muted-foreground">No properties for sale to display on the map.</p>
                 )
