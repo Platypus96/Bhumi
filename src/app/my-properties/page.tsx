@@ -27,9 +27,7 @@ export default function MyPropertiesPage() {
           console.error(err);
           return [];
         });
-        // Filter out unverified properties
-        const filteredProps = myProps.filter(prop => prop.status === 'verified' || prop.status === 'rejected');
-        setProperties(filteredProps);
+        setProperties(myProps);
         setLoading(false);
       };
       fetchAll();
@@ -66,7 +64,7 @@ export default function MyPropertiesPage() {
                   My Properties
                 </h1>
                 <p className="mt-2 text-lg text-muted-foreground">
-                    A list of your registered properties on the blockchain.
+                    A list of all your registered properties, including pending and verified ones.
                 </p>
             </div>
              <Button asChild size="lg" className="rounded-full font-semibold">
@@ -107,7 +105,7 @@ export default function MyPropertiesPage() {
                 You haven't added any properties yet.
               </h3>
               <p className="text-muted-foreground mt-2 max-w-md">
-                Get started by registering a new property on the blockchain to see it appear here. Unverified properties will not be shown.
+                Get started by registering a new property on the blockchain to see it appear here.
               </p>
             </div>
           )}
