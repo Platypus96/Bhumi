@@ -112,13 +112,12 @@ const PropertiesMap = ({ properties, selectedProperty, tileLayer, className }: P
         }
     }
      
-     return () => {
-      // Defer removal to unmount only
-    };
-  }, [currentTileLayer]);
+    // This effect should only run when the tile layer config changes.
+    // The cleanup should happen on unmount.
+  }, [currentTileLayer.url, currentTileLayer.attribution]);
 
   useEffect(() => {
-    // This effect runs on unmount
+    // This effect runs on unmount to clean up the map instance.
     return () => {
         if (mapInstanceRef.current) {
             mapInstanceRef.current.remove();
@@ -187,14 +186,19 @@ const PropertiesMap = ({ properties, selectedProperty, tileLayer, className }: P
     if (selectedProperty) {
       const selectedLayer = layersRef.current.get(selectedProperty.parcelId);
       if (selectedLayer) {
-        const bounds = selectedLayer instanceof L.FeatureGroup || selectedLayer instanceof L.GeoJSON ? (selectedLayer as L.FeatureGroup).getBounds() : (selectedLayer as L.Marker).getLatLng();
+        // Using `as any` to handle both L.FeatureGroup and L.Marker which have getBounds()/getLatLng()
+        const bounds = (selectedLayer as any).getBounds ? (selectedLayer as any).getBounds() : (selectedLayer as L.Marker).getLatLng();
         if (bounds) {
           map.flyToBounds(bounds instanceof L.LatLngBounds ? bounds.pad(0.1) : L.latLngBounds(bounds, bounds), { duration: 0.8, maxZoom: 16 });
         }
       }
     } else if (allLayers.length > 0) {
         const group = new L.FeatureGroup(allLayers);
-        map.fitBounds(group.getBounds().pad(0.1), { animate: true });
+        if (map.getBounds().contains(group.getBounds())) {
+          // If the new bounds are within the current view, don't zoom out
+        } else {
+          map.fitBounds(group.getBounds().pad(0.1), { animate: true, maxZoom: 15 });
+        }
     } else {
         map.flyTo([20.5937, 78.9629], 5, { duration: 0.8 });
     }
@@ -209,5 +213,3 @@ const PropertiesMap = ({ properties, selectedProperty, tileLayer, className }: P
 }
 
 export default PropertiesMap;
-
-    
