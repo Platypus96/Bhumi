@@ -10,7 +10,7 @@ import { Button } from "../ui/button";
 
 const PropertiesMap = dynamic(() => import("@/components/property-map"), {
   ssr: false,
-  loading: () => <div className="h-[600px] w-full bg-muted animate-pulse flex items-center justify-center"><p>Loading Map...</p></div>
+  loading: () => <div className="h-full w-full bg-muted animate-pulse flex items-center justify-center"><p>Loading Map...</p></div>
 });
 
 const TILE_LAYERS = {
@@ -36,7 +36,7 @@ export function MapDisplay({ properties, selectedProperty }: MapDisplayProps) {
 
   return (
     <Card className="h-full shadow-lg relative overflow-hidden">
-      <div className="absolute top-4 right-4 z-10 bg-background/80 backdrop-blur-sm rounded-lg p-1 space-x-1">
+      <div className="absolute top-4 right-4 z-[1001] bg-background/80 backdrop-blur-sm rounded-lg p-1 space-x-1">
         <Button 
             size="sm" 
             variant={activeLayer === 'street' ? 'secondary' : 'ghost'}
@@ -59,16 +59,6 @@ export function MapDisplay({ properties, selectedProperty }: MapDisplayProps) {
         tileLayer={TILE_LAYERS[activeLayer]}
         className="h-full w-full"
       />
-
-      {!selectedProperty && (
-        <div className="absolute inset-0 z-10 bg-background/50 backdrop-blur-sm flex items-center justify-center pointer-events-none">
-          <div className="text-center p-8 bg-background/90 rounded-2xl shadow-2xl">
-            <MapPinned className="h-12 w-12 mx-auto text-muted-foreground" />
-            <h3 className="mt-4 text-lg font-semibold">No Property Selected</h3>
-            <p className="mt-1 text-sm text-muted-foreground">Select a property from the list to view its details on the map.</p>
-          </div>
-        </div>
-      )}
     </Card>
   );
 }

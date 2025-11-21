@@ -1,11 +1,10 @@
 
 "use client";
 
-import { useState } from "react";
 import { Input } from "@/components/ui/input";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { Card, CardContent } from "@/components/ui/card";
-import { Search } from "lucide-react";
+import { Card } from "@/components/ui/card";
+import { Loader2, Search } from "lucide-react";
 import type { Property } from "@/lib/types";
 import { PropertyStatusFilter } from "@/app/dashboard/page";
 import { cn } from "@/lib/utils";
@@ -20,6 +19,7 @@ interface TaskListProps {
   onFilterChange: (filter: PropertyStatusFilter) => void;
   searchTerm: string;
   onSearchChange: (term: string) => void;
+  isLoading: boolean;
 }
 
 export function TaskList({
@@ -30,6 +30,7 @@ export function TaskList({
   onFilterChange,
   searchTerm,
   onSearchChange,
+  isLoading
 }: TaskListProps) {
     
   return (
@@ -47,7 +48,12 @@ export function TaskList({
       </div>
       <ScrollArea className="flex-grow">
         <div className="p-2 space-y-1">
-          {properties.length > 0 ? (
+          {isLoading && properties.length === 0 ? (
+             <div className="flex items-center justify-center p-16 text-muted-foreground">
+                <Loader2 className="h-6 w-6 animate-spin mr-3"/>
+                <span>Loading...</span>
+            </div>
+          ) : properties.length > 0 ? (
             properties.map((prop) => (
               <button
                 key={prop.parcelId}
@@ -79,4 +85,3 @@ export function TaskList({
     </Card>
   );
 }
-
