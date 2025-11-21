@@ -48,9 +48,13 @@ export function ManageSale({ property, onSaleStatusChanged }: ManageSaleProps) {
   useEffect(() => {
     const fetchEthPrice = async () => {
       try {
-        const response = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=ethereum&vs_currencies=usd');
+        // Fetch from our own API route
+        const response = await fetch('/api/eth-price');
+        if (!response.ok) {
+          throw new Error('Failed to fetch price from server');
+        }
         const data = await response.json();
-        setEthPrice(data.ethereum.usd);
+        setEthPrice(data.usd);
       } catch (error) {
         console.error("Could not fetch ETH price", error);
       }
