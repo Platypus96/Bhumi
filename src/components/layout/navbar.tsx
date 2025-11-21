@@ -6,14 +6,41 @@ import { useWeb3 } from "@/hooks/use-web3";
 import { WalletConnectButton } from "@/components/connect-wallet";
 import { Button } from "@/components/ui/button";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
-import { useState } from "react";
+import { useState, useEffect, memo } from "react";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 
-export function Navbar() {
+const NavLink = ({ href, children, onClick, isRegistrarLink = false }: { href: string, children: React.ReactNode, onClick: () => void, isRegistrarLink?: boolean}) => {
+  const isActive = usePathname() === href;
+  return (
+    <Link 
+      href={href} 
+      className={cn(
+        "px-3 py-2 rounded-md text-sm font-medium transition-colors",
+          isActive ? "bg-secondary text-primary" : "text-foreground/70 hover:text-foreground/90",
+          isRegistrarLink && "text-accent-foreground/70 hover:text-accent-foreground/90"
+      )}
+      onClick={onClick}
+    >
+      {children}
+    </Link>
+  );
+};
+
+const MobileNavLink = ({ href, children, onClick }: { href: string, children: React.ReactNode, onClick: () => void}) => (
+    <Link href={href} className="block px-3 py-2 rounded-md text-base font-medium text-foreground/80 hover:bg-secondary/50" onClick={onClick}>
+      {children}
+    </Link>
+);
+
+const BaseNavbar = () => {
   const { isRegistrar } = useWeb3();
   const [isMobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const pathname = usePathname();
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   const navLinks = [
     { href: "/public-portal", label: "Public Portal" },
@@ -22,34 +49,10 @@ export function Navbar() {
   ];
 
   const registrarLink = { href: "/dashboard", label: "Dashboard" };
-  
-  const NavLink = ({ href, children, onClick, isRegistrarLink = false }: { href: string, children: React.ReactNode, onClick: () => void, isRegistrarLink?: boolean}) => {
-    const isActive = pathname === href;
-    return (
-      <Link 
-        href={href} 
-        className={cn(
-          "px-3 py-2 rounded-md text-sm font-medium transition-colors",
-           isActive ? "bg-secondary text-primary" : "text-foreground/70 hover:text-foreground/90",
-           isRegistrarLink && "text-accent-foreground/70 hover:text-accent-foreground/90"
-        )}
-        onClick={onClick}
-      >
-        {children}
-      </Link>
-    );
-  };
-
-  const MobileNavLink = ({ href, children, onClick }: { href: string, children: React.ReactNode, onClick: () => void}) => (
-     <Link href={href} className="block px-3 py-2 rounded-md text-base font-medium text-foreground/80 hover:bg-secondary/50" onClick={onClick}>
-        {children}
-      </Link>
-  );
-
 
   const desktopNav = (
     <>
-      {isRegistrar && (
+      {isClient && isRegistrar && (
         <NavLink href={registrarLink.href} onClick={() => setMobileMenuOpen(false)}>{registrarLink.label}</NavLink>
       )}
       <NavLink href="/my-properties" onClick={() => setMobileMenuOpen(false)}>My Properties</NavLink>
@@ -62,7 +65,7 @@ export function Navbar() {
       {navLinks.map(link => (
         <MobileNavLink key={link.href} href={link.href} onClick={() => setMobileMenuOpen(false)}>{link.label}</MobileNavLink>
       ))}
-      {isRegistrar && (
+      {isClient && isRegistrar && (
         <MobileNavLink href={registrarLink.href} onClick={() => setMobileMenuOpen(false)}>
           <div className="flex items-center text-primary font-semibold">
             <Shield className="mr-2 h-4 w-4" />
@@ -132,3 +135,5 @@ export function Navbar() {
     </header>
   );
 }
+
+export const Navbar = memo(BaseNavbar);
