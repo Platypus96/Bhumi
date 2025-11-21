@@ -13,7 +13,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { FileUp, Loader2, AlertCircle, Sparkles, MapPin, Search } from "lucide-react";
+import { FileUp, Loader2, AlertCircle, Sparkles, Search } from "lucide-react";
 import { useState } from "react";
 import { useIPFS } from "@/hooks/use-ipfs";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
@@ -31,6 +31,7 @@ const formSchema = z.object({
   document: z.any().refine(files => files?.length == 1, "Proof document is required."),
   latitude: z.number().optional(),
   longitude: z.number().optional(),
+  polygon: z.string().optional(),
 });
 
 export default function AddPropertyPage() {
@@ -115,6 +116,14 @@ export default function AddPropertyPage() {
     }
   };
 
+  const handlePolygonCreated = (polygon: any) => {
+    form.setValue("polygon", JSON.stringify(polygon));
+    toast({
+      title: "Boundary Drawn",
+      description: "Property boundary has been recorded.",
+    });
+  };
+
   async function onSubmit(values: z.infer<typeof formSchema>) {
     if (!account) {
         toast({ variant: "destructive", title: "Wallet not connected" });
@@ -156,6 +165,7 @@ export default function AddPropertyPage() {
         longitude: values.longitude,
         imageUrl: imageUploadResult.cid,
         ipfsProofCid: documentUploadResult.cid,
+        polygon: values.polygon,
       }, receipt.hash);
 
       toast({
@@ -259,7 +269,7 @@ export default function AddPropertyPage() {
                   <span className="ml-2">Search</span>
                 </Button>
               </div>
-              <FormDescription>Search for a location, then click on the map to set precise coordinates.</FormDescription>
+              <FormDescription>Search for a location, then draw the property boundary on the map.</FormDescription>
             </div>
             
             <FormField
@@ -279,6 +289,7 @@ export default function AddPropertyPage() {
             <div className="border rounded-xl overflow-hidden shadow-lg h-[500px]">
               <DynamicMap 
                 onLocationSelect={handleLocationSelect} 
+                onPolygonCreated={handlePolygonCreated}
                 center={mapCenter}
                 zoom={mapZoom}
               />
@@ -331,5 +342,3 @@ export default function AddPropertyPage() {
     </div>
   );
 }
-
-    

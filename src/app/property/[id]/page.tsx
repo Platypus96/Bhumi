@@ -14,7 +14,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { User, ShieldAlert, Key, Loader2, History, Check, Tag, Building, Hourglass, MapPin, Video, Calendar, Square, Fingerprint, ExternalLink, FileText } from "lucide-react";
+import { User, ShieldAlert, Loader2, History, Check, Tag, Hourglass, ExternalLink, FileText } from "lucide-react";
 import { format } from 'date-fns';
 import { VerifyDocument } from "@/components/verify-document";
 import { ManageSale } from "@/components/manage-sale";
@@ -24,11 +24,11 @@ import { Button } from "@/components/ui/button";
 import { HashPill } from "@/components/hash-pill";
 import { Separator } from "@/components/ui/separator";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-
+import { NearbyPlaces } from "@/components/nearby-places";
 
 export default function PropertyDetailPage() {
   const params = useParams();
-  const { account } = useWeb3();
+  const { account } => useWeb3();
   const { firestore } = useFirebase();
   
   const [property, setProperty] = useState<Property | null>(null);
@@ -132,6 +132,10 @@ export default function PropertyDetailPage() {
                      </ul>
                   </CardContent>
                 </Card>
+            )}
+
+            {isCoordinate && (
+              <NearbyPlaces latitude={property.latitude!} longitude={property.longitude!} />
             )}
           
         </div>

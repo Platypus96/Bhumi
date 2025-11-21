@@ -3,9 +3,6 @@
 
 import dynamic from 'next/dynamic';
 
-// Dynamically import the MapPicker component
-// ssr: false prevents "window is not defined" error
-// loading: shows a skeleton while the heavy map JS loads
 const MapPicker = dynamic(() => import('./map-picker'), { 
   ssr: false,
   loading: () => (
@@ -17,10 +14,11 @@ const MapPicker = dynamic(() => import('./map-picker'), {
 
 interface DynamicMapProps {
   onLocationSelect: (lat: number, lng: number) => void;
+  onPolygonCreated: (polygon: any) => void;
   center: [number, number] | null;
   zoom: number;
 }
 
-export default function DynamicMap({ onLocationSelect, center, zoom }: DynamicMapProps) {
-  return <MapPicker onLocationSelect={onLocationSelect} center={center} zoom={zoom} />;
+export default function DynamicMap({ onLocationSelect, onPolygonCreated, center, zoom }: DynamicMapProps) {
+  return <MapPicker onLocationSelect={onLocationSelect} onPolygonCreated={onPolygonCreated} center={center} zoom={zoom} />;
 }

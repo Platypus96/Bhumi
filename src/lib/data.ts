@@ -89,7 +89,7 @@ export async function getAllProperties(db: Firestore): Promise<Property[]> {
     } catch (error) {
       const contextualError = new FirestorePermissionError({
         operation: 'list',
-        path: PROPERTIES_COLlection,
+        path: PROPERTIES_COLLECTION,
       });
       errorEmitter.emit('permission-error', contextualError);
       throw contextualError;
