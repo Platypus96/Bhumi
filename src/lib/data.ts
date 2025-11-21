@@ -21,9 +21,10 @@ import { errorEmitter } from '@/firebase/error-emitter';
 
 const PROPERTIES_COLLECTION = 'properties';
 
-export async function createProperty(db: Firestore, propertyData: Omit<Property, 'history' | 'verified' | 'forSale' | 'price' | 'txHash' | 'registeredAt' | 'status'>, txHash: string): Promise<void> {
+export async function createProperty(db: Firestore, propertyData: Omit<Property, 'history' | 'verified' | 'forSale' | 'price' | 'txHash' | 'registeredAt' | 'status' | 'area'>, txHash: string): Promise<void> {
     const propertyWithDefaults = {
         ...propertyData,
+        area: "N/A", // Area is now determined by polygon, but schema needs a value.
         status: 'unverified' as const,
         verified: false, // For contract state
         forSale: false,
@@ -66,7 +67,8 @@ export async function getPropertiesByOwner(db: Firestore, ownerAddress: string):
   if (!ownerAddress) return [];
   const q = query(
     collection(db, PROPERTIES_COLLECTION),
-    where('owner', '==', ownerAddress)
+    where('owner', '==', ownerAddress),
+    where('polygon', '!=', null) // Only get properties with a boundary
   );
   try {
     const querySnapshot = await getDocs(q);
@@ -82,10 +84,10 @@ export async function getPropertiesByOwner(db: Firestore, ownerAddress: string):
 }
 
 export async function getAllProperties(db: Firestore): Promise<Property[]> {
-    const q = query(collection(db, PROPERTIES_COLLECTION), orderBy('registeredAt', 'desc'));
+    const q = query(collection(db, PROPERTIES_COLLECTION), where('polygon', '!=', null), orderBy('polygon'), orderBy('registeredAt', 'desc'));
     try {
       const querySnapshot = await getDocs(q);
-      return querySnapshot.docs.map(doc => doc.data() as Property);
+      return querySnapshot.docs.map(doc => doc.data() as Property).filter(p => !!p.polygon);
     } catch (error) {
       const contextualError = new FirestorePermissionError({
         operation: 'list',

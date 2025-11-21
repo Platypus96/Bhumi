@@ -153,7 +153,6 @@ export default function PropertyDetailPage() {
                     <div className="flex items-start justify-between"><strong className="text-muted-foreground">Parcel ID</strong> <HashPill type="parcel" hash={property.parcelId}/></div>
                     {property.registeredAt && <div className="flex items-center justify-between"><strong className="text-muted-foreground">Registered</strong> <span>{format(property.registeredAt.toDate(), "PPP")}</span></div>}
                     <div className="flex items-center justify-between"><strong className="text-muted-foreground">Status</strong> <Badge variant={property.verified ? 'secondary' : 'destructive'}>{property.verified ? "Verified" : "Unverified"}</Badge></div>
-                    <div className="flex items-center justify-between"><strong className="text-muted-foreground">Area</strong> <span>{property.area}</span></div>
                     {property.location && (
                         <div className="flex items-center justify-between">
                             <strong className="text-muted-foreground">Location</strong>

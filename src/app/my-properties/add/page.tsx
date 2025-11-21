@@ -31,13 +31,12 @@ const DynamicMap = dynamic(() => import('@/components/dynamic-map'), {
 const formSchema = z.object({
   title: z.string().min(5, "Title must be at least 5 characters."),
   description: z.string().min(10, "Description is required."),
-  area: z.string().min(1, "Area is required."),
   location: z.string().min(3, "Location is required."),
   image: z.any().refine(files => files?.length == 1, "Property image is required."),
   document: z.any().refine(files => files?.length == 1, "Proof document is required."),
   latitude: z.number().optional(),
   longitude: z.number().optional(),
-  polygon: z.string().optional(),
+  polygon: z.string().min(1, "Property boundary must be drawn on the map."),
 });
 
 export default function AddPropertyPage() {
@@ -61,8 +60,8 @@ export default function AddPropertyPage() {
     defaultValues: {
       title: "",
       description: "",
-      area: "",
       location: "",
+      polygon: "",
     },
   });
 
@@ -165,7 +164,6 @@ export default function AddPropertyPage() {
         owner: account,
         title: values.title,
         description: values.description,
-        area: values.area,
         location: values.location,
         latitude: values.latitude,
         longitude: values.longitude,
@@ -209,7 +207,7 @@ export default function AddPropertyPage() {
       <CardHeader>
         <CardTitle>Add New Property</CardTitle>
         <CardDescription>
-          Fill in the details below to register a new property on the blockchain. All documents will be stored on IPFS.
+          Fill in the details below and draw the property boundary on the map to register it on the blockchain.
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -247,22 +245,9 @@ export default function AddPropertyPage() {
                 </FormItem>
               )}
             />
-             <FormField
-              control={form.control}
-              name="area"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Area</FormLabel>
-                  <FormControl>
-                    <Input placeholder="e.g., 2000 sq.ft." {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-
+            
             <div className="space-y-2">
-              <FormLabel>Property Location</FormLabel>
+              <FormLabel>Property Location & Boundary</FormLabel>
               <div className="flex gap-2">
                 <Input 
                   placeholder="Search for an address or area" 
@@ -275,32 +260,26 @@ export default function AddPropertyPage() {
                   <span className="ml-2">Search</span>
                 </Button>
               </div>
-              <FormDescription>Search for a location, then draw the property boundary on the map.</FormDescription>
+              <FormDescription>Search for a location, then use the map tools to draw the property boundary.</FormDescription>
             </div>
             
             <FormField
               control={form.control}
-              name="location"
+              name="polygon"
               render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Location Coordinates</FormLabel>
-                   <FormControl>
-                      <Input {...field} />
-                    </FormControl>
-                  <FormMessage />
-                </FormItem>
+                 <FormItem>
+                    <div className="border rounded-xl overflow-hidden shadow-lg h-[500px]">
+                      <DynamicMap 
+                        onLocationSelect={handleLocationSelect} 
+                        onPolygonCreated={handlePolygonCreated}
+                        center={mapCenter}
+                        zoom={mapZoom}
+                      />
+                    </div>
+                    <FormMessage />
+                 </FormItem>
               )}
-            />
-            
-            <div className="border rounded-xl overflow-hidden shadow-lg h-[500px]">
-              <DynamicMap 
-                onLocationSelect={handleLocationSelect} 
-                onPolygonCreated={handlePolygonCreated}
-                center={mapCenter}
-                zoom={mapZoom}
-              />
-            </div>
-
+             />
 
             <FormField
               control={form.control}
@@ -348,3 +327,4 @@ export default function AddPropertyPage() {
     </div>
   );
 }
+
