@@ -104,10 +104,11 @@ const PropertiesMap = ({ properties, selectedProperty, tileLayer, className }: P
     // Handle tile layer changes
     if (!tileLayerRef.current) {
         tileLayerRef.current = L.tileLayer(currentTileLayer.url, { attribution: currentTileLayer.attribution }).addTo(map);
-    } else if (tileLayerRef.current.options.attribution !== currentTileLayer.attribution) {
+    } else if (tileLayerRef.current.getAttribution() !== currentTileLayer.attribution) {
         tileLayerRef.current.setUrl(currentTileLayer.url);
-        map.attributionControl.removeAttribution(tileLayerRef.current.options.attribution || '');
+        map.attributionControl.removeAttribution(tileLayerRef.current.getAttribution() || '');
         map.attributionControl.addAttribution(currentTileLayer.attribution);
+        // @ts-ignore
         tileLayerRef.current.options.attribution = currentTileLayer.attribution;
     }
      
@@ -187,10 +188,11 @@ const PropertiesMap = ({ properties, selectedProperty, tileLayer, className }: P
       }
     } else if (allLayers.length > 0) {
         const group = new L.FeatureGroup(allLayers);
-        if (!map.getBounds().contains(group.getBounds())) {
-            map.fitBounds(group.getBounds().pad(0.1), { animate: true, maxZoom: 15 });
+        const bounds = group.getBounds();
+        if (bounds.isValid() && !map.getBounds().contains(bounds)) {
+            map.fitBounds(bounds.pad(0.1), { animate: true, maxZoom: 15 });
         }
-    } else {
+    } else if (map.getZoom() < 4) { // Only reset view if no properties and zoomed out
         map.flyTo([20.5937, 78.9629], 5, { duration: 0.8 });
     }
 

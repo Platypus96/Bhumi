@@ -18,10 +18,15 @@ import type { Property, TransferHistory } from './types';
 import { FirestorePermissionError } from '@/firebase/errors';
 import { errorEmitter } from '@/firebase/error-emitter';
 
-// We need to get the App ID from the global scope or define a default
-const appId = typeof window !== 'undefined' && (window as any).__app_id 
-  ? (window as any).__app_id 
-  : 'default-app-id';
+let appId = 'default-app-id'; // Default value
+if (typeof window !== 'undefined') {
+  // Access window safely
+  const studioConfig = (window as any).__STUDIO_CONFIG__;
+  if (studioConfig && studioConfig.appId) {
+    appId = studioConfig.appId;
+  }
+}
+
 
 // The path MUST be: artifacts/{appId}/public/data/{collectionName}
 const PROPERTIES_COLLECTION = `artifacts/${appId}/public/data/properties`;
