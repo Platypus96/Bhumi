@@ -5,8 +5,6 @@ import { useEffect, useRef, useState } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import 'leaflet-draw/dist/leaflet.draw.css';
-import { FeatureGroup } from 'react-leaflet';
-import { EditControl } from 'react-leaflet-draw';
 
 // Fix for missing Leaflet markers
 // @ts-ignore
@@ -37,6 +35,9 @@ const MapPicker = ({ onLocationSelect, onPolygonCreated, center, zoom }: MapPick
   useEffect(() => {
     if (!isClient || !mapContainerRef.current || mapInstanceRef.current) return;
 
+    // Dynamically import leaflet-draw only on the client-side
+    import('leaflet-draw');
+
     const apiKey = process.env.NEXT_PUBLIC_GEOAPIFY_API_KEY;
     const tileUrl = `https://maps.geoapify.com/v1/tile/osm-bright-grey/{z}/{x}/{y}.png?apiKey=${apiKey}`;
     const attribution = '&copy; <a href="https://www.geoapify.com/" target="_blank">Geoapify</a> | &copy; <a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap</a> contributors';
@@ -47,7 +48,7 @@ const MapPicker = ({ onLocationSelect, onPolygonCreated, center, zoom }: MapPick
     drawnItemsRef.current = new L.FeatureGroup();
     mapInstanceRef.current.addLayer(drawnItemsRef.current);
 
-    const drawControl = new L.Control.Draw({
+    const drawControl = new (L.Control as any).Draw({
       edit: {
         featureGroup: drawnItemsRef.current,
       },
@@ -73,11 +74,11 @@ const MapPicker = ({ onLocationSelect, onPolygonCreated, center, zoom }: MapPick
       if (layer instanceof L.Marker) {
         const { lat, lng } = layer.getLatLng();
         onLocationSelect(lat, lng);
-      } else if ('getLatLngs' in layer) {
+      } else if ('getLatLngs' in layer && typeof layer.toGeoJSON === 'function') {
         const geoJson = layer.toGeoJSON();
         onPolygonCreated(geoJson);
         // Also set location to the polygon's center
-        const center = layer.getBounds().getCenter();
+        const center = (layer as L.Polygon).getBounds().getCenter();
         onLocationSelect(center.lat, center.lng);
       }
     });
