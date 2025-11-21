@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { Property } from '@/lib/types';
@@ -11,6 +11,7 @@ import Link from 'next/link';
 import { ExternalLink } from 'lucide-react';
 import { Card, CardContent, CardFooter, CardHeader } from './ui/card';
 import Image from 'next/image';
+import { cn } from '@/lib/utils';
 
 // Fix for default icon issue with webpack
 // @ts-ignore
@@ -21,9 +22,16 @@ L.Icon.Default.mergeOptions({
   shadowUrl: require('leaflet/dist/images/marker-shadow.png').default,
 });
 
+interface TileLayer {
+    url: string;
+    attribution: string;
+}
 
 interface PropertiesMapProps {
   properties: Property[];
+  selectedProperty?: Property | null;
+  tileLayer: TileLayer;
+  className?: string;
 }
 
 const MiniPropertyCard = ({ property }: { property: Property }) => (
@@ -40,7 +48,7 @@ const MiniPropertyCard = ({ property }: { property: Property }) => (
              </CardContent>
              <CardFooter className="p-3 pt-0">
                  <Button asChild size="sm" className="w-full">
-                     <Link href={`/property/${property.parcelId}`}>
+                     <Link href={`/property/${property.parcelId}`} target="_blank">
                          View Details <ExternalLink className="ml-2 h-4 w-4"/>
                      </Link>
                  </Button>
@@ -49,93 +57,130 @@ const MiniPropertyCard = ({ property }: { property: Property }) => (
     </div>
 )
 
-const getStyle = (property: Property) => {
+const getStyle = (property: Property, isSelected: boolean) => {
+    let style = { color: '#f59e0b', weight: 2, fillColor: '#f59e0b', fillOpacity: 0.2 }; // Amber for pending
+
     if (property.forSale) {
-        return { color: '#ef4444', weight: 2, fillColor: '#ef4444', fillOpacity: 0.3 }; // Red
+        style = { color: '#ef4444', weight: 2, fillColor: '#ef4444', fillOpacity: 0.2 }; // Red
+    } else if (property.status === 'verified') {
+        style = { color: '#22c55e', weight: 2, fillColor: '#22c55e', fillOpacity: 0.2 }; // Green
+    } else if (property.status === 'rejected') {
+        style = { color: '#a855f7', weight: 2, fillColor: '#a855f7', fillOpacity: 0.2 }; // Purple
     }
-    if (property.status === 'verified') {
-        return { color: '#22c55e', weight: 2, fillColor: '#22c55e', fillOpacity: 0.3 }; // Green
+
+    if (isSelected) {
+        style.weight = 4;
+        style.fillOpacity = 0.5;
     }
-    if (property.status === 'rejected') {
-        return { color: '#a855f7', weight: 2, fillColor: '#a855f7', fillOpacity: 0.3 }; // Purple
-    }
-    return { color: '#f59e0b', weight: 2, fillColor: '#f59e0b', fillOpacity: 0.3 }; // Amber for pending
+    
+    return style;
 };
 
 
-const PropertiesMap = ({ properties }: PropertiesMapProps) => {
+const PropertiesMap = ({ properties, selectedProperty, tileLayer, className }: PropertiesMapProps) => {
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<L.Map | null>(null);
+  const layersRef = useRef<Map<string, L.Layer>>(new Map());
+  const tileLayerRef = useRef<L.TileLayer | null>(null);
 
   useEffect(() => {
-    if (mapInstanceRef.current) return; // Already initialized
-
-    if (mapContainerRef.current) {
-      mapInstanceRef.current = L.map(mapContainerRef.current, {
-        center: [20.5937, 78.9629], // Default to India
-        zoom: 5,
-      });
-
-      L.tileLayer(
-        `https://maps.geoapify.com/v1/tile/osm-bright-grey/{z}/{x}/{y}.png?apiKey=${process.env.NEXT_PUBLIC_GEOAPIFY_API_KEY}`,
-        {
-          attribution: '&copy; <a href="https://www.geoapify.com/" target="_blank">Geoapify</a> | &copy; <a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap</a> contributors',
-        }
-      ).addTo(mapInstanceRef.current);
+    if (!mapContainerRef.current) return;
+    if (!mapInstanceRef.current) {
+        mapInstanceRef.current = L.map(mapContainerRef.current, {
+            center: [20.5937, 78.9629],
+            zoom: 5,
+        });
     }
+
+    if (!tileLayerRef.current) {
+        tileLayerRef.current = L.tileLayer(tileLayer.url, { attribution: tileLayer.attribution }).addTo(mapInstanceRef.current);
+    } else if (tileLayerRef.current.getURL() !== tileLayer.url) {
+        tileLayerRef.current.setUrl(tileLayer.url);
+        tileLayerRef.current.options.attribution = tileLayer.attribution;
+        tileLayerRef.current.redraw();
+    }
+     
      return () => {
-      if (mapInstanceRef.current) {
+      if (mapInstanceRef.current && !mapContainerRef.current) {
         mapInstanceRef.current.remove();
         mapInstanceRef.current = null;
       }
     };
-  }, []);
+  }, [tileLayer]);
 
   useEffect(() => {
     const map = mapInstanceRef.current;
-    if (map && properties) {
-        // Clear existing layers (except the tile layer)
-        map.eachLayer(layer => {
-            if (layer instanceof L.Marker || layer instanceof L.GeoJSON) {
-                map.removeLayer(layer);
-            }
-        });
-        
-        const layers: L.Layer[] = [];
+    if (!map) return;
 
-        properties.forEach(prop => {
-            let layer: L.Layer | null = null;
-            if (prop.polygon) {
-                try {
-                    const geoJson = JSON.parse(prop.polygon);
-                    layer = L.geoJSON(geoJson, { style: getStyle(prop) });
-                } catch (e) {
-                    console.error("Failed to parse polygon", e);
+    // Remove layers that are no longer in properties
+    layersRef.current.forEach((layer, parcelId) => {
+        if (!properties.find(p => p.parcelId === parcelId)) {
+            map.removeLayer(layer);
+            layersRef.current.delete(parcelId);
+        }
+    });
+
+    const allLayers: L.Layer[] = [];
+    
+    properties.forEach(prop => {
+        const isSelected = selectedProperty?.parcelId === prop.parcelId;
+        const existingLayer = layersRef.current.get(prop.parcelId);
+
+        let layer: L.Layer | null = null;
+        if (prop.polygon) {
+            try {
+                const geoJson = JSON.parse(prop.polygon);
+                const style = getStyle(prop, isSelected);
+
+                if (existingLayer && existingLayer instanceof L.GeoJSON) {
+                    existingLayer.setStyle(style);
+                    layer = existingLayer;
+                } else {
+                    if (existingLayer) map.removeLayer(existingLayer); // remove old marker if type changed
+                    layer = L.geoJSON(geoJson, { style });
                 }
-            } else if (prop.latitude && prop.longitude) {
+            } catch (e) {
+                console.error("Failed to parse polygon", e);
+            }
+        } else if (prop.latitude && prop.longitude) {
+             if (existingLayer && existingLayer instanceof L.Marker) {
+                layer = existingLayer;
+            } else {
+                 if (existingLayer) map.removeLayer(existingLayer);
                 layer = L.marker([prop.latitude, prop.longitude]);
             }
-            
-            if (layer) {
+        }
+        
+        if (layer) {
+             if (!existingLayer) {
                 const popupContent = ReactDOMServer.renderToString(<MiniPropertyCard property={prop} />);
                 layer.bindPopup(popupContent);
                 layer.addTo(map);
-                layers.push(layer);
+                layersRef.current.set(prop.parcelId, layer);
             }
-        });
-        
-        if (layers.length > 0) {
-            const group = new L.FeatureGroup(layers);
-            map.fitBounds(group.getBounds().pad(0.1));
-        } else {
-             // If no properties, default view
-            map.setView([20.5937, 78.9629], 5);
+            allLayers.push(layer);
         }
+    });
+    
+    if (selectedProperty) {
+      const selectedLayer = layersRef.current.get(selectedProperty.parcelId);
+      if (selectedLayer) {
+        const bounds = selectedLayer instanceof L.FeatureGroup ? selectedLayer.getBounds() : (selectedLayer as L.Marker).getLatLng();
+        if (bounds) {
+          map.flyToBounds(bounds instanceof L.LatLngBounds ? bounds.pad(0.1) : L.latLngBounds(bounds, bounds), { duration: 0.8 });
+        }
+      }
+    } else if (allLayers.length > 0) {
+        const group = new L.FeatureGroup(allLayers);
+        map.fitBounds(group.getBounds().pad(0.1), { animate: true });
+    } else {
+        map.flyTo([20.5937, 78.9629], 5, { duration: 0.8 });
     }
-  }, [properties]);
+
+  }, [properties, selectedProperty]);
 
   return (
-    <div className="rounded-xl overflow-hidden shadow-lg h-[600px] border">
+    <div className={cn("rounded-xl overflow-hidden h-[600px] border", className)}>
         <div ref={mapContainerRef} style={{ height: '100%', width: '100%' }} />
     </div>
   );
