@@ -1,13 +1,12 @@
 
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 
-// Fix for missing Leaflet markers
-// This logic is safe to run on module load as it only modifies the prototype.
+// Fix for missing Leaflet markers - this should run once when the module is loaded.
 // @ts-ignore
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
@@ -42,8 +41,7 @@ function LocationMarker({ onLocationSelect }: { onLocationSelect: (lat: number, 
 const MapPicker = ({ onLocationSelect }: MapPickerProps) => {
   const [isClient, setIsClient] = useState(false);
 
-  // This is the crucial fix: It ensures that the map component
-  // is only rendered *after* the component has mounted on the client.
+  // This ensures that the component only renders on the client side.
   useEffect(() => {
     setIsClient(true);
   }, []);
@@ -80,4 +78,3 @@ const MapPicker = ({ onLocationSelect }: MapPickerProps) => {
 }
 
 export default MapPicker;
-
