@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect, useMemo } from 'react';
@@ -6,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { Briefcase, School, Bus, AlertCircle, Pin } from 'lucide-react';
-import { Badge } from './ui/badge';
+import { Badge } from './ui/badge'; 
 import Link from 'next/link';
 
 interface NearbyPlacesProps {
@@ -95,7 +94,9 @@ export function NearbyPlaces({ latitude, longitude }: NearbyPlacesProps) {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="flex items-center text-2xl"><Pin className="mr-3" />Nearby Amenities</CardTitle>
+        <CardTitle className="flex items-center text-2xl">
+          <Pin className="mr-3" />Nearby Amenities
+        </CardTitle>
       </CardHeader>
       <CardContent>
         {loading ? (
@@ -108,11 +109,15 @@ export function NearbyPlaces({ latitude, longitude }: NearbyPlacesProps) {
           </Alert>
         ) : (
           <div className="space-y-6">
-            {(Object.keys(categorizedPlaces) as CategoryKey[]).map(key => (
-              categorizedPlaces[key].length > 0 && (
+            {(Object.keys(categorizedPlaces) as CategoryKey[]).map(key => {
+              if (categorizedPlaces[key].length === 0) return null;
+              
+              const Icon = CATEGORIES[key].icon;
+              
+              return (
                 <div key={key}>
                   <h3 className="flex items-center text-lg font-semibold mb-2">
-                    <CATEGORIES[key].icon className="h-5 w-5 mr-2" />
+                    <Icon className="h-5 w-5 mr-2" />
                     {CATEGORIES[key].label}
                   </h3>
                   <ul className="space-y-2">
@@ -126,11 +131,11 @@ export function NearbyPlaces({ latitude, longitude }: NearbyPlacesProps) {
                     ))}
                   </ul>
                 </div>
-              )
-            ))}
-             <div className="text-center text-xs text-muted-foreground pt-2">
-                Powered by <Link href="https://www.geoapify.com/" target="_blank" className="underline">Geoapify</Link>
-             </div>
+              );
+            })}
+            <div className="text-center text-xs text-muted-foreground pt-2">
+              Powered by <Link href="https://www.geoapify.com/" target="_blank" className="underline">Geoapify</Link>
+            </div>
           </div>
         )}
       </CardContent>

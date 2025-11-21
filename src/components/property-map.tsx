@@ -6,7 +6,6 @@ import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { Property } from '@/lib/types';
 import ReactDOMServer from 'react-dom/server';
-import { PropertyCard } from './property-card';
 import { Button } from './ui/button';
 import Link from 'next/link';
 import { ExternalLink } from 'lucide-react';
@@ -93,8 +92,16 @@ export default function PropertiesMap({ properties }: PropertiesMapProps) {
   }, []);
 
   useEffect(() => {
-    if (mapReady && mapInstanceRef.current && properties.length > 0) {
+    if (mapReady && mapInstanceRef.current && properties) {
         const map = mapInstanceRef.current;
+        
+        // Clear existing layers
+        map.eachLayer(layer => {
+            if (layer instanceof L.Marker || layer instanceof L.GeoJSON) {
+                map.removeLayer(layer);
+            }
+        });
+        
         const layers: L.Layer[] = [];
 
         properties.forEach(prop => {
@@ -121,6 +128,9 @@ export default function PropertiesMap({ properties }: PropertiesMapProps) {
         if (layers.length > 0) {
             const group = new L.FeatureGroup(layers);
             map.fitBounds(group.getBounds().pad(0.1));
+        } else {
+             // If no properties, default view
+            map.setView([20.5937, 78.9629], 5);
         }
     }
   }, [mapReady, properties]);

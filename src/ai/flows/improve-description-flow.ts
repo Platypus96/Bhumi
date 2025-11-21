@@ -22,7 +22,7 @@ Focus on highlighting the key features and creating an attractive summary for po
 The output should be a list of 5-6 bullet points.
 
 Original Description:
-"{{prompt}}"
+"{{{prompt}}}"
 
 Improved Description (as a list of 5-6 bullet points):
 `;
@@ -42,7 +42,8 @@ const improveDescriptionFlow = ai.defineFlow(
   },
   async (input) => {
     const { text } = await ai.generate({
-        prompt: promptTemplate.replace('{{prompt}}', input),
+        prompt: promptTemplate.replace('{{{prompt}}}', input),
+        model: 'googleai/gemini-2.5-flash',
     });
     return text;
   }
