@@ -1,61 +1,9 @@
-
 rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-    
-    // Helper function to check if the user is authenticated.
-    function isAuthenticated() {
-      return request.auth != null;
-    }
-
-    // Helper function to check if the user is the owner of a document.
-    // This check is based on the wallet address stored in the document,
-    // which is the primary identifier in this app.
-    function isWalletOwner(resource) {
-      // In a real app with custom auth tokens, this would be:
-      // return request.auth.uid == resource.data.owner;
-      // Since we use anonymous auth, we can't enforce this here.
-      // The smart contract is the source of truth for ownership.
-      return true;
-    }
-    
-    // Helper function to check if the user is the designated registrar.
-    function isRegistrar() {
-      // This is a placeholder for a real registrar check.
-      // In a production app, this should use custom claims.
-      // e.g., return request.auth.token.isRegistrar == true;
-      // For now, we will check against the environment variable address.
-      return request.auth != null && request.auth.uid.lower() == resource.data.registrar.lower();
-    }
-
-    // Properties:
-    match /properties/{propertyId} {
-      // Allow create if user is authenticated and an owner is specified.
-      // The owner wallet address is provided by the client, which gets it from MetaMask.
-      allow create: if isAuthenticated() && request.resource.data.owner != null && request.resource.data.owner is string && request.resource.data.owner.size() > 0;
-      
-      // Allow anyone to read properties (for marketplace, public portal)
-      allow read: if true;
-
-      // Allow listing of properties for any authenticated user
-      allow list: if isAuthenticated();
-      
-      // Allow any authenticated user to perform updates.
-      // The smart contract is the source of truth for ownership and will prevent
-      // unauthorized actions like marking a property for sale. The client-side
-      // code already hides UI elements from non-owners.
-      allow update: if isAuthenticated();
-
-      // Nobody can delete a property.
-      allow delete: if false;
-    }
-    
-    // This is a catch-all rule. It's important for security.
-    // We allow reads so collections can be listed, but block all writes.
     match /{document=**} {
-      allow read: if true;
-      allow write: if false;
+      allow read, write: if true;
     }
   }
 }

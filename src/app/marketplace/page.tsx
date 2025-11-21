@@ -6,7 +6,7 @@ import { useToast } from "@/hooks/use-toast";
 import { getAllProperties } from "@/lib/data";
 import { Property } from "@/lib/types";
 import { Store } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import dynamic from 'next/dynamic';
 
@@ -23,25 +23,28 @@ export default function MarketplacePage() {
   const { firestore } = useFirebase();
   const { toast } = useToast();
 
-   useEffect(() => {
+   const fetchMapProperties = useCallback(async () => {
+    if (!firestore) return;
+
+    setLoading(true);
+    try {
+      let allProps = await getAllProperties(firestore);
+      setProperties(allProps.filter(p => p.forSale));
+    } catch (error) {
+      console.error(error);
+      toast({ variant: 'destructive', title: 'Error', description: 'Could not fetch properties for the map.' });
+    } finally {
+      setLoading(false);
+    }
+  }, [firestore, toast]);
+
+
+  useEffect(() => {
     // Only fetch properties for the map if the map view is active
-    if (!firestore || activeView !== 'map') return;
-
-    const fetchProperties = async () => {
-      setLoading(true);
-      try {
-        let allProps = await getAllProperties(firestore);
-        setProperties(allProps.filter(p => p.forSale));
-      } catch (error) {
-        console.error(error);
-        toast({ variant: 'destructive', title: 'Error', description: 'Could not fetch properties for the map.' });
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchProperties();
-  }, [firestore, toast, activeView]);
+    if (activeView === 'map') {
+      fetchMapProperties();
+    }
+  }, [activeView, fetchMapProperties]);
 
 
   return (
@@ -68,10 +71,12 @@ export default function MarketplacePage() {
           </TabsContent>
           <TabsContent value="map" className="mt-6">
               {activeView === 'map' && (
-                !loading && properties.length > 0 ? (
+                loading ? (
+                   <div className="h-[600px] w-full bg-muted animate-pulse flex items-center justify-center"><p>Loading Map Data...</p></div>
+                ) : properties.length > 0 ? (
                   <PropertiesMap properties={properties} />
                 ) : (
-                  <p className="text-center text-muted-foreground">Loading map data or no properties for sale.</p>
+                  <p className="text-center text-muted-foreground">No properties for sale to display on the map.</p>
                 )
               )}
           </TabsContent>
@@ -79,5 +84,3 @@ export default function MarketplacePage() {
     </div>
   );
 }
-
-    

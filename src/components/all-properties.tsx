@@ -1,6 +1,7 @@
+
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { getAllProperties } from "@/lib/data";
 import type { Property } from "@/lib/types";
 import { PropertyCard } from "@/components/property-card";
@@ -21,18 +22,23 @@ export function AllProperties({ showForSaleOnly = false }: AllPropertiesProps) {
   const { firestore } = useFirebase();
   const { toast } = useToast();
 
-  const fetchProperties = async (isManualRefresh = false) => {
+  const fetchProperties = useCallback(async (isManualRefresh = false) => {
     if (!firestore) {
-      toast({
-        variant: "destructive",
-        title: "Database Error",
-        description: "Firestore is not available. Please try again later.",
-      });
+      if (isManualRefresh) {
+         toast({
+          variant: "destructive",
+          title: "Database Error",
+          description: "Firestore is not available. Please try again later.",
+        });
+      }
       return;
     }
 
-    if (isManualRefresh) setRefreshing(true);
-    else setLoading(true);
+    if (isManualRefresh) {
+      setRefreshing(true);
+    } else {
+      setLoading(true);
+    }
 
     try {
       let allProps = await getAllProperties(firestore);
@@ -53,14 +59,14 @@ export function AllProperties({ showForSaleOnly = false }: AllPropertiesProps) {
       setLoading(false);
       setRefreshing(false);
     }
-  };
+  }, [firestore, showForSaleOnly, toast]);
+
 
   useEffect(() => {
+    // Fetch properties only on initial component mount
     fetchProperties();
-    // Poll every 30 seconds to reflect live updates (e.g., property purchased)
-    const interval = setInterval(() => fetchProperties(), 30000);
-    return () => clearInterval(interval);
-  }, [showForSaleOnly, firestore]);
+  }, [fetchProperties]);
+
 
   return (
     <div className="space-y-6">
