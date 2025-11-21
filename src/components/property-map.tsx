@@ -181,6 +181,13 @@ const PropertiesMap = ({ properties, selectedProperty, tileLayer, className }: P
           map.flyToBounds(bounds instanceof L.LatLngBounds ? bounds.pad(0.1) : L.latLngBounds(bounds, bounds), { duration: 0.8, maxZoom: 16 });
         }
       }
+    } else if (properties.length === 1 && allLayers.length === 1) {
+        // This is the new logic for single property view (e.g., in a card)
+        const layer = allLayers[0];
+        const bounds = (layer as any).getBounds ? (layer as any).getBounds() : (layer as L.Marker).getLatLng();
+        if (bounds) {
+          map.fitBounds(bounds instanceof L.LatLngBounds ? bounds.pad(0.1) : L.latLngBounds(bounds, bounds), { animate: false, maxZoom: 17, padding: [10, 10] });
+        }
     } else if (allLayers.length > 0) {
         const group = new L.FeatureGroup(allLayers);
         const bounds = group.getBounds();
@@ -194,7 +201,7 @@ const PropertiesMap = ({ properties, selectedProperty, tileLayer, className }: P
   }, [properties, selectedProperty]);
 
   return (
-    <div className={cn("rounded-xl overflow-hidden h-[600px] border", className)}>
+    <div className={cn("rounded-xl overflow-hidden h-[225px] border", className)}>
         <div ref={mapContainerRef} style={{ height: '100%', width: '100%' }} />
     </div>
   );
