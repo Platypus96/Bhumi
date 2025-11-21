@@ -1,13 +1,14 @@
 
 "use client";
 
-import { useState, useMemo, useCallback }mport { useWeb3 } from "@/hooks/use-web3";
+import { useState, useMemo, useCallback, useEffect } from "react";
+import { useWeb3 } from "@/hooks/use-web3";
 import { useFirebase } from "@/firebase";
 import { useToast } from "@/hooks/use-toast";
 import type { Property } from "@/lib/types";
-import { collection, onSnapshot, query, where, Query } from "firebase/firestore";
+import { collection, onSnapshot, query } from "firebase/firestore";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { AlertCircle, Check, Loader2, Map as MapIcon, List, Eye } from "lucide-react";
+import { AlertCircle, Loader2, Map as MapIcon, List } from "lucide-react";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Button } from "@/components/ui/button";
 
@@ -198,4 +199,3 @@ export default function DashboardPage() {
     </div>
   );
 }
-
