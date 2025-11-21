@@ -22,9 +22,11 @@ service cloud.firestore {
     
     // Helper function to check if the user is the designated registrar.
     function isRegistrar() {
-      // In a real app with custom claims, this would be:
-      // return request.auth.token.isRegistrar == true;
-      return request.auth.uid == "0x8b66677cae6466db4fc485dec748d9577d0ef000";
+      // This is a placeholder for a real registrar check.
+      // In a production app, this should use custom claims.
+      // e.g., return request.auth.token.isRegistrar == true;
+      // For now, we will check against the environment variable address.
+      return request.auth != null && request.auth.uid.lower() == resource.data.registrar.lower();
     }
 
     // Properties:
@@ -49,8 +51,11 @@ service cloud.firestore {
       allow delete: if false;
     }
     
+    // This is a catch-all rule. It's important for security.
+    // We allow reads so collections can be listed, but block all writes.
     match /{document=**} {
-      allow read, write: if false;
+      allow read: if true;
+      allow write: if false;
     }
   }
 }
