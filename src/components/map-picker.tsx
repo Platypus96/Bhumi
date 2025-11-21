@@ -1,12 +1,13 @@
 
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { MapContainer, TileLayer, Marker, useMapEvents } from 'react-leaflet';
 import 'leaflet/dist/leaflet.css';
 import L from 'leaflet';
 
-// Fix for missing Leaflet markers - this now runs only once when the module is loaded
+// Fix for missing Leaflet markers
+// This logic is safe to run on module load as it only modifies the prototype.
 // @ts-ignore
 delete L.Icon.Default.prototype._getIconUrl;
 L.Icon.Default.mergeOptions({
@@ -37,26 +38,46 @@ function LocationMarker({ onLocationSelect }: { onLocationSelect: (lat: number, 
   );
 }
 
-// Main Component - Changed to a const export
+// Main Component
 const MapPicker = ({ onLocationSelect }: MapPickerProps) => {
+  const [isClient, setIsClient] = useState(false);
+
+  // This is the crucial fix: It ensures that the map component
+  // is only rendered *after* the component has mounted on the client.
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
+
+
   const apiKey = process.env.NEXT_PUBLIC_GEOAPIFY_API_KEY;
-  const mapStyle = "satellite"; // or 'hybrid', 'streets', etc.
+  const mapStyle = "satellite"; 
   const tileUrl = `https://maps.geoapify.com/v1/tile/${mapStyle}/{z}/{x}/{y}.png?apiKey=${apiKey}`;
   const attribution = '&copy; <a href="https://www.geoapify.com/" target="_blank">Geoapify</a> | &copy; <a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap</a> contributors';
 
+  // Render a placeholder on the server and during initial client render,
+  // then render the actual map once we're sure we are on the client.
   return (
-    <MapContainer 
-      center={[20.5937, 78.9629]} // India
-      zoom={5} 
-      style={{ height: '400px', width: '100%', zIndex: 1 }}
-    >
-      <TileLayer
-        attribution={attribution}
-        url={tileUrl}
-      />
-      <LocationMarker onLocationSelect={onLocationSelect} />
-    </MapContainer>
+    <div style={{ height: '400px', width: '100%' }}>
+      {isClient ? (
+        <MapContainer 
+          center={[20.5937, 78.9629]} // India
+          zoom={5} 
+          style={{ height: '100%', width: '100%', zIndex: 1 }}
+        >
+          <TileLayer
+            attribution={attribution}
+            url={tileUrl}
+          />
+          <LocationMarker onLocationSelect={onLocationSelect} />
+        </MapContainer>
+      ) : (
+         <div className="h-full w-full bg-muted animate-pulse rounded-xl flex items-center justify-center text-muted-foreground">
+            Initializing Map...
+         </div>
+      )}
+    </div>
   );
 }
 
 export default MapPicker;
+
