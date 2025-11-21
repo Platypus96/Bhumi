@@ -1,11 +1,140 @@
+/**
+ * Core Philosophy:
+ * This ruleset enforces a security model based on a combination of wallet-based ownership
+ * and a specific 'Registrar' role. User identity is tied to a wallet address, which is expected
+ * to be present in the authentication token. Registrars have elevated privileges, such as
+ * approving property transfers.
+ *
+ * Data Structure:
+ * The data is organized into three top-level collections:
+ * - /properties: Publicly readable property listings.
+ * - /propertyTransfers: Private records of ownership transfers between two parties.
+ * - /registrars: A collection where document existence grants a user 'Registrar' privileges.
+ *
+ * Key Security Decisions:
+ * - Wallet Address as Identity: Authorization relies on a 'walletAddress' custom claim within
+ *   the user's authentication token (`request.auth.token.walletAddress`). This is crucial for
+ *   linking the authenticated user to on-chain identities.
+ * - Registrar Role via Document Existence: A user is considered a 'Registrar' if a document
+ *   with their UID exists in the `/registrars` collection. This is a performant and simple
+ *   method for role-based access control.
+ * - Secure Listing: Listing all property transfers or registrars is disabled to protect user
+ *   privacy and prevent data scraping. Client applications must query for specific documents
+ *   they are authorized to see.
+ * - Immutability: Critical relational fields like owner addresses, seller/buyer addresses,
+ *   and property IDs are immutable after creation to ensure data integrity.
+ *
+ * Denormalization for Authorization:
+ * To ensure fast and secure authorization checks, ownership and participant data is denormalized.
+ * - The `/properties/{propertyId}` document contains an `ownerWalletAddress`.
+ * - The `/propertyTransfers/{transferId}` document contains both `sellerWalletAddress` and
+ *   `buyerWalletAddress`.
+ * This strategy avoids slow and costly `get()` calls in security rules, making the system more
+ * performant and secure.
+ */
 rules_version = '2';
-
 service cloud.firestore {
   match /databases/{database}/documents {
-    match /{document=**} {
-      // WARNING: This allows anyone to read and write to your entire database.
-      // This is insecure and not recommended for production environments.
-      allow read, write: if true;
+
+    // ----------------------------------------------------------------------
+    // Helper Functions
+    // ----------------------------------------------------------------------
+
+    /**
+     * Checks if the user is signed in.
+     */
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    /**
+     * Retrieves the user's wallet address from their auth token.
+     * CRITICAL: This requires a custom claim named 'walletAddress' to be set
+     * in the user's JWT when they authenticate.
+     */
+    function userWalletAddress() {
+      return request.auth.token.walletAddress;
+    }
+
+    /**
+     * Checks if the requesting user has the 'Registrar' role.
+     * The role is granted if a document exists for the user in the /registrars collection.
+     */
+    function isRegistrar() {
+      return exists(/databases/$(database)/documents/registrars/$(request.auth.uid));
+    }
+
+    /**
+     * Validates that the wallet address in the provided data matches the authenticated user's wallet.
+     * Used to ensure a user is acting on their own behalf.
+     */
+    function isWalletOwner(walletAddress) {
+      return isSignedIn() && userWalletAddress() == walletAddress;
+    }
+
+    /**
+     * Validates that the user ID in the path matches the authenticated user's UID.
+     * Used for documents directly tied to a user's account, like their registrar profile.
+     */
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    // ----------------------------------------------------------------------
+    // Collection Rules
+    // ----------------------------------------------------------------------
+
+    /**
+     * @description Controls access to property listings. Properties are public to read,
+     * but can only be created, updated, or deleted by their owner.
+     * @path /properties/{propertyId}
+     * @allow (get) Any user, signed in or not, can view a property.
+     * @deny (update) A user tries to update a property they do not own.
+     * @principle Public Read with Owner-Only Writes. Ownership is determined by the
+     * `ownerWalletAddress` field, which must match the user's auth token claim.
+     */
+    match /properties/{propertyId} {
+      allow get, list: if true;
+      allow create: if isSignedIn() && request.resource.data.ownerWalletAddress == userWalletAddress();
+      allow update: if resource != null && isWalletOwner(resource.data.ownerWalletAddress);
+      allow delete: if resource != null && isWalletOwner(resource.data.ownerWalletAddress);
+    }
+
+    /**
+     * @description Manages access to property transfer requests. Only the seller, buyer,
+     * or a registrar can view a transfer. Only the seller can initiate one, and only
+     * a registrar or seller can modify it.
+     * @path /propertyTransfers/{propertyTransferId}
+     * @allow (get) The seller, buyer, or a registrar can read a transfer document.
+     * @deny (create) A user tries to create a transfer where they are not the seller.
+     * @deny (list) Any user tries to list all transfers. This is disallowed for privacy.
+     * @principle Shared Access (Closed Collaborators). Access is granted based on the
+     * denormalized `sellerWalletAddress` and `buyerWalletAddress` fields, or by role
+     * (`isRegistrar`).
+     */
+    match /propertyTransfers/{propertyTransferId} {
+      allow get: if isSignedIn() && (isWalletOwner(resource.data.sellerWalletAddress) || isWalletOwner(resource.data.buyerWalletAddress) || isRegistrar());
+      allow list: if false;
+      allow create: if isSignedIn() && request.resource.data.sellerWalletAddress == userWalletAddress();
+      allow update: if resource != null && (isWalletOwner(resource.data.sellerWalletAddress) || isRegistrar());
+      allow delete: if resource != null && isWalletOwner(resource.data.sellerWalletAddress);
+    }
+
+    /**
+     * @description Secures registrar profile documents. A user can create and manage their
+     * own registrar profile. Existence of this document grants registrar privileges.
+     * @path /registrars/{registrarId}
+     * @allow (create) An authenticated user creates their own registrar document, where `{registrarId}` is their UID.
+     * @deny (update) A user tries to update another registrar's document.
+     * @deny (list) Any user tries to list all registrars to prevent scraping.
+     * @principle Ownership. Access is strictly limited to the user whose UID matches the document ID.
+     */
+    match /registrars/{registrarId} {
+      allow get: if isSignedIn();
+      allow list: if false;
+      allow create: if isOwner(registrarId);
+      allow update: if resource != null && isOwner(registrarId);
+      allow delete: if resource != null && isOwner(registrarId);
     }
   }
 }

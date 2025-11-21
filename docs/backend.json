@@ -10,127 +10,122 @@
           "type": "string",
           "description": "Unique identifier for the Property entity."
         },
-        "registrarAddress": {
+        "ownerWalletAddress": {
           "type": "string",
-          "description": "Ethereum address of the registrar who registered the property."
+          "description": "Ethereum wallet address of the property owner."
         },
-        "ownerAddress": {
+        "propertyDocumentsCID": {
           "type": "string",
-          "description": "Ethereum address of the current property owner."
+          "description": "IPFS CID (Content Identifier) for the property documents."
         },
-        "ipfsCID": {
+        "propertyDocumentsSHA256Hash": {
           "type": "string",
-          "description": "IPFS CID (Content Identifier) of the property documents."
-        },
-        "sha256Hash": {
-          "type": "string",
-          "description": "SHA-256 hash of the property document for integrity verification."
+          "description": "SHA-256 hash of the property documents for integrity verification."
         },
         "registrationDate": {
           "type": "string",
           "description": "Date and time when the property was registered.",
           "format": "date-time"
         },
-        "propertyDetails": {
+        "propertyName": {
           "type": "string",
-          "description": "Additional details about the property (e.g., address, size).  This can be a serialized JSON string, or a simple text description depending on desired complexity."
+          "description": "Name of the property."
+        },
+        "propertyDescription": {
+          "type": "string",
+          "description": "Detailed description of the property."
+        },
+        "propertyLocation": {
+          "type": "string",
+          "description": "Location of the property."
         }
       },
       "required": [
         "id",
-        "registrarAddress",
-        "ownerAddress",
-        "ipfsCID",
-        "sha256Hash",
+        "ownerWalletAddress",
+        "propertyDocumentsCID",
+        "propertyDocumentsSHA256Hash",
         "registrationDate",
-        "propertyDetails"
+        "propertyName",
+        "propertyDescription",
+        "propertyLocation"
       ]
     },
-    "TransferRequest": {
+    "PropertyTransfer": {
       "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "TransferRequest",
+      "title": "PropertyTransfer",
       "type": "object",
-      "description": "Represents a request to transfer property ownership.",
+      "description": "Represents a property transfer request.",
       "properties": {
         "id": {
           "type": "string",
-          "description": "Unique identifier for the TransferRequest entity."
+          "description": "Unique identifier for the PropertyTransfer entity."
         },
         "propertyId": {
           "type": "string",
-          "description": "Reference to Property being transferred. (Relationship: Property 1:N TransferRequest)"
+          "description": "Reference to the Property being transferred. (Relationship: Property 1:N PropertyTransfer)"
         },
-        "sellerAddress": {
+        "sellerWalletAddress": {
           "type": "string",
-          "description": "Ethereum address of the seller initiating the transfer."
+          "description": "Ethereum wallet address of the seller (current owner)."
         },
-        "buyerAddress": {
+        "buyerWalletAddress": {
           "type": "string",
-          "description": "Ethereum address of the buyer receiving the property."
+          "description": "Ethereum wallet address of the buyer (new owner)."
         },
-        "requestDate": {
+        "transferInitiationDate": {
           "type": "string",
-          "description": "Date and time when the transfer request was initiated.",
+          "description": "Date and time when the transfer was initiated.",
           "format": "date-time"
         },
-        "status": {
+        "transferApprovalDate": {
           "type": "string",
-          "description": "Status of the transfer request (e.g., pending, approved, rejected)."
+          "description": "Date and time when the transfer was approved by the registrar. Null if pending.",
+          "format": "date-time"
+        },
+        "transferStatus": {
+          "type": "string",
+          "description": "Status of the transfer (e.g., 'pending', 'approved', 'rejected')."
         }
       },
       "required": [
         "id",
         "propertyId",
-        "sellerAddress",
-        "buyerAddress",
-        "requestDate",
-        "status"
+        "sellerWalletAddress",
+        "buyerWalletAddress",
+        "transferInitiationDate",
+        "transferStatus"
       ]
     },
-    "TransferEvent": {
+    "Registrar": {
       "$schema": "http://json-schema.org/draft-07/schema#",
-      "title": "TransferEvent",
+      "title": "Registrar",
       "type": "object",
-      "description": "Represents a historical record of a property transfer event.",
+      "description": "Represents a registrar user.",
       "properties": {
         "id": {
           "type": "string",
-          "description": "Unique identifier for the TransferEvent entity."
+          "description": "Unique identifier for the Registrar entity."
         },
-        "propertyId": {
+        "walletAddress": {
           "type": "string",
-          "description": "Reference to Property that was transferred. (Relationship: Property 1:N TransferEvent)"
+          "description": "Ethereum wallet address of the registrar."
         },
-        "transferRequestId": {
+        "name": {
           "type": "string",
-          "description": "Reference to TransferRequest that triggered this event. (Relationship: TransferRequest 1:1 TransferEvent)"
+          "description": "Name of the registrar."
         },
-        "sellerAddress": {
+        "email": {
           "type": "string",
-          "description": "Ethereum address of the seller in the transfer."
-        },
-        "buyerAddress": {
-          "type": "string",
-          "description": "Ethereum address of the buyer in the transfer."
-        },
-        "eventDate": {
-          "type": "string",
-          "description": "Date and time when the transfer event occurred.",
-          "format": "date-time"
-        },
-        "registrarAddress": {
-          "type": "string",
-          "description": "Ethereum address of the registrar who approved the transfer."
+          "description": "Email address of the registrar.",
+          "format": "email"
         }
       },
       "required": [
         "id",
-        "propertyId",
-        "transferRequestId",
-        "sellerAddress",
-        "buyerAddress",
-        "eventDate",
-        "registrarAddress"
+        "walletAddress",
+        "name",
+        "email"
       ]
     }
   },
@@ -149,7 +144,7 @@
           "schema": {
             "$ref": "#/backend/entities/Property"
           },
-          "description": "Stores property details. Includes denormalized 'ownerAddress' for authorization independence.",
+          "description": "Stores property details. The 'ownerWalletAddress' field is denormalized to enable authorization independence. This is the root collection from which properties are listed and accessed.",
           "params": [
             {
               "name": "propertyId",
@@ -159,46 +154,38 @@
         }
       },
       {
-        "path": "/properties/{propertyId}/transferRequests/{transferRequestId}",
+        "path": "/propertyTransfers/{propertyTransferId}",
         "definition": {
-          "entityName": "TransferRequest",
+          "entityName": "PropertyTransfer",
           "schema": {
-            "$ref": "#/backend/entities/TransferRequest"
+            "$ref": "#/backend/entities/PropertyTransfer"
           },
-          "description": "Stores transfer requests associated with a property.",
+          "description": "Stores property transfer requests. Includes denormalized 'sellerWalletAddress' and 'buyerWalletAddress' fields for authorization independence, and 'propertyId' for efficient queries related to a specific property.",
           "params": [
             {
-              "name": "propertyId",
-              "description": "Unique identifier for the parent property document."
-            },
-            {
-              "name": "transferRequestId",
-              "description": "Unique identifier for the transfer request document."
+              "name": "propertyTransferId",
+              "description": "Unique identifier for the property transfer request."
             }
           ]
         }
       },
       {
-        "path": "/properties/{propertyId}/transferEvents/{transferEventId}",
+        "path": "/registrars/{registrarId}",
         "definition": {
-          "entityName": "TransferEvent",
+          "entityName": "Registrar",
           "schema": {
-            "$ref": "#/backend/entities/TransferEvent"
+            "$ref": "#/backend/entities/Registrar"
           },
-          "description": "Stores historical transfer events associated with a property. Includes 'propertyId', 'sellerAddress', 'buyerAddress', and 'registrarAddress'.",
+          "description": "Stores registrar information. Document existence is used for role-based access control. No denormalization is needed here, as the existence of a document serves as the role assignment.",
           "params": [
             {
-              "name": "propertyId",
-              "description": "Unique identifier for the parent property document."
-            },
-            {
-              "name": "transferEventId",
-              "description": "Unique identifier for the transfer event document."
+              "name": "registrarId",
+              "description": "Unique identifier for the registrar document, typically matching the user's UID."
             }
           ]
         }
       }
     ],
-    "reasoning": "The Firestore data structure is designed to support the Bhumi application's core features, focusing on property registration, transfer requests, and transfer events. The design prioritizes authorization independence to ensure secure and scalable operations.  \n\nTo achieve Authorization Independence, the `ownerAddress` is included within each Property document. For `TransferRequest` objects, the `propertyId` field is used to indicate the parent Property document. Authorization checks within security rules can then use `request.auth.uid` against these denormalized fields to grant or restrict access to a specific document. Additionally, the `TransferEvent` also includes the `propertyId`, `sellerAddress`, `buyerAddress` and `registrarAddress`, to track the transfer even if the original `TransferRequest` document is deleted or modified.\n\nThis data structure supports QAPs (Rules are not Filters) by segregating data based on access requirements. All documents within a collection share the same security posture, simplifying rules and preventing unintended data exposure. The structure supports ownership and integrity through the use of specific fields and clear naming conventions."
+    "reasoning": "The Firestore data structure is designed to support the Bhumi application's core features, focusing on property registration, transfer, and registrar management. It prioritizes authorization independence and easy querying. Each collection is designed for a homogeneous security posture.\n\n*   `/properties`: Stores property details. Access control relies on the `ownerWalletAddress` field within each document, enabling direct authorization rules without needing to `get()` data from other collections.\n*   `/propertyTransfers`: Stores property transfer requests. Includes denormalized `sellerWalletAddress` and `buyerWalletAddress` fields for authorization. Filtering is done via queries based on `propertyId` and `transferStatus`.\n*   `/registrars`: Stores registrar information. This collection uses document existence for role-based access control. The mere presence of a document for a given `uid` in this collection grants registrar privileges.\n\nThis structure achieves Authorization Independence by denormalizing authorization-relevant data directly into the documents where it's needed, avoiding expensive and brittle `get()` calls in security rules. For example, the `propertyTransfers` collection denormalizes `sellerWalletAddress` and `buyerWalletAddress`, which allows security rules to validate transfer requests without needing to look up the associated property or user documents. This ensures atomic operations and avoids race conditions.\n\nQAPs (Rules are not Filters) are supported through structural segregation. Publicly accessible data (e.g., property search) resides in the `/properties` collection, which can be queried securely based on the `ownerWalletAddress` and validated client-side, ensuring rules act as gatekeepers rather than filters. The separation of registrar data into `/registrars` enables straightforward role-based access control using document existence, and simplifies queries for registrar-related operations.\n\nThe design also uses path-based ownership for property transfer requests within a property, enhancing security and query performance."
   }
 }
