@@ -14,11 +14,18 @@ import { AlertCircle, PlusCircle, Building2, Home, Map } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import PropertiesMap from '@/components/property-map';
+import dynamic from 'next/dynamic';
+
+const PropertiesMap = dynamic(() => import("@/components/property-map"), {
+  ssr: false,
+  loading: () => <div className="h-[600px] w-full bg-muted animate-pulse flex items-center justify-center"><p>Loading Map...</p></div>
+});
+
 
 export default function MyPropertiesPage() {
   const [properties, setProperties] = useState<Property[]>([]);
   const [loading, setLoading] = useState(true);
+  const [activeView, setActiveView] = useState("grid");
   const { account } = useWeb3();
   const { firestore } = useFirebase();
   const { toast } = useToast();
@@ -134,7 +141,7 @@ export default function MyPropertiesPage() {
             </Button>
         </div>
 
-      <Tabs defaultValue="grid">
+      <Tabs value={activeView} onValueChange={setActiveView}>
         <TabsList>
             <TabsTrigger value="grid">Grid View</TabsTrigger>
             <TabsTrigger value="map">Map View</TabsTrigger>
@@ -143,9 +150,13 @@ export default function MyPropertiesPage() {
             {renderGrid()}
         </TabsContent>
         <TabsContent value="map" className="mt-6">
-            {hasContent ? <PropertiesMap properties={properties} /> : <p className="text-center text-muted-foreground">No properties to show on map.</p>}
+            {activeView === 'map' && (
+              hasContent ? <PropertiesMap properties={properties} /> : <p className="text-center text-muted-foreground">No properties to show on map.</p>
+            )}
         </TabsContent>
       </Tabs>
     </div>
   );
 }
+
+    

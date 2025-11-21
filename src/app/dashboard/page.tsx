@@ -21,7 +21,13 @@ import { format } from "date-fns";
 import { Badge } from "@/components/ui/badge";
 import { HashPill } from "@/components/hash-pill";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import PropertiesMap from "@/components/property-map";
+import dynamic from "next/dynamic";
+
+const PropertiesMap = dynamic(() => import("@/components/property-map"), {
+  ssr: false,
+  loading: () => <div className="h-[600px] w-full bg-muted animate-pulse flex items-center justify-center"><p>Loading Map...</p></div>
+});
+
 
 export default function DashboardPage() {
   const { isRegistrar, account } = useWeb3();
@@ -33,6 +39,8 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [processingId, setProcessingId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<PropertyStatus>("unverified");
+  const [activeView, setActiveView] = useState("list");
+
 
   useEffect(() => {
     if (!firestore || !isRegistrar) {
@@ -171,7 +179,7 @@ export default function DashboardPage() {
   };
 
   const renderTable = (propertiesToRender: Property[]) => (
-    <Tabs defaultValue="list">
+    <Tabs value={activeView} onValueChange={setActiveView}>
         <TabsList>
             <TabsTrigger value="list">List View</TabsTrigger>
             <TabsTrigger value="map">Map View</TabsTrigger>
@@ -247,7 +255,7 @@ export default function DashboardPage() {
             </div>
         </TabsContent>
         <TabsContent value="map" className="mt-4">
-            <PropertiesMap properties={propertiesToRender} />
+           {activeView === 'map' && <PropertiesMap properties={propertiesToRender} />}
         </TabsContent>
     </Tabs>
   );
@@ -292,3 +300,5 @@ export default function DashboardPage() {
     </div>
   );
 }
+
+    

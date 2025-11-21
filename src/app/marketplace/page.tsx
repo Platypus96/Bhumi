@@ -1,7 +1,6 @@
 
 "use client";
 import { AllProperties } from "@/components/all-properties";
-import PropertiesMap from "@/components/property-map";
 import { useFirebase } from "@/firebase";
 import { useToast } from "@/hooks/use-toast";
 import { getAllProperties } from "@/lib/data";
@@ -9,15 +8,24 @@ import { Property } from "@/lib/types";
 import { Store } from "lucide-react";
 import { useEffect, useState } from "react";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import dynamic from 'next/dynamic';
+
+const PropertiesMap = dynamic(() => import('@/components/property-map'), {
+  ssr: false,
+  loading: () => <div className="h-[600px] w-full bg-muted animate-pulse flex items-center justify-center"><p>Loading Map...</p></div>
+});
+
 
 export default function MarketplacePage() {
   const [properties, setProperties] = useState<Property[]>([]);
   const [loading, setLoading] = useState(true);
+  const [activeView, setActiveView] = useState("grid");
   const { firestore } = useFirebase();
   const { toast } = useToast();
 
    useEffect(() => {
-    if (!firestore) return;
+    // Only fetch properties for the map if the map view is active
+    if (!firestore || activeView !== 'map') return;
 
     const fetchProperties = async () => {
       setLoading(true);
@@ -33,7 +41,7 @@ export default function MarketplacePage() {
     };
 
     fetchProperties();
-  }, [firestore, toast]);
+  }, [firestore, toast, activeView]);
 
 
   return (
@@ -50,7 +58,7 @@ export default function MarketplacePage() {
             </p>
         </div>
 
-        <Tabs defaultValue="grid">
+        <Tabs value={activeView} onValueChange={setActiveView}>
           <TabsList>
             <TabsTrigger value="grid">Grid View</TabsTrigger>
             <TabsTrigger value="map">Map View</TabsTrigger>
@@ -59,13 +67,17 @@ export default function MarketplacePage() {
               <AllProperties showForSaleOnly={true} />
           </TabsContent>
           <TabsContent value="map" className="mt-6">
-              {!loading && properties.length > 0 ? (
-                <PropertiesMap properties={properties} />
-              ) : (
-                <p className="text-center text-muted-foreground">Loading map data or no properties for sale.</p>
+              {activeView === 'map' && (
+                !loading && properties.length > 0 ? (
+                  <PropertiesMap properties={properties} />
+                ) : (
+                  <p className="text-center text-muted-foreground">Loading map data or no properties for sale.</p>
+                )
               )}
           </TabsContent>
         </Tabs>
     </div>
   );
 }
+
+    
