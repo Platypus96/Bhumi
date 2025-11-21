@@ -232,7 +232,7 @@ export default function DashboardPage() {
             </div>
         </TabsContent>
         <TabsContent value="map" className="mt-4">
-           {activeView === 'map' && <PropertiesMap properties={propertiesToRender} />}
+           {activeView === 'map' && <div className="px-12"><PropertiesMap properties={propertiesToRender} /></div>}
         </TabsContent>
     </Tabs>
   );
