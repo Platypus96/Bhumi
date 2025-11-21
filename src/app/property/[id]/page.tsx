@@ -23,6 +23,8 @@ import { formatEther } from "ethers";
 import { Button } from "@/components/ui/button";
 import { HashPill } from "@/components/hash-pill";
 import { Separator } from "@/components/ui/separator";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+
 
 export default function PropertyDetailPage() {
   const params = useParams();
@@ -64,6 +66,8 @@ export default function PropertyDetailPage() {
       </div>
     );
   }
+
+  const showReadMore = property.description.length > 200;
   
   return (
     <div className="container mx-auto px-4 py-8">
@@ -80,7 +84,26 @@ export default function PropertyDetailPage() {
             </div>
              <CardContent className="p-6">
                 <CardTitle className="text-3xl font-bold">{property.title}</CardTitle>
-                <p className="mt-4 text-muted-foreground">{property.description}</p>
+                <div className="mt-4 text-muted-foreground">
+                  <p className={showReadMore ? 'line-clamp-3' : ''}>
+                    {property.description}
+                  </p>
+                  {showReadMore && (
+                     <Dialog>
+                      <DialogTrigger asChild>
+                        <Button variant="link" className="p-0 h-auto text-sm">Read more...</Button>
+                      </DialogTrigger>
+                      <DialogContent>
+                        <DialogHeader>
+                          <DialogTitle>{property.title}</DialogTitle>
+                        </DialogHeader>
+                        <DialogDescription className="max-h-[60vh] overflow-y-auto whitespace-pre-wrap">
+                          {property.description}
+                        </DialogDescription>
+                      </DialogContent>
+                    </Dialog>
+                  )}
+                </div>
              </CardContent>
           </Card>
 
