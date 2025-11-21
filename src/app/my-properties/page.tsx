@@ -53,6 +53,15 @@ export default function MyPropertiesPage() {
 
     return () => unsubscribe();
   }, [account, firestore, toast]);
+  
+  const hasContent = properties.length > 0;
+  
+  const MemoizedPropertiesMap = useMemo(() => {
+    if (activeView === 'map' && hasContent) {
+      return <PropertiesMap properties={properties} />;
+    }
+    return null;
+  }, [activeView, hasContent, properties]);
 
   if (!account) {
     return (
@@ -67,15 +76,6 @@ export default function MyPropertiesPage() {
       </div>
     );
   }
-
-  const hasContent = properties.length > 0;
-  
-  const MemoizedPropertiesMap = useMemo(() => {
-    if (activeView === 'map' && hasContent) {
-      return <PropertiesMap properties={properties} />;
-    }
-    return null;
-  }, [activeView, hasContent, properties]);
 
   const renderGrid = () => (
       loading ? (
