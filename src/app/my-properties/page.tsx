@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { collection, query, where, onSnapshot } from 'firebase/firestore';
 import type { Property } from '@/lib/types';
 import { PropertyCard } from '@/components/property-card';
@@ -31,10 +31,28 @@ export default function MyPropertiesPage() {
   const { toast } = useToast();
 
   useEffect(() => {
-    // Clear properties for a clean slate
-    setProperties([]);
-    setLoading(false);
-  }, [account, firestore]);
+    if (!account || !firestore) {
+      setProperties([]);
+      setLoading(false);
+      return;
+    }
+    
+    setLoading(true);
+    const propertiesCollection = collection(firestore, 'artifacts/default-app-id/public/data/properties');
+    const q = query(propertiesCollection, where('owner', '==', account));
+    
+    const unsubscribe = onSnapshot(q, (querySnapshot) => {
+        const props = querySnapshot.docs.map(doc => doc.data() as Property);
+        setProperties(props);
+        setLoading(false);
+    }, (error) => {
+        console.error("Failed to fetch user properties:", error);
+        toast({ variant: 'destructive', title: 'Error', description: 'Could not fetch your properties.' });
+        setLoading(false);
+    });
+
+    return () => unsubscribe();
+  }, [account, firestore, toast]);
 
   if (!account) {
     return (
@@ -51,6 +69,13 @@ export default function MyPropertiesPage() {
   }
 
   const hasContent = properties.length > 0;
+  
+  const MemoizedPropertiesMap = useMemo(() => {
+    if (activeView === 'map' && hasContent) {
+      return <PropertiesMap properties={properties} />;
+    }
+    return null;
+  }, [activeView, hasContent, properties]);
 
   const renderGrid = () => (
       loading ? (
@@ -121,15 +146,12 @@ export default function MyPropertiesPage() {
             {renderGrid()}
         </TabsContent>
         <TabsContent value="map" className="mt-6">
-            {activeView === 'map' && (
-              hasContent ? <PropertiesMap properties={properties} /> : <p className="text-center text-muted-foreground">No properties to show on map.</p>
+            {MemoizedPropertiesMap}
+            {activeView === 'map' && !hasContent && !loading && (
+                 <p className="text-center text-muted-foreground">No properties to show on map.</p>
             )}
         </TabsContent>
       </Tabs>
     </div>
   );
 }
-
-    
-
-    

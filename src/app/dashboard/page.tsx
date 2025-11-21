@@ -8,11 +8,11 @@ import { useBlockchain } from "@/hooks/use-blockchain";
 import { useToast } from "@/hooks/use-toast";
 import type { Property, PropertyStatus } from "@/lib/types";
 import { useFirebase } from "@/firebase";
-import { collection, onSnapshot, query, orderBy } from "firebase/firestore";
+import { collection, onSnapshot, query } from "firebase/firestore";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { AlertCircle, Check, FileText, Loader2, ShieldCheck, X } from "lucide-react";
+import { AlertCircle, Check, Eye, FileText, Loader2, ShieldCheck, X } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import Image from "next/image";
@@ -22,6 +22,7 @@ import { Badge } from "@/components/ui/badge";
 import { HashPill } from "@/components/hash-pill";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import dynamic from "next/dynamic";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 
 const PropertiesMap = dynamic(() => import("@/components/property-map"), {
   ssr: false,
@@ -39,14 +40,28 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true);
   const [processingId, setProcessingId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<PropertyStatus>("unverified");
-  const [activeView, setActiveView] = useState("list");
-
 
   useEffect(() => {
-    // Clear properties for a clean slate
-    setProperties([]);
-    setLoading(false);
-  }, []);
+    if (!firestore) return;
+    setLoading(true);
+
+    const propertiesCollection = collection(firestore, 'artifacts/default-app-id/public/data/properties');
+    const q = query(propertiesCollection);
+
+    const unsubscribe = onSnapshot(q, (querySnapshot) => {
+      const props = querySnapshot.docs.map(doc => doc.data() as Property);
+      // Client-side sorting
+      props.sort((a, b) => (b.registeredAt?.toMillis() || 0) - (a.registeredAt?.toMillis() || 0));
+      setProperties(props);
+      setLoading(false);
+    }, (error) => {
+      console.error("Failed to fetch properties:", error);
+      toast({ variant: 'destructive', title: 'Error', description: 'Could not fetch properties.' });
+      setLoading(false);
+    });
+
+    return () => unsubscribe();
+  }, [firestore, toast]);
 
 
   const handleVerify = async (property: Property) => {
@@ -156,85 +171,93 @@ export default function DashboardPage() {
   };
 
   const renderTable = (propertiesToRender: Property[]) => (
-    <Tabs value={activeView} onValueChange={setActiveView}>
-        <TabsList>
-            <TabsTrigger value="list">List View</TabsTrigger>
-            <TabsTrigger value="map">Map View</TabsTrigger>
-        </TabsList>
-        <TabsContent value="list" className="mt-4">
-            <div className="rounded-lg border">
-            <Table>
-                <TableHeader>
-                <TableRow>
-                    <TableHead className="w-[100px]">Image</TableHead>
-                    <TableHead>Title & Owner</TableHead>
-                    <TableHead className="w-[170px]">Registered At</TableHead>
-                    <TableHead className="w-[120px]">Status</TableHead>
-                    <TableHead className="w-[130px]">Proof</TableHead>
-                    <TableHead className="w-[200px] text-center">Actions</TableHead>
-                </TableRow>
-                </TableHeader>
-                <TableBody>
-                {loading ? renderSkeletons() : 
-                propertiesToRender.length > 0 ? (
-                    propertiesToRender.map((prop) => (
-                    <TableRow key={prop.parcelId}>
-                        <TableCell>
-                            <div className="relative h-12 w-20 group">
-                                <Image src={prop.imageUrl} alt={prop.title} fill className="rounded-md object-cover transition-transform duration-300 group-hover:scale-125" />
-                            </div>
-                        </TableCell>
-                        <TableCell>
-                            <div className="font-bold text-base">{prop.title}</div>
-                            <HashPill type="address" hash={prop.owner} className="mt-1"/>
-                        </TableCell>
-                        <TableCell>{format(prop.registeredAt.toDate(), "dd MMM, yyyy")}</TableCell>
-                            <TableCell>
-                            <StatusBadge status={prop.status || 'unverified'} />
-                        </TableCell>
-                        <TableCell>
-                            <Button asChild variant="outline" size="sm">
-                                <Link href={prop.ipfsProofCid} target="_blank" rel="noopener noreferrer">
-                                    <FileText className="h-4 w-4 mr-2" />
-                                    Document
-                                </Link>
-                            </Button>
-                        </TableCell>
-                        <TableCell className="text-center">
-                            {(prop.status === 'unverified' || !prop.status) ? (
-                                <div className="flex gap-2 justify-center">
-                                <Button size="sm" variant="outline" className="bg-green-50 hover:bg-green-100 text-green-700 border-green-200" onClick={() => handleVerify(prop)} disabled={!!processingId}>
-                                    {processingId === prop.parcelId ? <Loader2 className="h-4 w-4 animate-spin"/> : <ShieldCheck className="h-4 w-4"/>}
-                                    Verify
+    <div className="rounded-lg border">
+    <Table>
+        <TableHeader>
+        <TableRow>
+            <TableHead className="w-[100px]">Image</TableHead>
+            <TableHead>Title & Owner</TableHead>
+            <TableHead className="w-[170px]">Registered At</TableHead>
+            <TableHead className="w-[120px]">Status</TableHead>
+            <TableHead className="w-[130px]">Proof</TableHead>
+            <TableHead className="w-[240px] text-center">Actions</TableHead>
+        </TableRow>
+        </TableHeader>
+        <TableBody>
+        {loading ? renderSkeletons() : 
+        propertiesToRender.length > 0 ? (
+            propertiesToRender.map((prop) => (
+            <TableRow key={prop.parcelId}>
+                <TableCell>
+                    <div className="relative h-12 w-20 group">
+                        <Image src={prop.imageUrl} alt={prop.title} fill className="rounded-md object-cover transition-transform duration-300 group-hover:scale-125" />
+                    </div>
+                </TableCell>
+                <TableCell>
+                    <div className="font-bold text-base">{prop.title}</div>
+                    <HashPill type="address" hash={prop.owner} className="mt-1"/>
+                </TableCell>
+                <TableCell>{prop.registeredAt ? format(prop.registeredAt.toDate(), "dd MMM, yyyy") : 'N/A'}</TableCell>
+                    <TableCell>
+                    <StatusBadge status={prop.status || 'unverified'} />
+                </TableCell>
+                <TableCell>
+                    <Button asChild variant="outline" size="sm">
+                        <Link href={prop.ipfsProofCid} target="_blank" rel="noopener noreferrer">
+                            <FileText className="h-4 w-4 mr-2" />
+                            Document
+                        </Link>
+                    </Button>
+                </TableCell>
+                <TableCell className="text-center">
+                    <div className="flex gap-2 justify-center items-center">
+                    {(prop.status === 'unverified' || !prop.status) ? (
+                        <>
+                        <Button size="sm" variant="outline" className="bg-green-50 hover:bg-green-100 text-green-700 border-green-200" onClick={() => handleVerify(prop)} disabled={!!processingId}>
+                            {processingId === prop.parcelId ? <Loader2 className="h-4 w-4 animate-spin"/> : <ShieldCheck className="h-4 w-4"/>}
+                            Verify
+                        </Button>
+                        <Button size="sm" variant="destructive" className="bg-red-50 hover:bg-red-100 text-red-700 border-red-200" onClick={() => handleReject(prop)} disabled={!!processingId}>
+                            <X className="h-4 w-4"/>
+                        </Button>
+                        </>
+                    ) : prop.status === 'verified' ? (
+                        <div className="flex items-center justify-center text-sm text-muted-foreground italic">
+                            <Check className="h-4 w-4 mr-2 text-green-500"/>
+                            Completed
+                        </div>
+                    ) : null }
+                    {prop.polygon && (
+                         <Dialog>
+                            <DialogTrigger asChild>
+                                <Button variant="outline" size="icon">
+                                    <Eye className="h-4 w-4" />
                                 </Button>
-                                <Button size="sm" variant="destructive" className="bg-red-50 hover:bg-red-100 text-red-700 border-red-200" onClick={() => handleReject(prop)} disabled={!!processingId}>
-                                    <X className="h-4 w-4"/>
-                                </Button>
+                            </DialogTrigger>
+                            <DialogContent className="max-w-4xl">
+                                <DialogHeader>
+                                    <DialogTitle>Property Boundary</DialogTitle>
+                                </DialogHeader>
+                                <div className="h-[60vh] w-full mt-4">
+                                  <PropertiesMap properties={[prop]} />
                                 </div>
-                            ) : prop.status === 'verified' ? (
-                                <div className="flex items-center justify-center text-sm text-muted-foreground italic">
-                                    <Check className="h-4 w-4 mr-2 text-green-500"/>
-                                    Completed
-                                </div>
-                            ) : null }
-                        </TableCell>
-                    </TableRow>
-                    ))
-                ) : (
-                    <TableRow>
-                    <TableCell colSpan={6} className="h-32 text-center">
-                        No properties in this category.
-                    </TableCell>
-                    </TableRow>
-                )}
-                </TableBody>
-            </Table>
-            </div>
-        </TabsContent>
-        <TabsContent value="map" className="mt-4">
-           {activeView === 'map' && <div className="px-12"><PropertiesMap properties={propertiesToRender} /></div>}
-        </TabsContent>
-    </Tabs>
+                            </DialogContent>
+                        </Dialog>
+                    )}
+                    </div>
+                </TableCell>
+            </TableRow>
+            ))
+        ) : (
+            <TableRow>
+            <TableCell colSpan={6} className="h-32 text-center">
+                No properties in this category.
+            </TableCell>
+            </TableRow>
+        )}
+        </TableBody>
+    </Table>
+    </div>
   );
 
   return (
@@ -277,7 +300,3 @@ export default function DashboardPage() {
     </div>
   );
 }
-
-    
-
-    
