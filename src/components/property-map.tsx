@@ -92,21 +92,33 @@ const PropertiesMap = ({ properties, selectedProperty, tileLayer, className }: P
         });
     }
 
+    // Handle tile layer changes
     if (!tileLayerRef.current) {
         tileLayerRef.current = L.tileLayer(tileLayer.url, { attribution: tileLayer.attribution }).addTo(mapInstanceRef.current);
-    } else if (tileLayerRef.current.getURL() !== tileLayer.url) {
+    } else {
         tileLayerRef.current.setUrl(tileLayer.url);
-        tileLayerRef.current.options.attribution = tileLayer.attribution;
-        tileLayerRef.current.redraw();
+        // Leaflet's setUrl does not update attribution, so we update it manually if needed.
+        if (tileLayerRef.current.options.attribution !== tileLayer.attribution) {
+            mapInstanceRef.current.attributionControl.removeAttribution(tileLayerRef.current.options.attribution || '');
+            mapInstanceRef.current.attributionControl.addAttribution(tileLayer.attribution);
+            tileLayerRef.current.options.attribution = tileLayer.attribution;
+        }
     }
      
      return () => {
-      if (mapInstanceRef.current && !mapContainerRef.current) {
-        mapInstanceRef.current.remove();
-        mapInstanceRef.current = null;
-      }
+      // Defer removal to unmount only
     };
   }, [tileLayer]);
+
+  useEffect(() => {
+    // This effect runs on unmount
+    return () => {
+        if (mapInstanceRef.current) {
+            mapInstanceRef.current.remove();
+            mapInstanceRef.current = null;
+        }
+    }
+  }, []);
 
   useEffect(() => {
     const map = mapInstanceRef.current;
@@ -165,9 +177,9 @@ const PropertiesMap = ({ properties, selectedProperty, tileLayer, className }: P
     if (selectedProperty) {
       const selectedLayer = layersRef.current.get(selectedProperty.parcelId);
       if (selectedLayer) {
-        const bounds = selectedLayer instanceof L.FeatureGroup ? selectedLayer.getBounds() : (selectedLayer as L.Marker).getLatLng();
+        const bounds = selectedLayer instanceof L.FeatureGroup || selectedLayer instanceof L.GeoJSON ? (selectedLayer as L.FeatureGroup).getBounds() : (selectedLayer as L.Marker).getLatLng();
         if (bounds) {
-          map.flyToBounds(bounds instanceof L.LatLngBounds ? bounds.pad(0.1) : L.latLngBounds(bounds, bounds), { duration: 0.8 });
+          map.flyToBounds(bounds instanceof L.LatLngBounds ? bounds.pad(0.1) : L.latLngBounds(bounds, bounds), { duration: 0.8, maxZoom: 16 });
         }
       }
     } else if (allLayers.length > 0) {
@@ -187,3 +199,5 @@ const PropertiesMap = ({ properties, selectedProperty, tileLayer, className }: P
 }
 
 export default PropertiesMap;
+
+    
