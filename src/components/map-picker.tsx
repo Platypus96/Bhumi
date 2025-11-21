@@ -1,12 +1,11 @@
 
 "use client";
 
-import { MapContainer, TileLayer, FeatureGroup } from 'react-leaflet';
-import { EditControl } from 'react-leaflet-draw';
+import { useEffect, useRef } from 'react';
+import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import 'leaflet-draw/dist/leaflet.draw.css';
-import L from 'leaflet';
-import { useEffect, useRef } from 'react';
+import 'leaflet-draw';
 
 // Fix for default icon issue with webpack
 // @ts-ignore
@@ -25,54 +24,80 @@ interface MapPickerProps {
 }
 
 const MapPicker = ({ onLocationSelect, onPolygonCreated, center, zoom }: MapPickerProps) => {
-  const featureGroupRef = useRef<L.FeatureGroup>(null);
-  
-  const handleCreated = (e: any) => {
-    const layer = e.layer;
+  const mapContainerRef = useRef<HTMLDivElement | null>(null);
+  const mapInstanceRef = useRef<L.Map | null>(null);
 
-    // Clear previous drawings
-    if (featureGroupRef.current) {
-      featureGroupRef.current.clearLayers();
-      featureGroupRef.current.addLayer(layer);
+  useEffect(() => {
+    // Guard clause: If the map instance already exists, do nothing.
+    if (mapInstanceRef.current) {
+        // If center or zoom props change, update the existing map's view
+        if (center) {
+            mapInstanceRef.current.setView(center, zoom);
+        }
+        return;
     }
-    
-    if (layer instanceof L.Marker) {
-      const { lat, lng } = layer.getLatLng();
-      onLocationSelect(lat, lng);
-    } else if (layer instanceof L.Polygon) {
-      const geoJson = layer.toGeoJSON();
-      onPolygonCreated(geoJson);
-      // Also update location to the polygon's center
-      const center = layer.getBounds().getCenter();
-      onLocationSelect(center.lat, center.lng);
+
+    // Initialize the map only if it doesn't exist and the container is available
+    if (mapContainerRef.current) {
+      mapInstanceRef.current = L.map(mapContainerRef.current, {
+        center: center || [20.5937, 78.9629],
+        zoom: zoom,
+      });
+
+      L.tileLayer(
+        `https://maps.geoapify.com/v1/tile/osm-bright-grey/{z}/{x}/{y}.png?apiKey=${process.env.NEXT_PUBLIC_GEOAPIFY_API_KEY}`,
+        {
+          attribution: '&copy; <a href="https://www.geoapify.com/" target="_blank">Geoapify</a> | &copy; <a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap</a> contributors',
+        }
+      ).addTo(mapInstanceRef.current);
+
+      const drawnItems = new L.FeatureGroup();
+      mapInstanceRef.current.addLayer(drawnItems);
+      
+      const drawControl = new (L.Control as any).Draw({
+        edit: {
+          featureGroup: drawnItems,
+        },
+        draw: {
+          polygon: true,
+          marker: true,
+          circle: false,
+          rectangle: false,
+          polyline: false,
+          circlemarker: false,
+        },
+      });
+
+      mapInstanceRef.current.addControl(drawControl);
+
+      mapInstanceRef.current.on(L.Draw.Event.CREATED, (e) => {
+        const layer = e.layer;
+        drawnItems.clearLayers();
+        drawnItems.addLayer(layer);
+
+        if (layer instanceof L.Marker) {
+          const { lat, lng } = layer.getLatLng();
+          onLocationSelect(lat, lng);
+        } else if (layer instanceof L.Polygon) {
+          const geoJson = layer.toGeoJSON();
+          onPolygonCreated(geoJson);
+          const center = layer.getBounds().getCenter();
+          onLocationSelect(center.lat, center.lng);
+        }
+      });
     }
-  };
+
+    // Cleanup function
+    return () => {
+      if (mapInstanceRef.current) {
+        mapInstanceRef.current.remove();
+        mapInstanceRef.current = null;
+      }
+    };
+  }, [center, zoom, onLocationSelect, onPolygonCreated]);
 
   return (
-    <MapContainer center={center || [20.5937, 78.9629]} zoom={zoom} style={{ height: '100%', width: '100%', zIndex: 1 }} className="rounded-lg">
-      <TileLayer
-        attribution='&copy; <a href="https://www.geoapify.com/" target="_blank">Geoapify</a> | &copy; <a href="https://www.openstreetmap.org/copyright" target="_blank">OpenStreetMap</a> contributors'
-        url={`https://maps.geoapify.com/v1/tile/osm-bright-grey/{z}/{x}/{y}.png?apiKey=${process.env.NEXT_PUBLIC_GEOAPIFY_API_KEY}`}
-      />
-      <FeatureGroup ref={featureGroupRef}>
-        <EditControl
-          position="topright"
-          onCreated={handleCreated}
-          draw={{
-            rectangle: false,
-            circle: false,
-            circlemarker: false,
-            polyline: false,
-            marker: true,
-            polygon: true
-          }}
-          edit={{
-            featureGroup: featureGroupRef.current || undefined,
-            remove: true,
-          }}
-        />
-      </FeatureGroup>
-    </MapContainer>
+    <div ref={mapContainerRef} style={{ height: '100%', width: '100%', zIndex: 1 }} className="rounded-lg" />
   );
 };
 
