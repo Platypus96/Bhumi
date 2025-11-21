@@ -9,7 +9,7 @@ import dynamic from 'next/dynamic';
 const MapPicker = dynamic(() => import('./map-picker'), { 
   ssr: false,
   loading: () => (
-    <div className="h-[400px] w-full bg-gray-100 animate-pulse rounded-xl flex items-center justify-center text-gray-500">
+    <div className="h-full w-full bg-gray-100 animate-pulse flex items-center justify-center text-gray-500">
       Loading Map...
     </div>
   )
@@ -17,8 +17,10 @@ const MapPicker = dynamic(() => import('./map-picker'), {
 
 interface DynamicMapProps {
   onLocationSelect: (lat: number, lng: number) => void;
+  center: [number, number] | null;
+  zoom: number;
 }
 
-export default function DynamicMap({ onLocationSelect }: DynamicMapProps) {
-  return <MapPicker onLocationSelect={onLocationSelect} />;
+export default function DynamicMap({ onLocationSelect, center, zoom }: DynamicMapProps) {
+  return <MapPicker onLocationSelect={onLocationSelect} center={center} zoom={zoom} />;
 }

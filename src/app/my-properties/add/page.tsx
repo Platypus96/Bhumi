@@ -13,7 +13,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { FileUp, Loader2, AlertCircle, Sparkles, MapPin } from "lucide-react";
+import { FileUp, Loader2, AlertCircle, Sparkles, MapPin, Search } from "lucide-react";
 import { useState } from "react";
 import { useIPFS } from "@/hooks/use-ipfs";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
@@ -43,7 +43,11 @@ export default function AddPropertyPage() {
   
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isImproving, setIsImproving] = useState(false);
-  const [showMap, setShowMap] = useState(false);
+  const [isSearching, setIsSearching] = useState(false);
+  
+  const [searchQuery, setSearchQuery] = useState("");
+  const [mapCenter, setMapCenter] = useState<[number, number] | null>([20.5937, 78.9629]); // Default to India
+  const [mapZoom, setMapZoom] = useState(5);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -82,7 +86,33 @@ export default function AddPropertyPage() {
       title: "Location Selected",
       description: `Coordinates: ${lat.toFixed(6)}, ${lng.toFixed(6)}`,
     });
-    setShowMap(false); // Close map after selection
+  };
+
+  const handleSearchLocation = async () => {
+    if (!searchQuery) {
+      toast({ variant: 'destructive', title: 'Search query is empty' });
+      return;
+    }
+    setIsSearching(true);
+    try {
+      const response = await fetch('/api/geocode', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ query: searchQuery }),
+      });
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to find location');
+      }
+      const { lat, lon } = await response.json();
+      setMapCenter([lat, lon]);
+      setMapZoom(16); // Zoom in on the searched location
+      toast({ title: "Location Found!", description: `Map centered on ${searchQuery}`});
+    } catch (error: any) {
+      toast({ variant: 'destructive', title: 'Search Failed', description: error.message });
+    } finally {
+      setIsSearching(false);
+    }
   };
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
@@ -215,32 +245,44 @@ export default function AddPropertyPage() {
               )}
             />
 
+            <div className="space-y-2">
+              <FormLabel>Property Location</FormLabel>
+              <div className="flex gap-2">
+                <Input 
+                  placeholder="Search for an address or area" 
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), handleSearchLocation())}
+                />
+                <Button type="button" variant="outline" onClick={handleSearchLocation} disabled={isSearching}>
+                  {isSearching ? <Loader2 className="h-4 w-4 animate-spin" /> : <Search className="h-4 w-4" />}
+                  <span className="ml-2">Search</span>
+                </Button>
+              </div>
+              <FormDescription>Search for a location, then click on the map to set precise coordinates.</FormDescription>
+            </div>
+            
             <FormField
               control={form.control}
               name="location"
               render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Location</FormLabel>
-                   <div className="flex gap-2">
-                    <FormControl>
-                      <Input placeholder="Click map or enter manually" {...field} />
+                <FormItem className="sr-only">
+                  <FormLabel>Location Coordinates</FormLabel>
+                   <FormControl>
+                      <Input {...field} />
                     </FormControl>
-                    <Button type="button" variant="outline" onClick={() => setShowMap(!showMap)}>
-                      <MapPin className="mr-2 h-4 w-4" />
-                      {showMap ? "Close Map" : "Select on Map"}
-                    </Button>
-                  </div>
-                  <FormDescription>Select location on the map or enter a general address.</FormDescription>
                   <FormMessage />
                 </FormItem>
               )}
             />
             
-            {showMap && (
-              <div className="border rounded-xl overflow-hidden shadow-lg">
-                <DynamicMap onLocationSelect={handleLocationSelect} />
-              </div>
-            )}
+            <div className="border rounded-xl overflow-hidden shadow-lg h-[500px]">
+              <DynamicMap 
+                onLocationSelect={handleLocationSelect} 
+                center={mapCenter}
+                zoom={mapZoom}
+              />
+            </div>
 
 
             <FormField

@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 
@@ -17,17 +17,24 @@ L.Icon.Default.mergeOptions({
 // Interface for the component props
 interface MapPickerProps {
   onLocationSelect: (lat: number, lng: number) => void;
+  center: [number, number] | null;
+  zoom: number;
 }
 
-const MapPicker = ({ onLocationSelect }: MapPickerProps) => {
+const MapPicker = ({ onLocationSelect, center, zoom }: MapPickerProps) => {
   // Create refs for the map container and the map instance
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<L.Map | null>(null);
   const markerRef = useRef<L.Marker | null>(null);
+  const [isClient, setIsClient] = useState(false);
+
+  useEffect(() => {
+    setIsClient(true);
+  }, []);
 
   useEffect(() => {
     // Ensure this code runs only in the browser and the container is available
-    if (typeof window === 'undefined' || !mapContainerRef.current) return;
+    if (!isClient || !mapContainerRef.current) return;
 
     // THE GUARD CLAUSE: If the map instance already exists, do nothing.
     if (mapInstanceRef.current) return;
@@ -40,7 +47,7 @@ const MapPicker = ({ onLocationSelect }: MapPickerProps) => {
     // Initialize the map on the container ref
     mapInstanceRef.current = L.map(mapContainerRef.current, {
         zoomControl: true, // Ensure zoom controls are enabled
-    }).setView([20.5937, 78.9629], 5); // Default view over India
+    }).setView(center || [20.5937, 78.9629], zoom); // Default view over India
 
     // Add the tile layer
     L.tileLayer(tileUrl, { attribution }).addTo(mapInstanceRef.current);
@@ -66,12 +73,19 @@ const MapPicker = ({ onLocationSelect }: MapPickerProps) => {
         mapInstanceRef.current = null;
       }
     };
-  }, [onLocationSelect]);
+  }, [isClient, onLocationSelect]);
+
+  // Effect to update map view when center or zoom props change
+  useEffect(() => {
+    if (mapInstanceRef.current && center) {
+        mapInstanceRef.current.setView(center, zoom);
+    }
+  }, [center, zoom])
 
   return (
     <div 
       ref={mapContainerRef} 
-      style={{ width: '100%', height: '400px', zIndex: 1 }} 
+      style={{ width: '100%', height: '100%', zIndex: 1 }} 
       className="rounded-lg"
     />
   );
