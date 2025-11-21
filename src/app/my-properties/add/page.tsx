@@ -26,7 +26,6 @@ const formSchema = z.object({
   description: z.string().min(10, "Description is required."),
   area: z.string().min(1, "Area is required."),
   location: z.string().min(3, "Location is required."),
-  videoUrl: z.string().url("Must be a valid URL.").optional().or(z.literal('')),
   image: z.any().refine(files => files?.length == 1, "Property image is required."),
   document: z.any().refine(files => files?.length == 1, "Proof document is required."),
 });
@@ -49,7 +48,6 @@ export default function AddPropertyPage() {
       description: "",
       area: "",
       location: "",
-      videoUrl: "",
     },
   });
 
@@ -113,7 +111,6 @@ export default function AddPropertyPage() {
         description: values.description,
         area: values.area,
         location: values.location,
-        videoUrl: values.videoUrl || "",
         imageUrl: imageUploadResult.cid,
         ipfsProofCid: documentUploadResult.cid,
       }, receipt.hash);
@@ -219,20 +216,6 @@ export default function AddPropertyPage() {
                 </FormItem>
               )}
             />
-             <FormField
-              control={form.control}
-              name="videoUrl"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Property Video (Optional)</FormLabel>
-                  <FormControl>
-                    <Input placeholder="e.g., https://www.youtube.com/watch?v=..." {...field} />
-                  </FormControl>
-                   <FormDescription>A link to a video tour of the property (YouTube, Vimeo, etc.)</FormDescription>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
 
             <FormField
               control={form.control}
@@ -280,5 +263,3 @@ export default function AddPropertyPage() {
     </div>
   );
 }
-
-    

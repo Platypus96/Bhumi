@@ -24,7 +24,6 @@ const PROPERTIES_COLLECTION = 'properties';
 export async function createProperty(db: Firestore, propertyData: Omit<Property, 'history' | 'verified' | 'forSale' | 'price' | 'txHash' | 'registeredAt' | 'status'>, txHash: string): Promise<void> {
     const propertyWithDefaults = {
         ...propertyData,
-        videoUrl: propertyData.videoUrl || "",
         status: 'unverified' as const,
         verified: false, // For contract state
         forSale: false,

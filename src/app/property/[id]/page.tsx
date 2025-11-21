@@ -48,26 +48,7 @@ export default function PropertyDetailPage() {
   useEffect(() => {
     fetchProperty();
   }, [fetchProperty]);
-
-  const getYoutubeEmbedUrl = (url: string) => {
-    if (!url) return null;
-    let videoId;
-    if (url.includes("youtu.be/")) {
-      videoId = url.split("youtu.be/")[1];
-    } else if (url.includes("watch?v=")) {
-      videoId = url.split("watch?v=")[1];
-    } else {
-      return null;
-    }
-    const ampersandPosition = videoId.indexOf('&');
-    if (ampersandPosition !== -1) {
-      videoId = videoId.substring(0, ampersandPosition);
-    }
-    return `https://www.youtube.com/embed/${videoId}`;
-  }
   
-  const videoEmbedUrl = property?.videoUrl ? getYoutubeEmbedUrl(property.videoUrl) : null;
-
   if (loading) {
     return <div className="container mx-auto px-4 py-8"><Skeleton className="h-[600px] w-full" /></div>;
   }
@@ -102,25 +83,6 @@ export default function PropertyDetailPage() {
                 <p className="mt-4 text-muted-foreground">{property.description}</p>
              </CardContent>
           </Card>
-
-           {videoEmbedUrl && (
-            <Card>
-                <CardHeader>
-                    <CardTitle className="flex items-center"><Video className="mr-2"/> Property Video</CardTitle>
-                </CardHeader>
-                <CardContent>
-                    <div className="aspect-video">
-                        <iframe
-                            className="w-full h-full rounded-lg"
-                            src={videoEmbedUrl}
-                            title="Property Video"
-                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                            allowFullScreen
-                        ></iframe>
-                    </div>
-                </CardContent>
-            </Card>
-           )}
 
             {property.history && property.history.length > 0 && (
                 <Card>
