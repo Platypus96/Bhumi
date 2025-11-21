@@ -58,14 +58,14 @@ const MiniPropertyCard = ({ property }: { property: Property }) => (
 )
 
 const getStyle = (property: Property, isSelected: boolean) => {
-    let style = { color: '#f59e0b', weight: 2, fillColor: '#f59e0b', fillOpacity: 0.2 }; // Amber for pending
+    let style = { color: '#f59e0b', weight: 2, fillColor: '#f59e0b', fillOpacity: 0.2 }; // Amber for pending/unverified
 
     if (property.forSale) {
-        style = { color: '#ef4444', weight: 2, fillColor: '#ef4444', fillOpacity: 0.2 }; // Red
+        style = { color: '#ef4444', weight: 2, fillColor: '#ef4444', fillOpacity: 0.2 }; // Red for sale
     } else if (property.status === 'verified') {
-        style = { color: '#22c55e', weight: 2, fillColor: '#22c55e', fillOpacity: 0.2 }; // Green
+        style = { color: '#22c55e', weight: 2, fillColor: '#22c55e', fillOpacity: 0.2 }; // Green for verified
     } else if (property.status === 'rejected') {
-        style = { color: '#a855f7', weight: 2, fillColor: '#a855f7', fillOpacity: 0.2 }; // Purple
+        style = { color: '#a855f7', weight: 2, fillColor: '#a855f7', fillOpacity: 0.2 }; // Purple for rejected
     }
 
     if (isSelected) {
@@ -93,31 +93,27 @@ const PropertiesMap = ({ properties, selectedProperty, tileLayer, className }: P
   useEffect(() => {
     if (!mapContainerRef.current) return;
     if (!mapInstanceRef.current) {
-        mapInstanceRef.current = L.map(mapContainerRef.current, {
-            center: [20.5937, 78.9629],
-            zoom: 5,
-        });
+        mapInstanceRef.current = L.map(mapContainerRef.current).setView([20.5937, 78.9629], 5);
     }
+  }, []);
+
+  useEffect(() => {
+    const map = mapInstanceRef.current;
+    if (!map) return;
 
     // Handle tile layer changes
     if (!tileLayerRef.current) {
-        tileLayerRef.current = L.tileLayer(currentTileLayer.url, { attribution: currentTileLayer.attribution }).addTo(mapInstanceRef.current);
-    } else {
+        tileLayerRef.current = L.tileLayer(currentTileLayer.url, { attribution: currentTileLayer.attribution }).addTo(map);
+    } else if (tileLayerRef.current.options.attribution !== currentTileLayer.attribution) {
         tileLayerRef.current.setUrl(currentTileLayer.url);
-        // Leaflet's setUrl does not update attribution, so we update it manually if needed.
-        if (tileLayerRef.current.options.attribution !== currentTileLayer.attribution) {
-            mapInstanceRef.current.attributionControl.removeAttribution(tileLayerRef.current.options.attribution || '');
-            mapInstanceRef.current.attributionControl.addAttribution(currentTileLayer.attribution);
-            tileLayerRef.current.options.attribution = currentTileLayer.attribution;
-        }
+        map.attributionControl.removeAttribution(tileLayerRef.current.options.attribution || '');
+        map.attributionControl.addAttribution(currentTileLayer.attribution);
+        tileLayerRef.current.options.attribution = currentTileLayer.attribution;
     }
      
-    // This effect should only run when the tile layer config changes.
-    // The cleanup should happen on unmount.
-  }, [currentTileLayer.url, currentTileLayer.attribution]);
+  }, [currentTileLayer]);
 
   useEffect(() => {
-    // This effect runs on unmount to clean up the map instance.
     return () => {
         if (mapInstanceRef.current) {
             mapInstanceRef.current.remove();
@@ -130,10 +126,8 @@ const PropertiesMap = ({ properties, selectedProperty, tileLayer, className }: P
     const map = mapInstanceRef.current;
     if (!map) return;
 
-    // Create a set of current property IDs for efficient lookup
     const currentPropertyIds = new Set(properties.map(p => p.parcelId));
 
-    // Remove layers that are no longer in properties
     layersRef.current.forEach((layer, parcelId) => {
         if (!currentPropertyIds.has(parcelId)) {
             map.removeLayer(layer);
@@ -186,7 +180,6 @@ const PropertiesMap = ({ properties, selectedProperty, tileLayer, className }: P
     if (selectedProperty) {
       const selectedLayer = layersRef.current.get(selectedProperty.parcelId);
       if (selectedLayer) {
-        // Using `as any` to handle both L.FeatureGroup and L.Marker which have getBounds()/getLatLng()
         const bounds = (selectedLayer as any).getBounds ? (selectedLayer as any).getBounds() : (selectedLayer as L.Marker).getLatLng();
         if (bounds) {
           map.flyToBounds(bounds instanceof L.LatLngBounds ? bounds.pad(0.1) : L.latLngBounds(bounds, bounds), { duration: 0.8, maxZoom: 16 });
@@ -194,10 +187,8 @@ const PropertiesMap = ({ properties, selectedProperty, tileLayer, className }: P
       }
     } else if (allLayers.length > 0) {
         const group = new L.FeatureGroup(allLayers);
-        if (map.getBounds().contains(group.getBounds())) {
-          // If the new bounds are within the current view, don't zoom out
-        } else {
-          map.fitBounds(group.getBounds().pad(0.1), { animate: true, maxZoom: 15 });
+        if (!map.getBounds().contains(group.getBounds())) {
+            map.fitBounds(group.getBounds().pad(0.1), { animate: true, maxZoom: 15 });
         }
     } else {
         map.flyTo([20.5937, 78.9629], 5, { duration: 0.8 });
