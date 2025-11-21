@@ -1,6 +1,7 @@
 
+"use client";
+
 import Link from 'next/link';
-import Image from 'next/image';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import type { Property } from '@/lib/types';
@@ -8,6 +9,12 @@ import { Fingerprint, MapPin, Square, CheckCircle, Clock, ShieldX } from 'lucide
 import { CopyButton } from './copy-button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Button } from './ui/button';
+import dynamic from 'next/dynamic';
+
+const PropertiesMap = dynamic(() => import('@/components/property-map'), {
+  ssr: false,
+  loading: () => <div className="h-[225px] w-full bg-muted animate-pulse"></div>
+});
 
 interface PropertyCardProps {
   property: Property;
@@ -24,7 +31,7 @@ export function PropertyCard({ property }: PropertyCardProps) {
   const StatusBadge = () => {
     if (property.status === 'verified') {
       return (
-        <Badge variant="default" className="absolute top-3 right-3 flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium shadow-md bg-green-100 text-green-800">
+        <Badge variant="default" className="absolute top-3 right-3 flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium shadow-md bg-green-100 text-green-800 z-10">
           <CheckCircle className="h-3.5 w-3.5" />
           Verified
         </Badge>
@@ -32,14 +39,14 @@ export function PropertyCard({ property }: PropertyCardProps) {
     }
     if (property.status === 'rejected') {
        return (
-        <Badge variant="destructive" className="absolute top-3 right-3 flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium shadow-md">
+        <Badge variant="destructive" className="absolute top-3 right-3 flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium shadow-md z-10">
           <ShieldX className="h-3.5 w-3.5" />
           Rejected
         </Badge>
       );
     }
     return (
-      <Badge variant="secondary" className="absolute top-3 right-3 flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium shadow-md bg-amber-100 text-amber-800">
+      <Badge variant="secondary" className="absolute top-3 right-3 flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium shadow-md bg-amber-100 text-amber-800 z-10">
         <Clock className="h-3.5 w-3.5" />
         Pending
       </Badge>
@@ -48,18 +55,12 @@ export function PropertyCard({ property }: PropertyCardProps) {
 
   return (
     <Card className="h-full flex flex-col overflow-hidden rounded-xl border border-border/50 shadow-md hover:shadow-xl hover:border-primary/60 transition-all duration-300 bg-card">
-      {/* Image Section */}
+      {/* Map Section */}
       <CardHeader className="p-0 relative">
         <Link href={`/property/${property.parcelId}`} className="block group">
           <div className="relative aspect-video overflow-hidden">
-            <Image
-              src={property.imageUrl}
-              alt={property.title}
-              fill
-              className="object-cover transition-transform duration-500 ease-out group-hover:scale-105"
-            />
-            <StatusBadge />
-            <div className="absolute bottom-0 w-full h-20 bg-gradient-to-t from-black/80 via-black/30 to-transparent"></div>
+             <PropertiesMap properties={[property]} />
+             <StatusBadge />
           </div>
         </Link>
       </CardHeader>
