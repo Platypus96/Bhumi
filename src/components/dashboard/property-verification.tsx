@@ -8,7 +8,7 @@ import { Badge } from '../ui/badge';
 import { Button } from '../ui/button';
 import { HashPill } from '../hash-pill';
 import { format } from 'date-fns';
-import { Download, FileText, Loader2, Map, User, ArrowLeft, CheckCircle, XCircle, ShieldAlert } from 'lucide-react';
+import { Download, FileText, Loader2, Map, User, ArrowLeft, CheckCircle, XCircle, ShieldAlert, ExternalLink, MapPin } from 'lucide-react';
 import Link from 'next/link';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '../ui/dialog';
 import { MapDisplay } from './map-display';
@@ -75,13 +75,27 @@ export function PropertyVerification({ property, onBack }: PropertyVerificationP
     }
     
     const isPending = !property.status || property.status === 'unverified';
+    const hasCoordinates = property.latitude && property.longitude;
 
     return (
         <Card className="h-full shadow-lg">
             <CardHeader className="flex-row items-center justify-between">
                 <div>
                     <CardTitle className="text-2xl break-all line-clamp-1">{property.title}</CardTitle>
-                    <CardDescription>{property.location}</CardDescription>
+                     {hasCoordinates ? (
+                        <a
+                            href={`https://www.google.com/maps?q=${property.latitude},${property.longitude}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-sm text-muted-foreground hover:underline flex items-center"
+                        >
+                            <MapPin className="mr-1 h-4 w-4" />
+                            {property.location}
+                            <ExternalLink className="ml-1.5 h-3 w-3" />
+                        </a>
+                    ) : (
+                        <CardDescription>{property.location}</CardDescription>
+                    )}
                 </div>
                 {onBack && <Button variant="ghost" onClick={onBack}><ArrowLeft className="mr-2"/> Back</Button>}
             </CardHeader>

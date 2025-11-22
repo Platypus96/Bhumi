@@ -57,23 +57,19 @@ export function PropertyCard({ property }: PropertyCardProps) {
              <MapDisplay properties={[property]} selectedProperty={null} />
              <StatusBadge />
          </div>
-         {/* Clickable Overlay Link */}
-         <Link href={`/property/${property.parcelId}`} className="absolute inset-0 z-20" aria-label={`View details for ${property.title}`} />
       </CardHeader>
 
-      {/* Content Section */}
-      <div className="p-4 flex-grow flex flex-col bg-card">
+      {/* Content Section - This is now the clickable area */}
+      <Link href={`/property/${property.parcelId}`} className="p-4 flex-grow flex flex-col bg-card hover:bg-muted/30 transition-colors" aria-label={`View details for ${property.title}`}>
         <CardTitle className="text-lg font-semibold tracking-tight text-foreground line-clamp-1">
-            <Link href={`/property/${property.parcelId}`} className="hover:underline relative z-30">
-                {property.title}
-            </Link>
+            {property.title}
         </CardTitle>
 
         <div className="text-sm text-muted-foreground leading-relaxed mt-1 min-h-[40px] flex-grow">
           <p className="line-clamp-2">{property.description}</p>
           {showReadMore && (
             <Dialog>
-              <DialogTrigger asChild>
+              <DialogTrigger asChild onClick={(e) => e.stopPropagation() /* Prevent card navigation when opening dialog */}>
                 <Button variant="link" className="p-0 h-auto text-xs -mt-1 relative z-30">Read more...</Button>
               </DialogTrigger>
               <DialogContent className="z-50">
@@ -99,7 +95,7 @@ export function PropertyCard({ property }: PropertyCardProps) {
                 <span className="truncate">{property.location || "Not specified"}</span>
             </div>
         </div>
-      </div>
+      </Link>
 
       {/* Footer Section */}
       <CardFooter className="p-3 bg-secondary/30 relative z-30">
