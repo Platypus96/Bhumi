@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import 'leaflet-draw/dist/leaflet.draw.css';
@@ -24,18 +24,35 @@ interface LeafletMapProps {
   zoom?: number;
 }
 
+const tileLayers = {
+    street: {
+        url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+        attribution: '© OpenStreetMap contributors',
+    },
+    satellite: {
+        url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+        attribution: 'Tiles © Esri',
+    },
+};
+
 export default function LeafletMap({ onPolygonComplete, initialData, readOnly = false, center = [20.5937, 78.9629], zoom = 5 }: LeafletMapProps) {
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<L.Map | null>(null);
   const drawnItemsRef = useRef<L.FeatureGroup | null>(null);
+  const tileLayerRef = useRef<L.TileLayer | null>(null);
+  const [currentLayer, setCurrentLayer] = useState<'street' | 'satellite'>('street');
 
   useEffect(() => {
     if (mapInstanceRef.current || !mapContainerRef.current) return;
 
-    const map = L.map(mapContainerRef.current).setView(center, zoom);
+    const map = L.map(mapContainerRef.current, {
+        center: center,
+        zoom: zoom,
+        zoomControl: !readOnly, // Only show zoom if interactive
+    });
     
-    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-      attribution: '© OpenStreetMap contributors'
+    tileLayerRef.current = L.tileLayer(tileLayers[currentLayer].url, {
+      attribution: tileLayers[currentLayer].attribution
     }).addTo(map);
 
     const drawnItems = new L.FeatureGroup();
@@ -76,10 +93,10 @@ export default function LeafletMap({ onPolygonComplete, initialData, readOnly = 
   }, []);
 
    useEffect(() => {
-    if (mapInstanceRef.current) {
+    if (mapInstanceRef.current && !initialData) {
         mapInstanceRef.current.setView(center, zoom);
     }
-  }, [center, zoom]);
+  }, [center, zoom, initialData]);
 
 
   useEffect(() => {
@@ -93,12 +110,41 @@ export default function LeafletMap({ onPolygonComplete, initialData, readOnly = 
         
         drawnItemsRef.current.clearLayers();
         drawnItemsRef.current.addLayer(feature);
-        mapInstanceRef.current.fitBounds(feature.getBounds());
+        
+        const bounds = feature.getBounds();
+        if(bounds.isValid()) {
+            mapInstanceRef.current.fitBounds(bounds);
+        }
     } catch(e) {
         console.error("Error parsing initial polygon data", e);
     }
 
   }, [initialData]);
 
-  return <div ref={mapContainerRef} style={{ height: '100%', width: '100%', borderRadius: '8px' }} />;
+  useEffect(() => {
+    if (tileLayerRef.current) {
+        tileLayerRef.current.setUrl(tileLayers[currentLayer].url);
+        tileLayerRef.current.options.attribution = tileLayers[currentLayer].attribution;
+        // @ts-ignore
+        tileLayerRef.current.redraw();
+    }
+  }, [currentLayer]);
+
+
+  return (
+    <div ref={mapContainerRef} style={{ height: '100%', width: '100%', borderRadius: 'inherit', position: 'relative' }}>
+        <div style={{ position: 'absolute', top: 10, right: 10, zIndex: 401, display: 'flex', gap: '4px' }}>
+            <button 
+                onClick={() => setCurrentLayer('street')} 
+                className={`px-3 py-1 text-sm rounded ${currentLayer === 'street' ? 'bg-primary text-white' : 'bg-white text-black'}`}>
+                Street
+            </button>
+            <button 
+                onClick={() => setCurrentLayer('satellite')}
+                className={`px-3 py-1 text-sm rounded ${currentLayer === 'satellite' ? 'bg-primary text-white' : 'bg-white text-black'}`}>
+                Satellite
+            </button>
+        </div>
+    </div>
+  );
 }
