@@ -163,7 +163,9 @@ export default function PropertyDetailPage() {
                             rel="noopener noreferrer"
                             className="text-primary hover:underline flex items-center gap-1"
                           >
-                            <span className="text-right">{property.location}</span>
+                            <span className="text-right font-mono">
+                                {property.latitude?.toFixed(5)}, {property.longitude?.toFixed(5)}
+                            </span>
                             <ExternalLink className="h-3 w-3" />
                           </a>
                         ) : (
