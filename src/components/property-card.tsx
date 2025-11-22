@@ -2,6 +2,7 @@
 "use client";
 
 import Link from 'next/link';
+import dynamic from 'next/dynamic';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import type { Property } from '@/lib/types';
@@ -9,7 +10,12 @@ import { Fingerprint, MapPin, Square, CheckCircle, Clock, ShieldX } from 'lucide
 import { CopyButton } from './copy-button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Button } from './ui/button';
-import PropertiesMap from './property-map';
+
+const PropertiesMap = dynamic(() => import('./property-map'), {
+  ssr: false,
+  loading: () => <div className="aspect-video w-full bg-muted animate-pulse flex items-center justify-center"><p className="text-sm text-muted-foreground">Loading Map...</p></div>
+});
+
 
 interface PropertyCardProps {
   property: Property;
