@@ -132,7 +132,7 @@ export default function LeafletMap({ onPolygonComplete, initialData, readOnly = 
 
   return (
     <div ref={mapContainerRef} style={{ height: '100%', width: '100%', borderRadius: 'inherit', position: 'relative' }}>
-        <div style={{ position: 'absolute', top: 10, right: 10, zIndex: 401, display: 'flex', gap: '4px' }}>
+        <div style={{ position: 'absolute', top: 10, right: 10, zIndex: 10, display: 'flex', gap: '4px' }}>
             <button 
                 onClick={() => setCurrentLayer('street')} 
                 className={`px-3 py-1 text-sm rounded ${currentLayer === 'street' ? 'bg-primary text-white' : 'bg-white text-black'}`}>
