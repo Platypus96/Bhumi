@@ -11,13 +11,19 @@ import { format } from 'date-fns';
 import { Download, FileText, Loader2, Map, User, ArrowLeft, CheckCircle, XCircle, ShieldAlert, ExternalLink, MapPin } from 'lucide-react';
 import Link from 'next/link';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '../ui/dialog';
-import { MapDisplay } from './map-display';
 import { Separator } from '../ui/separator';
 import { useBlockchain } from '@/hooks/use-blockchain';
 import { useFirebase } from '@/firebase';
 import { useToast } from '@/hooks/use-toast';
 import { verifyPropertyInDb, rejectPropertyInDb } from '@/lib/data';
 import { Alert, AlertTitle, AlertDescription } from '../ui/alert';
+import dynamic from 'next/dynamic';
+
+const LeafletMap = dynamic(() => import('@/components/LeafletMap'), {
+    ssr: false,
+    loading: () => <div className="h-full w-full bg-muted animate-pulse flex items-center justify-center"><p>Loading Map...</p></div>
+});
+
 
 interface PropertyVerificationProps {
     property: Property | null;
@@ -137,7 +143,7 @@ export function PropertyVerification({ property, onBack }: PropertyVerificationP
                             <DialogTitle>Map View: {property.title}</DialogTitle>
                         </DialogHeader>
                         <div className="flex-grow">
-                         <MapDisplay properties={[property]} selectedProperty={property}/>
+                         <LeafletMap readOnly initialData={property.polygon}/>
                         </div>
                     </DialogContent>
                 </Dialog>

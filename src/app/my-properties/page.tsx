@@ -1,7 +1,7 @@
 
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect } from 'react';
 import { collection, query, where, onSnapshot } from 'firebase/firestore';
 import type { Property } from '@/lib/types';
 import { PropertyCard } from '@/components/property-card';
@@ -13,19 +13,10 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { AlertCircle, PlusCircle, Building2, Home } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
-import dynamic from 'next/dynamic';
-
-const LeafletMap = dynamic(() => import("@/components/LeafletMap"), {
-  ssr: false,
-  loading: () => <div className="h-[600px] w-full bg-muted animate-pulse flex items-center justify-center"><p>Loading Map...</p></div>
-});
-
 
 export default function MyPropertiesPage() {
   const [properties, setProperties] = useState<Property[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeView, setActiveView] = useState("grid");
   const { account } = useWeb3();
   const { firestore } = useFirebase();
   const { toast } = useToast();
@@ -54,17 +45,6 @@ export default function MyPropertiesPage() {
     return () => unsubscribe();
   }, [account, firestore, toast]);
   
-  const hasContent = properties.length > 0;
-  
-  const MemoizedPropertiesMap = useMemo(() => {
-    if (activeView === 'map' && hasContent) {
-      // LeafletMap doesn't need properties prop
-      return <div className="h-[600px] w-full"> {/* Placeholder for map */}</div>;
-    }
-    return null;
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [activeView, hasContent]);
-
   if (!account) {
     return (
       <div className="container mx-auto px-4 py-8 text-center">
@@ -78,44 +58,6 @@ export default function MyPropertiesPage() {
       </div>
     );
   }
-
-  const renderGrid = () => (
-      loading ? (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {Array.from({ length: 3 }).map((_, i) => (
-            <div key={i} className="flex flex-col space-y-3">
-              <Skeleton className="h-[250px] w-full rounded-xl" />
-              <div className="space-y-2">
-                <Skeleton className="h-4 w-[250px]" />
-                <Skeleton className="h-4 w-[200px]" />
-              </div>
-            </div>
-          ))}
-        </div>
-      ) : (
-        <>
-          {hasContent ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-              {properties.map((prop) => (
-                <PropertyCard key={prop.parcelId} property={prop} />
-              ))}
-            </div>
-          ) : (
-             <div className="flex flex-col items-center justify-center text-center py-20 bg-card/50 rounded-2xl border-2 border-dashed">
-                <div className="bg-secondary p-4 rounded-full mb-6">
-                    <Building2 className="h-12 w-12 text-muted-foreground" />
-                </div>
-              <h3 className="text-2xl font-semibold text-foreground font-headline">
-                You haven't added any properties yet.
-              </h3>
-              <p className="text-muted-foreground mt-2 max-w-md">
-                Get started by registering a new property on the blockchain to see it appear here.
-              </p>
-            </div>
-          )}
-        </>
-      )
-  );
 
   return (
     <div className="container mx-auto px-4 py-8 space-y-12">
@@ -139,21 +81,43 @@ export default function MyPropertiesPage() {
             </Button>
         </div>
 
-      <Tabs value={activeView} onValueChange={setActiveView}>
-        <TabsList>
-            <TabsTrigger value="grid">Grid View</TabsTrigger>
-            <TabsTrigger value="map">Map View</TabsTrigger>
-        </TabsList>
-        <TabsContent value="grid" className="mt-6">
-            {renderGrid()}
-        </TabsContent>
-        <TabsContent value="map" className="mt-6">
-            {MemoizedPropertiesMap}
-            {activeView === 'map' && !hasContent && !loading && (
-                 <p className="text-center text-muted-foreground">No properties to show on map.</p>
+      <div className="mt-6">
+        {loading ? (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <div key={i} className="flex flex-col space-y-3">
+                <Skeleton className="h-[250px] w-full rounded-xl" />
+                <div className="space-y-2">
+                  <Skeleton className="h-4 w-[250px]" />
+                  <Skeleton className="h-4 w-[200px]" />
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <>
+            {properties.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                {properties.map((prop) => (
+                  <PropertyCard key={prop.parcelId} property={prop} />
+                ))}
+              </div>
+            ) : (
+               <div className="flex flex-col items-center justify-center text-center py-20 bg-card/50 rounded-2xl border-2 border-dashed">
+                  <div className="bg-secondary p-4 rounded-full mb-6">
+                      <Building2 className="h-12 w-12 text-muted-foreground" />
+                  </div>
+                <h3 className="text-2xl font-semibold text-foreground font-headline">
+                  You haven't added any properties yet.
+                </h3>
+                <p className="text-muted-foreground mt-2 max-w-md">
+                  Get started by registering a new property on the blockchain to see it appear here.
+                </p>
+              </div>
             )}
-        </TabsContent>
-      </Tabs>
+          </>
+        )}
+      </div>
     </div>
   );
 }
