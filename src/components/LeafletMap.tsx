@@ -17,7 +17,7 @@ L.Icon.Default.mergeOptions({
 
 
 interface LeafletMapProps {
-  onPolygonComplete?: (geojson: string) => void;
+  onPolygonComplete?: (layer: L.Polygon | L.Rectangle) => void;
   initialData?: string; // Pass GeoJSON string
   readOnly?: boolean;
   center?: [number, number];
@@ -83,8 +83,7 @@ export default function LeafletMap({ onPolygonComplete, initialData, readOnly = 
         drawnItems.addLayer(layer);
         
         if (onPolygonComplete) {
-          const geojson = layer.toGeoJSON();
-          onPolygonComplete(JSON.stringify(geojson));
+          onPolygonComplete(layer);
         }
       });
     }
