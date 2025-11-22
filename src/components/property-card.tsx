@@ -62,6 +62,9 @@ export function PropertyCard({ property }: PropertyCardProps) {
          <div className="relative aspect-video overflow-hidden">
              <LeafletMap readOnly initialData={property.polygon} />
              <StatusBadge />
+             <div className="absolute bottom-0 w-full bg-black/50 text-white text-center text-[10px] p-0.5 z-10">
+                This is only a tentative boundary for representation of land, actual boundary may defer
+             </div>
          </div>
       </CardHeader>
 
@@ -94,7 +97,7 @@ export function PropertyCard({ property }: PropertyCardProps) {
         <div className="mt-4 pt-4 border-t border-border/60 space-y-2 text-sm">
             <div className="flex items-center text-muted-foreground">
                 <Square className="h-4 w-4 mr-2 text-primary shrink-0" />
-                <span className="font-medium text-foreground/90">{property.area || "Not specified"}</span>
+                 <span className="font-medium text-foreground/90">{property.areaSqFt} sq. ft. / {property.areaSqMeters} sq. m</span>
             </div>
             <div className="flex items-center text-muted-foreground">
                 <MapPin className="h-4 w-4 mr-2 text-primary shrink-0" />

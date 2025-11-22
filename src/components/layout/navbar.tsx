@@ -1,3 +1,4 @@
+
 "use client";
 
 import Link from "next/link";
@@ -11,7 +12,9 @@ import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 
 const NavLink = ({ href, children, onClick, isRegistrarLink = false }: { href: string, children: React.ReactNode, onClick: () => void, isRegistrarLink?: boolean}) => {
-  const isActive = usePathname() === href;
+  const pathname = usePathname();
+  const isActive = pathname === href;
+  
   return (
     <Link 
       href={href} 
@@ -27,11 +30,23 @@ const NavLink = ({ href, children, onClick, isRegistrarLink = false }: { href: s
   );
 };
 
-const MobileNavLink = ({ href, children, onClick }: { href: string, children: React.ReactNode, onClick: () => void}) => (
-    <Link href={href} className="block px-3 py-2 rounded-md text-base font-medium text-foreground/80 hover:bg-secondary/50" onClick={onClick}>
+const MobileNavLink = ({ href, children, onClick }: { href: string, children: React.ReactNode, onClick: () => void}) => {
+  const pathname = usePathname();
+  const isActive = pathname === href;
+  
+  return (
+    <Link 
+      href={href} 
+      className={cn(
+        "block px-3 py-2 rounded-md text-base font-medium",
+        isActive ? "bg-secondary text-primary" : "text-foreground/80 hover:bg-secondary/50"
+      )} 
+      onClick={onClick}
+    >
       {children}
     </Link>
-);
+  );
+};
 
 const BaseNavbar = () => {
   const { isRegistrar } = useWeb3();
@@ -50,23 +65,31 @@ const BaseNavbar = () => {
 
   const registrarLink = { href: "/dashboard", label: "Dashboard" };
 
+  const closeMobileMenu = () => setMobileMenuOpen(false);
+
   const desktopNav = (
     <>
+      {navLinks.map(link => (
+        <NavLink key={link.href} href={link.href} onClick={closeMobileMenu}>{link.label}</NavLink>
+      ))}
       {isClient && isRegistrar && (
-        <NavLink href={registrarLink.href} onClick={() => setMobileMenuOpen(false)}>{registrarLink.label}</NavLink>
+        <NavLink href={registrarLink.href} onClick={closeMobileMenu} isRegistrarLink>
+           <div className="flex items-center text-primary font-semibold">
+            <Shield className="mr-2 h-4 w-4" />
+            {registrarLink.label}
+          </div>
+        </NavLink>
       )}
-      <NavLink href="/my-properties" onClick={() => setMobileMenuOpen(false)}>My Properties</NavLink>
-      <NavLink href="/public-portal" onClick={() => setMobileMenuOpen(false)}>Public Portal</NavLink>
     </>
   );
 
   const mobileNav = (
      <>
       {navLinks.map(link => (
-        <MobileNavLink key={link.href} href={link.href} onClick={() => setMobileMenuOpen(false)}>{link.label}</MobileNavLink>
+        <MobileNavLink key={link.href} href={link.href} onClick={closeMobileMenu}>{link.label}</MobileNavLink>
       ))}
       {isClient && isRegistrar && (
-        <MobileNavLink href={registrarLink.href} onClick={() => setMobileMenuOpen(false)}>
+        <MobileNavLink href={registrarLink.href} onClick={closeMobileMenu}>
           <div className="flex items-center text-primary font-semibold">
             <Shield className="mr-2 h-4 w-4" />
             {registrarLink.label}
@@ -79,56 +102,40 @@ const BaseNavbar = () => {
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="container flex h-16 items-center">
-        <div className="mr-auto hidden md:flex items-center">
-          <Link href="/" className="mr-6 flex items-center space-x-2">
-            <div className="text-primary">
-              <University className="h-7 w-7" />
-            </div>
-            <span className="hidden font-bold sm:inline-block font-headline text-lg">Bhumi</span>
-          </Link>
-          <nav className="flex items-center space-x-1 text-sm font-medium">
-            {desktopNav}
-          </nav>
-        </div>
+        <Link href="/" className="mr-6 flex items-center space-x-2">
+          <div className="text-primary">
+            <University className="h-7 w-7" />
+          </div>
+          <span className="hidden font-bold sm:inline-block font-headline text-lg">Bhumi</span>
+        </Link>
 
-        <Sheet open={isMobileMenuOpen} onOpenChange={setMobileMenuOpen}>
-          <SheetTrigger asChild>
-            <Button
-              variant="ghost"
-              className="mr-2 px-0 text-base hover:bg-transparent focus-visible:bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 md:hidden"
-            >
-              <Menu className="h-5 w-5" />
-              <span className="sr-only">Toggle Menu</span>
-            </Button>
-          </SheetTrigger>
-          <SheetContent side="left" className="pr-0">
-            <Link
-              href="/"
-              className="mb-4 flex items-center space-x-2"
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              <div className="text-primary">
-                <University className="h-7 w-7" />
+        {/* Desktop Nav */}
+        <nav className="mr-auto hidden md:flex items-center space-x-1 text-sm font-medium">
+          {desktopNav}
+        </nav>
+
+        {/* Mobile Nav Trigger */}
+        <div className="flex flex-1 items-center justify-end md:hidden">
+          <Sheet open={isMobileMenuOpen} onOpenChange={setMobileMenuOpen}>
+            <SheetTrigger asChild>
+              <Button
+                variant="ghost"
+                className="px-2 text-base hover:bg-transparent focus-visible:bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0"
+              >
+                <Menu className="h-6 w-6" />
+                <span className="sr-only">Toggle Menu</span>
+              </Button>
+            </SheetTrigger>
+            <SheetContent side="left" className="pr-0 pt-10">
+              <div className="flex flex-col space-y-2">
+                {mobileNav}
               </div>
-              <span className="font-bold font-headline text-lg">Bhumi</span>
-            </Link>
-            <div className="flex flex-col space-y-2">
-              {mobileNav}
-            </div>
-          </SheetContent>
-        </Sheet>
-        
-        <div className="flex flex-1 items-center justify-start md:hidden">
-          <Link href="/" className="flex items-center space-x-2">
-             <div className="text-primary">
-                <University className="h-7 w-7" />
-              </div>
-            <span className="font-bold font-headline text-lg">Bhumi</span>
-          </Link>
+            </SheetContent>
+          </Sheet>
         </div>
         
-        <div className="flex items-center justify-end space-x-4">
-          <NavLink href="/marketplace" onClick={() => {}}>Marketplace</NavLink>
+        {/* Wallet Button */}
+        <div className="hidden md:flex items-center justify-end space-x-4">
           <WalletConnectButton />
         </div>
       </div>
