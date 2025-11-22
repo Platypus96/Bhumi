@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 
 const GEOCODING_API_URL = 'https://maps.googleapis.com/maps/api/geocode/json';
-const GOOGLE_API_KEY = process.env.GOOGLE_API_KEY;
+const GOOGLE_API_KEY = process.env.GOOGLE_MAPS_API_KEY;
 
 export async function GET(request: Request) {
   if (!GOOGLE_API_KEY) {
