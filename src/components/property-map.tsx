@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { Property } from '@/lib/types';
@@ -22,15 +22,22 @@ L.Icon.Default.mergeOptions({
   shadowUrl: require('leaflet/dist/images/marker-shadow.png').default,
 });
 
-interface TileLayer {
-    url: string;
-    attribution: string;
-}
+const TILE_LAYERS = {
+  street: {
+    url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+  },
+  satellite: {
+     url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+    attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community',
+  },
+};
+type TileLayerKey = keyof typeof TILE_LAYERS;
+
 
 interface PropertiesMapProps {
   properties: Property[];
   selectedProperty?: Property | null;
-  tileLayer?: TileLayer;
   className?: string;
 }
 
@@ -77,18 +84,14 @@ const getStyle = (property: Property, isSelected: boolean) => {
 };
 
 
-const PropertiesMap = ({ properties, selectedProperty, tileLayer, className }: PropertiesMapProps) => {
+const PropertiesMap = ({ properties, selectedProperty, className }: PropertiesMapProps) => {
   const mapContainerRef = useRef<HTMLDivElement>(null);
   const mapInstanceRef = useRef<L.Map | null>(null);
   const layersRef = useRef<Map<string, L.Layer>>(new Map());
   const tileLayerRef = useRef<L.TileLayer | null>(null);
+  const [activeLayer, setActiveLayer] = useState<TileLayerKey>("street");
 
-  const defaultTileLayer = {
-    url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-  };
-
-  const currentTileLayer = tileLayer || defaultTileLayer;
+  const currentTileLayer = TILE_LAYERS[activeLayer];
 
   useEffect(() => {
     if (mapContainerRef.current && !mapInstanceRef.current) {
@@ -113,6 +116,7 @@ const PropertiesMap = ({ properties, selectedProperty, tileLayer, className }: P
         tileLayerRef.current.setUrl(currentTileLayer.url);
         // @ts-ignore
         if (map.attributionControl) {
+            // @ts-ignore
             map.attributionControl.setPrefix(currentTileLayer.attribution);
         }
     }
@@ -202,7 +206,25 @@ const PropertiesMap = ({ properties, selectedProperty, tileLayer, className }: P
   }, [properties, selectedProperty]);
 
   return (
-    <div className={cn("rounded-xl overflow-hidden h-[225px] border", className)}>
+    <div className={cn("rounded-xl overflow-hidden h-full w-full relative", className)}>
+        <div className="absolute top-2 right-2 z-[1001] bg-background/80 backdrop-blur-sm rounded-lg p-1 space-x-1">
+            <Button 
+                size="sm" 
+                variant={activeLayer === 'street' ? 'secondary' : 'ghost'}
+                onClick={() => setActiveLayer('street')}
+                type="button"
+            >
+                Street
+            </Button>
+            <Button 
+                size="sm" 
+                variant={activeLayer === 'satellite' ? 'secondary' : 'ghost'}
+                onClick={() => setActiveLayer('satellite')}
+                type="button"
+            >
+                Satellite
+            </Button>
+        </div>
         <div ref={mapContainerRef} style={{ height: '100%', width: '100%' }} />
     </div>
   );

@@ -9,7 +9,7 @@ import { Fingerprint, MapPin, Square, CheckCircle, Clock, ShieldX } from 'lucide
 import { CopyButton } from './copy-button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Button } from './ui/button';
-import { MapDisplay } from './dashboard/map-display';
+import PropertiesMap from './property-map';
 
 interface PropertyCardProps {
   property: Property;
@@ -54,7 +54,7 @@ export function PropertyCard({ property }: PropertyCardProps) {
       {/* Map Section */}
       <CardHeader className="p-0 relative">
          <div className="relative aspect-video overflow-hidden">
-             <MapDisplay properties={[property]} selectedProperty={null} />
+             <PropertiesMap properties={[property]} />
              <StatusBadge />
          </div>
       </CardHeader>

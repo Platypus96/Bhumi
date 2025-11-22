@@ -58,7 +58,7 @@ export default function MyPropertiesPage() {
   
   const MemoizedPropertiesMap = useMemo(() => {
     if (activeView === 'map' && hasContent) {
-      return <PropertiesMap properties={properties} />;
+      return <PropertiesMap properties={properties} className="h-[600px]"/>;
     }
     return null;
   }, [activeView, hasContent, properties]);

@@ -83,7 +83,7 @@ export default function PropertyDetailPage() {
         <div className="space-y-6">
           <Card className="overflow-hidden">
              <div className="h-[400px] w-full">
-                <PropertiesMap properties={[property]} />
+                <PropertiesMap properties={[property]} className="h-full" />
              </div>
              <CardContent className="p-6">
                 <CardTitle className="text-3xl font-bold">{property.title}</CardTitle>
