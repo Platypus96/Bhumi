@@ -1,12 +1,12 @@
 import { NextResponse } from 'next/server';
 
 const GEOCODING_API_URL = 'https://maps.googleapis.com/maps/api/geocode/json';
-const GOOGLE_MAPS_API_KEY = process.env.GOOGLE_MAPS_API_KEY;
+const GOOGLE_API_KEY = process.env.GOOGLE_API_KEY;
 
 export async function GET(request: Request) {
-  if (!GOOGLE_MAPS_API_KEY) {
+  if (!GOOGLE_API_KEY) {
     return NextResponse.json(
-      { error: 'Google Maps API key not configured' },
+      { error: 'Google API key not configured' },
       { status: 500 }
     );
   }
@@ -23,7 +23,7 @@ export async function GET(request: Request) {
 
   try {
     const response = await fetch(
-      `${GEOCODING_API_URL}?address=${encodeURIComponent(address)}&key=${GOOGLE_MAPS_API_KEY}`
+      `${GEOCODING_API_URL}?address=${encodeURIComponent(address)}&key=${GOOGLE_API_KEY}`
     );
 
     if (!response.ok) {
