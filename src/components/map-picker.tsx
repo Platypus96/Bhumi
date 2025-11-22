@@ -27,18 +27,9 @@ const MapPicker = ({ onLocationSelect, onPolygonCreated, center, zoom }: MapPick
   const mapContainerRef = useRef<HTMLDivElement | null>(null);
   const mapInstanceRef = useRef<L.Map | null>(null);
 
+  // Effect for map initialization (runs only once)
   useEffect(() => {
-    // Guard clause: If the map instance already exists, do nothing.
-    if (mapInstanceRef.current) {
-        // If center or zoom props change, update the existing map's view
-        if (center) {
-            mapInstanceRef.current.setView(center, zoom);
-        }
-        return;
-    }
-
-    // Initialize the map only if it doesn't exist and the container is available
-    if (mapContainerRef.current) {
+    if (mapContainerRef.current && !mapInstanceRef.current) {
       mapInstanceRef.current = L.map(mapContainerRef.current, {
         center: center || [20.5937, 78.9629],
         zoom: zoom,
@@ -87,14 +78,22 @@ const MapPicker = ({ onLocationSelect, onPolygonCreated, center, zoom }: MapPick
       });
     }
 
-    // Cleanup function
+    // Cleanup function: remove map instance on component unmount
     return () => {
       if (mapInstanceRef.current) {
         mapInstanceRef.current.remove();
         mapInstanceRef.current = null;
       }
     };
-  }, [center, zoom, onLocationSelect, onPolygonCreated]);
+  }, [onLocationSelect, onPolygonCreated]); // Dependencies for initialization
+
+  // Effect for updating map view when center or zoom props change
+  useEffect(() => {
+    if (mapInstanceRef.current && center) {
+        mapInstanceRef.current.setView(center, zoom);
+    }
+  }, [center, zoom]);
+
 
   return (
     <div ref={mapContainerRef} style={{ height: '100%', width: '100%', zIndex: 1 }} className="rounded-lg" />
