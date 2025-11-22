@@ -43,7 +43,7 @@ function handleFirestoreError(error: any, operation: 'create' | 'get' | 'list' |
   throw error;
 }
 
-export async function createProperty(db: Firestore, propertyData: Omit<Property, 'history' | 'verified' | 'forSale' | 'price' | 'txHash' | 'registeredAt' | 'status'> & {polygon?: string}, txHash: string): Promise<void> {
+export async function createProperty(db: Firestore, propertyData: Omit<Property, 'history' | 'verified' | 'forSale' | 'price' | 'txHash' | 'registeredAt' | 'status'>, txHash: string): Promise<void> {
     const propertyWithDefaults = {
         ...propertyData,
         status: 'unverified' as const,
