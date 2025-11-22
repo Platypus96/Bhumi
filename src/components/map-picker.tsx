@@ -96,6 +96,7 @@ const MapPicker = ({ onLocationSelect, onPolygonCreated, center, zoom, tileLayer
         mapInstanceRef.current = null;
       }
     };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []); // Dependencies for initialization should be empty
 
   // Effect for updating map view when center or zoom props change
@@ -107,12 +108,11 @@ const MapPicker = ({ onLocationSelect, onPolygonCreated, center, zoom, tileLayer
 
   // Effect for updating tile layer
   useEffect(() => {
-    if (tileLayerRef.current && currentTileLayer.url !== tileLayerRef.current.getTileUrl?.()) {
+    if (mapInstanceRef.current && tileLayerRef.current) {
       tileLayerRef.current.setUrl(currentTileLayer.url);
-      if (mapInstanceRef.current?.attributionControl) {
-        // @ts-ignore
-        mapInstanceRef.current.attributionControl.setPrefix(currentTileLayer.attribution);
-      }
+      tileLayerRef.current.options.attribution = currentTileLayer.attribution;
+      // @ts-ignore
+      mapInstanceRef.current.attributionControl.setPrefix(currentTileLayer.attribution);
     }
   }, [currentTileLayer]);
 
