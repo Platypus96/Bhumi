@@ -22,6 +22,7 @@ import { useBlockchain } from "@/hooks/use-blockchain";
 import { improveDescription } from "@/ai/flows/improve-description-flow";
 import dynamic from "next/dynamic";
 import L from 'leaflet';
+import area from '@turf/area';
 
 const LeafletMap = dynamic(() => import('@/components/LeafletMap'), {
   ssr: false,
@@ -50,7 +51,7 @@ export default function AddPropertyPage() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isImproving, setIsImproving] = useState(false);
   
-  const [mapCenter, setMapCenter] = useState<[number, number] | null>([20.5937, 78.9629]); // Default to India
+  const [mapCenter, setMapCenter] = useState<[number, number]>([20.5937, 78.9629]); // Default to India
   const [mapZoom, setMapZoom] = useState(5);
   const [coordinates, setCoordinates] = useState<{ lat: number, lng: number } | null>(null);
 
@@ -92,10 +93,15 @@ export default function AddPropertyPage() {
     // Calculate center and set coordinates
     const center = layer.getBounds().getCenter();
     setCoordinates({ lat: center.lat, lng: center.lng });
+
+    // Calculate area
+    const calculatedArea = area(geojson); // in square meters
+    const areaInSqFt = (calculatedArea * 10.7639).toFixed(2);
+    form.setValue("area", `${areaInSqFt} sq. ft.`);
     
     toast({
       title: "Boundary Drawn",
-      description: `Boundary recorded and center coordinates set to: ${center.lat.toFixed(4)}, ${center.lng.toFixed(4)}.`,
+      description: `Area calculated: ${areaInSqFt} sq. ft. Center coordinates set.`,
     });
   };
 
@@ -242,7 +248,7 @@ export default function AddPropertyPage() {
                     <FormItem>
                       <FormLabel>Total Area</FormLabel>
                       <FormControl>
-                        <Input placeholder="e.g., 1200 sq. ft." {...field} />
+                        <Input placeholder="Calculated from map boundary..." {...field} readOnly />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -259,11 +265,11 @@ export default function AddPropertyPage() {
                     <div className="border rounded-xl overflow-hidden shadow-lg h-[500px]">
                       <LeafletMap 
                         onPolygonComplete={handlePolygonCreated}
-                        center={mapCenter || undefined}
+                        center={mapCenter}
                         zoom={mapZoom}
                       />
                     </div>
-                    <FormDescription>Use the map tools to draw the property boundary. The center will be saved as the property's coordinates.</FormDescription>
+                    <FormDescription>Use the map tools to draw the property boundary. The area will be calculated automatically.</FormDescription>
                     <FormMessage />
                  </FormItem>
               )}
