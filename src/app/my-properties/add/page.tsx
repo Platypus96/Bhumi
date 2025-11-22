@@ -13,7 +13,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { FileUp, Loader2, AlertCircle, Sparkles } from "lucide-react";
+import { FileUp, Loader2, AlertCircle, Sparkles, Search } from "lucide-react";
 import { useState } from "react";
 import { useIPFS } from "@/hooks/use-ipfs";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
@@ -50,6 +50,7 @@ export default function AddPropertyPage() {
   
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isImproving, setIsImproving] = useState(false);
+  const [isSearching, setIsSearching] = useState(false);
   
   const [mapCenter, setMapCenter] = useState<[number, number]>([20.5937, 78.9629]); // Default to India
   const [mapZoom, setMapZoom] = useState(5);
@@ -83,6 +84,30 @@ export default function AddPropertyPage() {
       toast({ variant: "destructive", title: "AI Error", description: "Could not improve the description at this time." });
     } finally {
       setIsImproving(false);
+    }
+  };
+
+   const handleFindOnMap = async () => {
+    const address = form.getValues("location");
+    if (!address) {
+      toast({ variant: "destructive", title: "Location is empty", description: "Please enter an address to search." });
+      return;
+    }
+    setIsSearching(true);
+    try {
+      const response = await fetch(`/api/forward-geocode?address=${encodeURIComponent(address)}`);
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "Failed to find location.");
+      }
+      const data = await response.json();
+      setMapCenter([data.lat, data.lng]);
+      setMapZoom(16); // Zoom in closer to the searched location
+      toast({ title: "Location Found!", description: "The map has been centered on the searched address." });
+    } catch (error: any) {
+      toast({ variant: "destructive", title: "Geocoding Error", description: error.message });
+    } finally {
+      setIsSearching(false);
     }
   };
 
@@ -229,18 +254,28 @@ export default function AddPropertyPage() {
               )}
             />
             
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-               <FormField
-                control={form.control}
-                name="location"
-                render={({ field }) => (
-                    <FormItem>
-                        <FormLabel>Property Location</FormLabel>
-                        <Input placeholder="e.g., City, State, Country" {...field} />
-                        <FormMessage />
-                    </FormItem>
-                )}
-                />
+            <FormField
+              control={form.control}
+              name="location"
+              render={({ field }) => (
+                  <FormItem>
+                      <FormLabel>Property Location</FormLabel>
+                       <div className="flex items-center space-x-2">
+                        <FormControl>
+                          <Input placeholder="Search for a city or address" {...field} />
+                        </FormControl>
+                        <Button type="button" onClick={handleFindOnMap} disabled={isSearching}>
+                          {isSearching ? <Loader2 className="h-4 w-4 animate-spin"/> : <Search className="h-4 w-4" />}
+                          <span className="ml-2 hidden sm:inline">Find on Map</span>
+                        </Button>
+                      </div>
+                       <FormDescription>Search for a location to center the map below.</FormDescription>
+                      <FormMessage />
+                  </FormItem>
+              )}
+            />
+
+             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                  <FormField
                   control={form.control}
                   name="area"
@@ -321,3 +356,5 @@ export default function AddPropertyPage() {
     </div>
   );
 }
+
+    
