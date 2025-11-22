@@ -35,8 +35,6 @@ const formSchema = z.object({
   area: z.string().min(1, "Area is required."),
   image: z.any().refine(files => files?.length == 1, "Property image is required."),
   document: z.any().refine(files => files?.length == 1, "Proof document is required."),
-  latitude: z.number().optional(),
-  longitude: z.number().optional(),
   polygon: z.string().min(1, "Property boundary must be drawn on the map."),
 });
 
@@ -54,6 +52,8 @@ export default function AddPropertyPage() {
   
   const [mapCenter, setMapCenter] = useState<[number, number] | null>([20.5937, 78.9629]); // Default to India
   const [mapZoom, setMapZoom] = useState(5);
+  const [coordinates, setCoordinates] = useState<{ lat: number, lng: number } | null>(null);
+
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -100,6 +100,7 @@ export default function AddPropertyPage() {
       const data = await response.json();
       if (data.lat && data.lng) {
         setMapCenter([data.lat, data.lng]);
+        setCoordinates({ lat: data.lat, lng: data.lng });
         setMapZoom(15);
         toast({ title: "Location Found", description: "Map has been centered to the searched location." });
       } else {
@@ -150,19 +151,25 @@ export default function AddPropertyPage() {
       const receipt = await addProperty(parcelId, imageUploadResult.cid, documentUploadResult.cid);
 
       toast({ description: "Saving property details..." });
-      await createProperty(firestore, {
+      
+      const propertyData: any = {
         parcelId: parcelId,
         owner: account,
         title: values.title,
         description: values.description,
         location: values.location,
         area: values.area,
-        latitude: values.latitude,
-        longitude: values.longitude,
         imageUrl: imageUploadResult.cid,
         ipfsProofCid: documentUploadResult.cid,
         polygon: values.polygon,
-      }, receipt.hash);
+      };
+
+      if (coordinates) {
+        propertyData.latitude = coordinates.lat;
+        propertyData.longitude = coordinates.lng;
+      }
+      
+      await createProperty(firestore, propertyData, receipt.hash);
 
       toast({
         title: "Property Added!",
