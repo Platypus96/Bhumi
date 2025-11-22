@@ -102,6 +102,7 @@ const PropertiesMap = ({ properties, selectedProperty, tileLayer, className }: P
             mapInstanceRef.current = null;
         }
     }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   useEffect(() => {
@@ -111,8 +112,9 @@ const PropertiesMap = ({ properties, selectedProperty, tileLayer, className }: P
     if (tileLayerRef.current.options.attribution !== currentTileLayer.attribution) {
         tileLayerRef.current.setUrl(currentTileLayer.url);
         // @ts-ignore
-        tileLayerRef.current.options.attribution = currentTileLayer.attribution;
-        map.attributionControl.setPrefix(currentTileLayer.attribution);
+        if (map.attributionControl) {
+            map.attributionControl.setPrefix(currentTileLayer.attribution);
+        }
     }
      
   }, [currentTileLayer]);
