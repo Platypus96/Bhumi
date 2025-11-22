@@ -22,7 +22,7 @@ import { useBlockchain } from "@/hooks/use-blockchain";
 import { improveDescription } from "@/ai/flows/improve-description-flow";
 import dynamic from "next/dynamic";
 
-const DynamicMap = dynamic(() => import('@/components/dynamic-map'), {
+const LeafletMap = dynamic(() => import('@/components/LeafletMap'), {
   ssr: false,
   loading: () => <div className="h-[500px] w-full bg-muted animate-pulse flex items-center justify-center"><p>Loading Map...</p></div>
 });
@@ -112,18 +112,8 @@ export default function AddPropertyPage() {
     }
   };
 
-  const handleLocationSelect = (lat: number, lng: number) => {
-    form.setValue("latitude", lat);
-    form.setValue("longitude", lng);
-    form.setValue("location", `${lat.toFixed(6)}, ${lng.toFixed(6)}`);
-    toast({
-      title: "Location Selected",
-      description: `Coordinates: ${lat.toFixed(6)}, ${lng.toFixed(6)}`,
-    });
-  };
-
-  const handlePolygonCreated = (polygon: any) => {
-    form.setValue("polygon", JSON.stringify(polygon));
+  const handlePolygonCreated = (polygon: string) => {
+    form.setValue("polygon", polygon);
     toast({
       title: "Boundary Drawn",
       description: "Property boundary has been recorded.",
@@ -287,10 +277,9 @@ export default function AddPropertyPage() {
                  <FormItem>
                     <FormLabel>Property Boundary</FormLabel>
                     <div className="border rounded-xl overflow-hidden shadow-lg h-[500px]">
-                      <DynamicMap 
-                        onLocationSelect={handleLocationSelect} 
-                        onPolygonCreated={handlePolygonCreated}
-                        center={mapCenter}
+                      <LeafletMap 
+                        onPolygonComplete={handlePolygonCreated}
+                        center={mapCenter || undefined}
                         zoom={mapZoom}
                       />
                     </div>

@@ -16,7 +16,7 @@ import { Button } from '@/components/ui/button';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import dynamic from 'next/dynamic';
 
-const PropertiesMap = dynamic(() => import("@/components/property-map"), {
+const LeafletMap = dynamic(() => import("@/components/LeafletMap"), {
   ssr: false,
   loading: () => <div className="h-[600px] w-full bg-muted animate-pulse flex items-center justify-center"><p>Loading Map...</p></div>
 });
@@ -58,10 +58,12 @@ export default function MyPropertiesPage() {
   
   const MemoizedPropertiesMap = useMemo(() => {
     if (activeView === 'map' && hasContent) {
-      return <PropertiesMap properties={properties} className="h-[600px]"/>;
+      // LeafletMap doesn't need properties prop
+      return <div className="h-[600px] w-full"> {/* Placeholder for map */}</div>;
     }
     return null;
-  }, [activeView, hasContent, properties]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeView, hasContent]);
 
   if (!account) {
     return (

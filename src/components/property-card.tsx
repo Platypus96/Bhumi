@@ -11,7 +11,7 @@ import { CopyButton } from './copy-button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Button } from './ui/button';
 
-const PropertiesMap = dynamic(() => import('./property-map'), {
+const LeafletMap = dynamic(() => import('./LeafletMap'), {
   ssr: false,
   loading: () => <div className="aspect-video w-full bg-muted animate-pulse flex items-center justify-center"><p className="text-sm text-muted-foreground">Loading Map...</p></div>
 });
@@ -60,7 +60,7 @@ export function PropertyCard({ property }: PropertyCardProps) {
       {/* Map Section */}
       <CardHeader className="p-0 relative">
          <div className="relative aspect-video overflow-hidden">
-             <PropertiesMap properties={[property]} />
+             <LeafletMap readOnly initialData={property.polygon} />
              <StatusBadge />
          </div>
       </CardHeader>

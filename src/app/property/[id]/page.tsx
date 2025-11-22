@@ -3,7 +3,6 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useParams } from "next/navigation";
-import Image from "next/image";
 import Link from "next/link";
 import { getPropertyByParcelId } from "@/lib/data";
 import type { Property } from "@/lib/types";
@@ -26,7 +25,7 @@ import { Separator } from "@/components/ui/separator";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import dynamic from "next/dynamic";
 
-const PropertiesMap = dynamic(() => import('@/components/property-map'), {
+const LeafletMap = dynamic(() => import('@/components/LeafletMap'), {
   ssr: false,
   loading: () => <div className="h-[400px] w-full bg-muted animate-pulse flex items-center justify-center"><p>Loading Map...</p></div>
 });
@@ -83,7 +82,7 @@ export default function PropertyDetailPage() {
         <div className="space-y-6">
           <Card className="overflow-hidden">
              <div className="h-[400px] w-full">
-                <PropertiesMap properties={[property]} className="h-full" />
+                <LeafletMap readOnly initialData={property.polygon} />
              </div>
              <CardContent className="p-6">
                 <CardTitle className="text-3xl font-bold">{property.title}</CardTitle>
