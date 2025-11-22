@@ -9,12 +9,7 @@ import { Fingerprint, MapPin, Square, CheckCircle, Clock, ShieldX } from 'lucide
 import { CopyButton } from './copy-button';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Button } from './ui/button';
-import dynamic from 'next/dynamic';
-
-const PropertiesMap = dynamic(() => import('@/components/property-map'), {
-  ssr: false,
-  loading: () => <div className="h-[225px] w-full bg-muted animate-pulse"></div>
-});
+import { MapDisplay } from './dashboard/map-display';
 
 interface PropertyCardProps {
   property: Property;
@@ -54,21 +49,22 @@ export function PropertyCard({ property }: PropertyCardProps) {
   };
 
   return (
-    <Card className="h-full flex flex-col overflow-hidden rounded-xl border border-border/50 shadow-md hover:shadow-xl hover:border-primary/60 transition-all duration-300 bg-card">
+    <Card className="h-full flex flex-col overflow-hidden rounded-xl border border-border/50 shadow-md hover:shadow-xl hover:border-primary/60 transition-all duration-300 bg-card relative group">
+      {/* Clickable Overlay Link */}
+      <Link href={`/property/${property.parcelId}`} className="absolute inset-0 z-10" aria-label={`View details for ${property.title}`} />
+
       {/* Map Section */}
-      <CardHeader className="p-0 relative">
-        <Link href={`/property/${property.parcelId}`} className="block group">
-          <div className="relative aspect-video overflow-hidden">
-             <PropertiesMap properties={[property]} />
+      <CardHeader className="p-0 relative z-0">
+         <div className="relative aspect-video overflow-hidden">
+             <MapDisplay properties={[property]} selectedProperty={null} />
              <StatusBadge />
-          </div>
-        </Link>
+         </div>
       </CardHeader>
 
       {/* Content Section */}
-      <div className="p-4 flex-grow flex flex-col">
+      <div className="p-4 flex-grow flex flex-col z-20 bg-card">
         <CardTitle className="text-lg font-semibold tracking-tight text-foreground line-clamp-1">
-            <Link href={`/property/${property.parcelId}`} className="hover:underline">
+            <Link href={`/property/${property.parcelId}`} className="hover:underline relative z-20">
                 {property.title}
             </Link>
         </CardTitle>
@@ -78,7 +74,7 @@ export function PropertyCard({ property }: PropertyCardProps) {
           {showReadMore && (
             <Dialog>
               <DialogTrigger asChild>
-                <Button variant="link" className="p-0 h-auto text-xs -mt-1">Read more...</Button>
+                <Button variant="link" className="p-0 h-auto text-xs -mt-1 relative z-20">Read more...</Button>
               </DialogTrigger>
               <DialogContent>
                 <DialogHeader>
@@ -106,13 +102,13 @@ export function PropertyCard({ property }: PropertyCardProps) {
       </div>
 
       {/* Footer Section */}
-      <CardFooter className="p-3 bg-secondary/30">
+      <CardFooter className="p-3 bg-secondary/30 z-20">
            <div className="flex items-center text-xs text-muted-foreground font-mono">
               <Fingerprint className="h-4 w-4 mr-2 text-primary shrink-0" />
               <span className="truncate">
                   ID: {truncateHash(property.parcelId, 10, 6)}
               </span>
-              <CopyButton textToCopy={property.parcelId} size="sm" className="ml-2 h-6 w-6" />
+              <CopyButton textToCopy={property.parcelId} size="sm" className="ml-2 h-6 w-6 relative z-20" />
           </div>
       </CardFooter>
     </Card>

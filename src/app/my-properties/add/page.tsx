@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useForm } from "react-hook-form";
@@ -12,7 +13,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { FileUp, Loader2, AlertCircle, Sparkles } from "lucide-react";
+import { FileUp, Loader2, AlertCircle, Sparkles, Search } from "lucide-react";
 import { useState } from "react";
 import { useIPFS } from "@/hooks/use-ipfs";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
@@ -31,6 +32,7 @@ const formSchema = z.object({
   title: z.string().min(5, "Title must be at least 5 characters."),
   description: z.string().min(10, "Description is required."),
   location: z.string().min(3, "Location is required."),
+  area: z.string().min(1, "Area is required."),
   image: z.any().refine(files => files?.length == 1, "Property image is required."),
   document: z.any().refine(files => files?.length == 1, "Proof document is required."),
   latitude: z.number().optional(),
@@ -48,6 +50,7 @@ export default function AddPropertyPage() {
   
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isImproving, setIsImproving] = useState(false);
+  const [isGeocoding, setIsGeocoding] = useState(false);
   
   const [mapCenter, setMapCenter] = useState<[number, number] | null>([20.5937, 78.9629]); // Default to India
   const [mapZoom, setMapZoom] = useState(5);
@@ -58,6 +61,7 @@ export default function AddPropertyPage() {
       title: "",
       description: "",
       location: "",
+      area: "",
       polygon: "",
     },
   });
@@ -78,6 +82,33 @@ export default function AddPropertyPage() {
       toast({ variant: "destructive", title: "AI Error", description: "Could not improve the description at this time." });
     } finally {
       setIsImproving(false);
+    }
+  };
+  
+  const handleGeocode = async () => {
+    const location = form.getValues("location");
+    if (!location) {
+      toast({ variant: "destructive", title: "Location empty", description: "Please enter a location to search." });
+      return;
+    }
+    setIsGeocoding(true);
+    try {
+      const response = await fetch(`/api/forward-geocode?address=${encodeURIComponent(location)}`);
+      if (!response.ok) {
+        throw new Error("Failed to fetch coordinates.");
+      }
+      const data = await response.json();
+      if (data.lat && data.lng) {
+        setMapCenter([data.lat, data.lng]);
+        setMapZoom(15);
+        toast({ title: "Location Found", description: "Map has been centered to the searched location." });
+      } else {
+        throw new Error("Location not found.");
+      }
+    } catch (error: any) {
+      toast({ variant: "destructive", title: "Geocoding Error", description: error.message });
+    } finally {
+      setIsGeocoding(false);
     }
   };
 
@@ -135,6 +166,7 @@ export default function AddPropertyPage() {
         title: values.title,
         description: values.description,
         location: values.location,
+        area: values.area,
         latitude: values.latitude,
         longitude: values.longitude,
         imageUrl: imageUploadResult.cid,
@@ -216,21 +248,36 @@ export default function AddPropertyPage() {
               )}
             />
             
-            <div className="space-y-2">
-              <FormLabel>Property Location</FormLabel>
-              <FormField
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+               <FormField
                 control={form.control}
                 name="location"
                 render={({ field }) => (
                     <FormItem>
-                    <FormControl>
-                        <Input placeholder="e.g., City, State, Country" {...field} />
-                    </FormControl>
-                    <FormMessage />
+                        <FormLabel>Property Location</FormLabel>
+                        <div className="flex">
+                             <Input placeholder="e.g., City, State, Country" {...field} className="rounded-r-none"/>
+                             <Button type="button" onClick={handleGeocode} disabled={isGeocoding} className="rounded-l-none">
+                                {isGeocoding ? <Loader2 className="h-4 w-4 animate-spin"/> : <Search className="h-4 w-4"/>}
+                             </Button>
+                        </div>
+                        <FormMessage />
                     </FormItem>
                 )}
                 />
-              <FormDescription>Enter a general location. Then use the map to pinpoint coordinates and draw the boundary.</FormDescription>
+                 <FormField
+                  control={form.control}
+                  name="area"
+                  render={({ field }) => (
+                    <FormItem>
+                      <FormLabel>Total Area</FormLabel>
+                      <FormControl>
+                        <Input placeholder="e.g., 1200 sq. ft." {...field} />
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
             </div>
             
             <FormField
@@ -288,7 +335,7 @@ export default function AddPropertyPage() {
                 </FormItem>
               )}
             />
-            <Button type="submit" className="w-full" disabled={isSubmitting || isUploading || isImproving}>
+            <Button type="submit" className="w-full" disabled={isSubmitting || isUploading || isImproving || isGeocoding}>
               {(isSubmitting || isUploading) && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
               {isUploading ? "Uploading to IPFS..." : "Add Property to Blockchain"}
             </Button>

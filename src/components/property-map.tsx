@@ -92,7 +92,7 @@ const PropertiesMap = ({ properties, selectedProperty, tileLayer, className }: P
 
   useEffect(() => {
     if (mapContainerRef.current && !mapInstanceRef.current) {
-        mapInstanceRef.current = L.map(mapContainerRef.current).setView([20.5937, 78.9629], 5);
+        mapInstanceRef.current = L.map(mapContainerRef.current, { zoomControl: false }).setView([20.5937, 78.9629], 5);
         tileLayerRef.current = L.tileLayer(currentTileLayer.url, { attribution: currentTileLayer.attribution }).addTo(mapInstanceRef.current);
     }
     
@@ -182,11 +182,10 @@ const PropertiesMap = ({ properties, selectedProperty, tileLayer, className }: P
         }
       }
     } else if (properties.length === 1 && allLayers.length === 1) {
-        // This is the new logic for single property view (e.g., in a card)
         const layer = allLayers[0];
         const bounds = (layer as any).getBounds ? (layer as any).getBounds() : (layer as L.Marker).getLatLng();
         if (bounds) {
-          map.fitBounds(bounds instanceof L.LatLngBounds ? bounds.pad(0.1) : L.latLngBounds(bounds, bounds), { animate: false, maxZoom: 17, padding: [10, 10] });
+          map.fitBounds(bounds instanceof L.LatLngBounds ? bounds : L.latLngBounds(bounds, bounds), { animate: false, maxZoom: 17, padding: [10, 10] });
         }
     } else if (allLayers.length > 0) {
         const group = new L.FeatureGroup(allLayers);

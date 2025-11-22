@@ -2,7 +2,7 @@
 "use client";
 
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { CheckCircle, Clock, XCircle } from "lucide-react";
+import { CheckCircle, Clock, XCircle, Globe } from "lucide-react";
 import { PropertyStatusFilter } from "@/app/dashboard/page";
 import { cn } from "@/lib/utils";
 
@@ -39,7 +39,7 @@ export function DashboardStats({ stats, currentFilter, onFilterChange }: Dashboa
     {
       title: "All",
       value: stats.pending + stats.verified + stats.rejected,
-      icon: XCircle,
+      icon: Globe,
       color: "text-gray-500",
       bgColor: "bg-gray-50 dark:bg-gray-900/20",
       borderColor: "border-gray-200 dark:border-gray-800",
