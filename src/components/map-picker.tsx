@@ -16,16 +16,29 @@ L.Icon.Default.mergeOptions({
   shadowUrl: require('leaflet/dist/images/marker-shadow.png').default,
 });
 
+interface TileLayer {
+    url: string;
+    attribution: string;
+}
+
 interface MapPickerProps {
   onLocationSelect: (lat: number, lng: number) => void;
   onPolygonCreated: (polygon: any) => void;
   center: [number, number] | null;
   zoom: number;
+  tileLayer?: TileLayer;
 }
 
-const MapPicker = ({ onLocationSelect, onPolygonCreated, center, zoom }: MapPickerProps) => {
+const MapPicker = ({ onLocationSelect, onPolygonCreated, center, zoom, tileLayer }: MapPickerProps) => {
   const mapContainerRef = useRef<HTMLDivElement | null>(null);
   const mapInstanceRef = useRef<L.Map | null>(null);
+  const tileLayerRef = useRef<L.TileLayer | null>(null);
+
+  const defaultTileLayer = {
+    url: 'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+  };
+  const currentTileLayer = tileLayer || defaultTileLayer;
 
   // Effect for map initialization (runs only once)
   useEffect(() => {
@@ -35,11 +48,9 @@ const MapPicker = ({ onLocationSelect, onPolygonCreated, center, zoom }: MapPick
         zoom: zoom,
       });
 
-      L.tileLayer(
-        'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
-        {
-          attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-        }
+      tileLayerRef.current = L.tileLayer(
+        currentTileLayer.url,
+        { attribution: currentTileLayer.attribution }
       ).addTo(mapInstanceRef.current);
 
       const drawnItems = new L.FeatureGroup();
@@ -85,7 +96,7 @@ const MapPicker = ({ onLocationSelect, onPolygonCreated, center, zoom }: MapPick
         mapInstanceRef.current = null;
       }
     };
-  }, [onLocationSelect, onPolygonCreated]); // Dependencies for initialization
+  }, []); // Dependencies for initialization should be empty
 
   // Effect for updating map view when center or zoom props change
   useEffect(() => {
@@ -93,6 +104,17 @@ const MapPicker = ({ onLocationSelect, onPolygonCreated, center, zoom }: MapPick
         mapInstanceRef.current.setView(center, zoom);
     }
   }, [center, zoom]);
+
+  // Effect for updating tile layer
+  useEffect(() => {
+    if (tileLayerRef.current && currentTileLayer.url !== tileLayerRef.current.getTileUrl?.()) {
+      tileLayerRef.current.setUrl(currentTileLayer.url);
+      if (mapInstanceRef.current?.attributionControl) {
+        // @ts-ignore
+        mapInstanceRef.current.attributionControl.setPrefix(currentTileLayer.attribution);
+      }
+    }
+  }, [currentTileLayer]);
 
 
   return (

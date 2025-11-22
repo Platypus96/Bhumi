@@ -50,21 +50,21 @@ export function PropertyCard({ property }: PropertyCardProps) {
 
   return (
     <Card className="h-full flex flex-col overflow-hidden rounded-xl border border-border/50 shadow-md hover:shadow-xl hover:border-primary/60 transition-all duration-300 bg-card relative group">
-      {/* Clickable Overlay Link */}
-      <Link href={`/property/${property.parcelId}`} className="absolute inset-0 z-10" aria-label={`View details for ${property.title}`} />
-
+      
       {/* Map Section */}
-      <CardHeader className="p-0 relative z-0">
+      <CardHeader className="p-0 relative">
          <div className="relative aspect-video overflow-hidden">
              <MapDisplay properties={[property]} selectedProperty={null} />
              <StatusBadge />
          </div>
+         {/* Clickable Overlay Link */}
+         <Link href={`/property/${property.parcelId}`} className="absolute inset-0 z-20" aria-label={`View details for ${property.title}`} />
       </CardHeader>
 
       {/* Content Section */}
-      <div className="p-4 flex-grow flex flex-col z-20 bg-card">
+      <div className="p-4 flex-grow flex flex-col bg-card">
         <CardTitle className="text-lg font-semibold tracking-tight text-foreground line-clamp-1">
-            <Link href={`/property/${property.parcelId}`} className="hover:underline relative z-20">
+            <Link href={`/property/${property.parcelId}`} className="hover:underline relative z-30">
                 {property.title}
             </Link>
         </CardTitle>
@@ -74,9 +74,9 @@ export function PropertyCard({ property }: PropertyCardProps) {
           {showReadMore && (
             <Dialog>
               <DialogTrigger asChild>
-                <Button variant="link" className="p-0 h-auto text-xs -mt-1 relative z-20">Read more...</Button>
+                <Button variant="link" className="p-0 h-auto text-xs -mt-1 relative z-30">Read more...</Button>
               </DialogTrigger>
-              <DialogContent>
+              <DialogContent className="z-50">
                 <DialogHeader>
                   <DialogTitle>{property.title}</DialogTitle>
                 </DialogHeader>
@@ -102,13 +102,13 @@ export function PropertyCard({ property }: PropertyCardProps) {
       </div>
 
       {/* Footer Section */}
-      <CardFooter className="p-3 bg-secondary/30 z-20">
+      <CardFooter className="p-3 bg-secondary/30 relative z-30">
            <div className="flex items-center text-xs text-muted-foreground font-mono">
               <Fingerprint className="h-4 w-4 mr-2 text-primary shrink-0" />
               <span className="truncate">
                   ID: {truncateHash(property.parcelId, 10, 6)}
               </span>
-              <CopyButton textToCopy={property.parcelId} size="sm" className="ml-2 h-6 w-6 relative z-20" />
+              <CopyButton textToCopy={property.parcelId} size="sm" className="ml-2 h-6 w-6" />
           </div>
       </CardFooter>
     </Card>
