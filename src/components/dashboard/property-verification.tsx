@@ -10,7 +10,7 @@ import { HashPill } from '../hash-pill';
 import { format } from 'date-fns';
 import { Download, FileText, Loader2, Map, User, CheckCircle, XCircle, ShieldAlert, ExternalLink, MapPin } from 'lucide-react';
 import Link from 'next/link';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '../ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogClose } from '../ui/dialog';
 import { Separator } from '../ui/separator';
 import { useBlockchain } from '@/hooks/use-blockchain';
 import { useFirebase } from '@/firebase';
@@ -18,6 +18,8 @@ import { useToast } from '@/hooks/use-toast';
 import { verifyPropertyInDb, rejectPropertyInDb } from '@/lib/data';
 import { Alert, AlertTitle, AlertDescription } from '../ui/alert';
 import dynamic from 'next/dynamic';
+import { Textarea } from '../ui/textarea';
+import { Label } from '../ui/label';
 
 const LeafletMap = dynamic(() => import('@/components/LeafletMap'), {
     ssr: false,
@@ -36,6 +38,8 @@ export function PropertyVerification({ property, onUpdate }: PropertyVerificatio
     const { toast } = useToast();
     const [isProcessing, setIsProcessing] = useState(false);
     const [error, setError] = useState<string | null>(null);
+    const [rejectionReason, setRejectionReason] = useState("");
+    const [isRejectionDialogOpen, setIsRejectionDialogOpen] = useState(false);
 
     const handleVerify = async () => {
         if (!property || !firestore) return;
@@ -54,21 +58,26 @@ export function PropertyVerification({ property, onUpdate }: PropertyVerificatio
         }
     };
     
-    const handleReject = async () => {
-         if (!property || !firestore) return;
+     const handleRejectSubmit = async () => {
+        if (!property || !firestore || !rejectionReason) {
+            toast({ variant: 'destructive', title: 'Reason required', description: 'Please provide a reason for rejection.' });
+            return;
+        }
         setIsProcessing(true);
         setError(null);
         try {
-            await rejectPropertyInDb(firestore, property.parcelId);
+            await rejectPropertyInDb(firestore, property.parcelId, rejectionReason);
             toast({ title: 'Property Rejected', description: 'The property status has been updated to rejected.' });
-            onUpdate(); // Re-fetch data on parent page
+            setIsRejectionDialogOpen(false);
+            setRejectionReason("");
+            onUpdate();
         } catch (e: any) {
             setError(e.message || "An error occurred.");
             toast({ variant: 'destructive', title: 'Rejection Failed', description: e.message });
         } finally {
             setIsProcessing(false);
         }
-    }
+    };
 
     const isPending = !property.status || property.status === 'unverified';
     const hasCoordinates = property.latitude && property.longitude;
@@ -147,14 +156,38 @@ export function PropertyVerification({ property, onUpdate }: PropertyVerificatio
 
                 {isPending && (
                     <div className="grid grid-cols-2 gap-4 pt-4">
-                        <Button 
-                            variant="destructive"
-                            onClick={handleReject} 
-                            disabled={isProcessing}
-                        >
-                            {isProcessing ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : <XCircle className="mr-2 h-4 w-4" />}
-                            Reject
-                        </Button>
+                        <Dialog open={isRejectionDialogOpen} onOpenChange={setIsRejectionDialogOpen}>
+                            <DialogTrigger asChild>
+                                <Button variant="destructive" disabled={isProcessing}>
+                                    <XCircle className="mr-2 h-4 w-4" /> Reject
+                                </Button>
+                            </DialogTrigger>
+                            <DialogContent>
+                                <DialogHeader>
+                                    <DialogTitle>Reason for Rejection</DialogTitle>
+                                    <DialogDescription>
+                                        Please provide a reason for rejecting this property. This will be shared with the owner.
+                                    </DialogDescription>
+                                </DialogHeader>
+                                <div className="grid gap-4 py-4">
+                                    <Label htmlFor="rejectionReason" className="sr-only">Rejection Reason</Label>
+                                    <Textarea 
+                                        id="rejectionReason"
+                                        value={rejectionReason}
+                                        onChange={(e) => setRejectionReason(e.target.value)}
+                                        placeholder="e.g., The provided documents are illegible or incomplete."
+                                    />
+                                </div>
+                                <DialogFooter>
+                                    <Button variant="ghost" onClick={() => setIsRejectionDialogOpen(false)}>Cancel</Button>
+                                    <Button onClick={handleRejectSubmit} disabled={isProcessing || !rejectionReason}>
+                                        {isProcessing ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : null}
+                                        Submit Rejection
+                                    </Button>
+                                </DialogFooter>
+                            </DialogContent>
+                        </Dialog>
+
                         <Button 
                             className="bg-green-600 hover:bg-green-700"
                             onClick={handleVerify}

@@ -2,9 +2,9 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
-import { getPropertyByParcelId } from "@/lib/data";
+import { getPropertyByParcelId, deletePropertyFromDb } from "@/lib/data";
 import type { Property } from "@/lib/types";
 import { useWeb3 } from "@/hooks/use-web3";
 import { useFirebase } from "@/firebase/provider";
@@ -13,7 +13,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { User, ShieldAlert, History, Check, Tag, Hourglass, ExternalLink } from "lucide-react";
+import { User, ShieldAlert, History, Check, Tag, Hourglass, ExternalLink, Trash2 } from "lucide-react";
 import { format } from 'date-fns';
 import { VerifyDocument } from "@/components/verify-document";
 import { ManageSale } from "@/components/manage-sale";
@@ -23,6 +23,9 @@ import { Button } from "@/components/ui/button";
 import { HashPill } from "@/components/hash-pill";
 import { Separator } from "@/components/ui/separator";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { useToast } from "@/hooks/use-toast";
+import { Loader2 } from "lucide-react";
 import dynamic from "next/dynamic";
 
 const LeafletMap = dynamic(() => import('@/components/LeafletMap'), {
@@ -33,11 +36,14 @@ const LeafletMap = dynamic(() => import('@/components/LeafletMap'), {
 
 export default function PropertyDetailPage() {
   const params = useParams();
+  const router = useRouter();
   const { account } = useWeb3();
   const { firestore } = useFirebase();
+  const { toast } = useToast();
   
   const [property, setProperty] = useState<Property | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   const id = Array.isArray(params.id) ? params.id[0] : params.id;
   const isOwner = account?.toLowerCase() === property?.owner.toLowerCase();
@@ -51,11 +57,30 @@ export default function PropertyDetailPage() {
     }
   }, [id, firestore]);
 
-
   useEffect(() => {
     fetchProperty();
   }, [fetchProperty]);
   
+  const handleDelete = async () => {
+    if (!property || !firestore) return;
+    setIsDeleting(true);
+    try {
+        await deletePropertyFromDb(firestore, property.parcelId);
+        toast({
+            title: "Property Removed",
+            description: "You can now re-register the property with corrected details.",
+        });
+        router.push('/my-properties');
+    } catch (error: any) {
+        toast({
+            variant: "destructive",
+            title: "Deletion Failed",
+            description: error.message || "Could not remove the property.",
+        });
+        setIsDeleting(false);
+    }
+  };
+
   if (loading) {
     return <div className="container mx-auto px-4 py-8"><Skeleton className="h-[600px] w-full" /></div>;
   }
@@ -73,7 +98,6 @@ export default function PropertyDetailPage() {
   }
 
   const showReadMore = property.description.length > 200;
-  
   const isCoordinate = property.latitude && property.longitude;
 
   return (
@@ -152,7 +176,7 @@ export default function PropertyDetailPage() {
                     <div className="flex items-start justify-between"><strong className="text-muted-foreground">Owner</strong> <HashPill type="address" hash={property.owner}/></div>
                     <div className="flex items-start justify-between"><strong className="text-muted-foreground">Parcel ID</strong> <HashPill type="parcel" hash={property.parcelId}/></div>
                     {property.registeredAt && <div className="flex items-center justify-between"><strong className="text-muted-foreground">Registered</strong> <span>{format(property.registeredAt.toDate(), "PPP")}</span></div>}
-                    <div className="flex items-center justify-between"><strong className="text-muted-foreground">Status</strong> <Badge variant={property.verified ? 'secondary' : 'destructive'}>{property.verified ? "Verified" : "Unverified"}</Badge></div>
+                    <div className="flex items-center justify-between"><strong className="text-muted-foreground">Status</strong> <Badge variant={property.status === 'verified' ? 'secondary' : property.status === 'rejected' ? 'destructive' : 'default'}>{property.status}</Badge></div>
                     {property.location && (
                       <div className="flex items-center justify-between">
                         <strong className="text-muted-foreground">Location</strong>
@@ -178,12 +202,23 @@ export default function PropertyDetailPage() {
                 <VerifyDocument property={property} />
             </CardContent>
           </Card>
+
+           {isOwner && property.status === 'rejected' && property.rejectionReason && (
+              <Alert variant="destructive">
+                  <ShieldAlert className="h-4 w-4" />
+                  <AlertTitle>Property Rejected</AlertTitle>
+                  <AlertDescription>
+                      <p className="font-semibold">The registrar provided the following reason:</p>
+                      <p className="mt-2 italic">"{property.rejectionReason}"</p>
+                  </AlertDescription>
+              </Alert>
+          )}
           
-           {isOwner && property.verified && (
+           {isOwner && property.status === 'verified' && (
             <ManageSale property={property} onSaleStatusChanged={fetchProperty} />
           )}
 
-           {isOwner && !property.verified && (
+           {isOwner && property.status === 'unverified' && (
             <Card className="mt-6 border-dashed">
                 <CardHeader className="flex-row items-center gap-4">
                     <Hourglass className="h-6 w-6 text-muted-foreground"/>
@@ -197,6 +232,41 @@ export default function PropertyDetailPage() {
 
           {!isOwner && property.forSale && (
             <BuyProperty property={property} onPurchase={fetchProperty} />
+          )}
+
+          {isOwner && (property.status === 'unverified' || property.status === 'rejected') && (
+              <Card className="border-amber-500 bg-amber-50/50 dark:bg-amber-950/30">
+                  <CardHeader>
+                      <CardTitle>Owner Actions</CardTitle>
+                      <CardDescription>
+                          Since this property is not verified, you can remove it to submit a new, corrected registration.
+                      </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                      <AlertDialog>
+                          <AlertDialogTrigger asChild>
+                              <Button variant="destructive" disabled={isDeleting}>
+                                  <Trash2 className="mr-2 h-4 w-4"/> Delete and Re-register
+                              </Button>
+                          </AlertDialogTrigger>
+                          <AlertDialogContent>
+                              <AlertDialogHeader>
+                                  <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                                  <AlertDialogDescription>
+                                      This will permanently remove this property registration. This action cannot be undone, but you will be able to submit a new registration.
+                                  </AlertDialogDescription>
+                              </AlertDialogHeader>
+                              <AlertDialogFooter>
+                                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                  <AlertDialogAction onClick={handleDelete} disabled={isDeleting} className="bg-destructive hover:bg-destructive/90">
+                                      {isDeleting ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : null}
+                                      Yes, delete it
+                                  </AlertDialogAction>
+                              </AlertDialogFooter>
+                          </AlertDialogContent>
+                      </AlertDialog>
+                  </CardContent>
+              </Card>
           )}
         </div>
       </div>

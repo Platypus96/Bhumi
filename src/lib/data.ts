@@ -11,6 +11,7 @@ import {
   Timestamp,
   Firestore,
   deleteDoc,
+  deleteField,
 } from 'firebase/firestore';
 
 import type { Property, TransferHistory } from './types';
@@ -118,6 +119,7 @@ export async function verifyPropertyInDb(db: Firestore, parcelId: string): Promi
       verified: true, 
       status: 'verified' as const,
       verifiedAt: Timestamp.now(),
+      rejectionReason: deleteField(),
   };
   
   try {
@@ -127,9 +129,13 @@ export async function verifyPropertyInDb(db: Firestore, parcelId: string): Promi
   }
 }
 
-export async function rejectPropertyInDb(db: Firestore, parcelId: string): Promise<void> {
+export async function rejectPropertyInDb(db: Firestore, parcelId: string, reason: string): Promise<void> {
   const propRef = doc(db, PROPERTIES_COLLECTION, parcelId);
-  const updateData = { status: 'rejected' as const };
+  const updateData = { 
+    status: 'rejected' as const,
+    rejectionReason: reason,
+    verified: false,
+  };
   
   try {
     await updateDoc(propRef, updateData);

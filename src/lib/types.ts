@@ -35,6 +35,7 @@ export interface Property {
   imageUrl: string; // This will now be an IPFS CID URL
   ipfsProofCid: string;
   status: PropertyStatus;
+  rejectionReason?: string;
   verified: boolean; // Retained for smart contract compatibility, but status is preferred for UI
   txHash: string;
   forSale: boolean;
