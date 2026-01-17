@@ -12,8 +12,7 @@ import { Loader2, Search } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 
 export default function PublicPortalPage() {
-  const [location, setLocation] = useState("");
-  const [ownerName, setOwnerName] = useState("");
+  const [searchTerm, setSearchTerm] = useState("");
   const [properties, setProperties] = useState<Property[]>([]);
   const [loading, setLoading] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
@@ -21,11 +20,11 @@ export default function PublicPortalPage() {
   const { toast } = useToast();
 
   const handleSearch = async () => {
-    if (!location && !ownerName) {
+    if (!searchTerm) {
       toast({
         variant: "destructive",
-        title: "Search criteria needed",
-        description: "Please enter a location or an owner's name to search.",
+        title: "Search term required",
+        description: "Please enter a search term to find properties.",
       });
       return;
     }
@@ -50,18 +49,15 @@ export default function PublicPortalPage() {
       const querySnapshot = await getDocs(query(propertiesCollection));
       const allProps = querySnapshot.docs.map(doc => doc.data() as Property);
 
-      const lowercasedLocation = location.toLowerCase();
-      const lowercasedOwner = ownerName.toLowerCase();
+      const lowercasedTerm = searchTerm.toLowerCase();
 
       const filteredProps = allProps.filter(prop => {
-        const locationMatch = lowercasedLocation 
-          ? prop.location.toLowerCase().includes(lowercasedLocation) 
-          : true;
-        const ownerMatch = lowercasedOwner 
-          ? prop.title.toLowerCase().includes(lowercasedOwner) 
-          : true;
+        const locationMatch = prop.location.toLowerCase().includes(lowercasedTerm);
+        const ownerNameMatch = prop.title.toLowerCase().includes(lowercasedTerm);
+        const parcelIdMatch = prop.parcelId.toLowerCase().includes(lowercasedTerm);
+        const ownerAddressMatch = prop.owner.toLowerCase().includes(lowercasedTerm);
         
-        return locationMatch && ownerMatch;
+        return locationMatch || ownerNameMatch || parcelIdMatch || ownerAddressMatch;
       });
 
       filteredProps.sort((a, b) => (b.registeredAt?.toMillis() || 0) - (a.registeredAt?.toMillis() || 0));
@@ -86,39 +82,30 @@ export default function PublicPortalPage() {
           Public Property Search
         </h1>
         <p className="mt-2 text-lg text-muted-foreground">
-          Find registered properties by location and/or owner's name.
+          Find registered properties by location, owner, parcel ID, or wallet address.
         </p>
       </div>
 
       <Card>
         <CardHeader>
             <CardTitle>Search for a Property</CardTitle>
-            <CardDescription>Enter a location and optionally an owner's name to find properties.</CardDescription>
+            <CardDescription>Enter a location, owner's name, parcel ID, or owner's wallet address.</CardDescription>
         </CardHeader>
         <CardContent>
-            <form onSubmit={(e) => { e.preventDefault(); handleSearch(); }} className="grid sm:grid-cols-2 gap-4 items-end">
-                <div className="space-y-2">
-                    <label htmlFor="location" className="text-sm font-medium">Location</label>
+            <form onSubmit={(e) => { e.preventDefault(); handleSearch(); }} className="flex flex-col sm:flex-row gap-4 items-end">
+                <div className="w-full space-y-2">
+                    <label htmlFor="searchTerm" className="text-sm font-medium">Search Term</label>
                     <Input
-                        id="location"
-                        placeholder="e.g., City, State, or Country"
-                        value={location}
-                        onChange={(e) => setLocation(e.target.value)}
+                        id="searchTerm"
+                        placeholder="e.g., New York, John Doe, 0x..., or parcel ID"
+                        value={searchTerm}
+                        onChange={(e) => setSearchTerm(e.target.value)}
                     />
                 </div>
-                <div className="space-y-2">
-                    <label htmlFor="ownerName" className="text-sm font-medium">Owner's Name (Optional)</label>
-                    <Input
-                        id="ownerName"
-                        placeholder="e.g., John Doe"
-                        value={ownerName}
-                        onChange={(e) => setOwnerName(e.target.value)}
-                    />
-                </div>
-                 <div className="sm:col-span-2">
-                    <Button type="submit" disabled={loading} className="w-full sm:w-auto">
+                <div className="w-full sm:w-auto flex-shrink-0">
+                    <Button type="submit" disabled={loading} className="w-full">
                         {loading ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Search className="mr-2 h-4 w-4" />}
-                        Search Properties
+                        Search
                     </Button>
                 </div>
             </form>
