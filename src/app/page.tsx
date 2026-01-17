@@ -29,8 +29,8 @@ export default function Home() {
           </p>
 
           {/* CTA Buttons */}
-          <div className="mt-10 flex items-center justify-center gap-x-6">
-            <Button size="lg" asChild className="rounded-full px-6 py-3 text-base">
+          <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-x-6 gap-y-4">
+            <Button size="lg" asChild className="rounded-full px-6 py-3 text-base w-full sm:w-auto">
               <Link href="/public-portal">Get Started</Link>
             </Button>
             <Button variant="link" asChild className="text-md font-medium">

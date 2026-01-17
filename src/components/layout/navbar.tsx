@@ -1,4 +1,3 @@
-
 "use client";
 
 import Link from "next/link";
@@ -114,8 +113,9 @@ const BaseNavbar = () => {
           {desktopNav}
         </nav>
 
-        {/* Mobile Nav Trigger */}
-        <div className="flex flex-1 items-center justify-end md:hidden">
+        {/* Mobile Nav & Wallet Button */}
+        <div className="flex flex-1 items-center justify-end gap-2 md:hidden">
+          <WalletConnectButton />
           <Sheet open={isMobileMenuOpen} onOpenChange={setMobileMenuOpen}>
             <SheetTrigger asChild>
               <Button
@@ -127,15 +127,15 @@ const BaseNavbar = () => {
               </Button>
             </SheetTrigger>
             <SheetContent side="left" className="pr-0 pt-10">
-              <div className="flex flex-col space-y-2">
+              <div className="flex flex-col space-y-2 px-4">
                 {mobileNav}
               </div>
             </SheetContent>
           </Sheet>
         </div>
         
-        {/* Wallet Button */}
-        <div className="hidden md:flex items-center justify-end space-x-4">
+        {/* Desktop Wallet Button */}
+        <div className="hidden md:flex items-center justify-end">
           <WalletConnectButton />
         </div>
       </div>

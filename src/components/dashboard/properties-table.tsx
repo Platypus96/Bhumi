@@ -111,8 +111,8 @@ export function PropertiesTable({ properties }: PropertiesTableProps) {
           <TableHeader>
             <TableRow>
               <TableHead>Property</TableHead>
-              <TableHead>Owner</TableHead>
-              <TableHead className="text-center">Registered</TableHead>
+              <TableHead className="hidden sm:table-cell">Owner</TableHead>
+              <TableHead className="hidden md:table-cell text-center">Registered</TableHead>
               <TableHead className="text-center">Status</TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
@@ -125,10 +125,10 @@ export function PropertiesTable({ properties }: PropertiesTableProps) {
                 className="cursor-pointer"
               >
                 <TableCell className="font-medium">{prop.title}</TableCell>
-                <TableCell className="font-mono text-xs">
+                <TableCell className="font-mono text-xs hidden sm:table-cell">
                   {prop.owner.substring(0, 6)}...{prop.owner.substring(prop.owner.length - 4)}
                 </TableCell>
-                <TableCell className="text-center">
+                <TableCell className="text-center hidden md:table-cell">
                     {prop.registeredAt ? format(prop.registeredAt.toDate(), "dd MMM yyyy") : 'N/A'}
                 </TableCell>
                 <TableCell className="text-center">

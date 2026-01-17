@@ -61,9 +61,9 @@ export function PublicPropertiesTable({ properties }: PublicPropertiesTableProps
           <TableHeader>
             <TableRow>
               <TableHead>Property Owner</TableHead>
-              <TableHead>Owner Address</TableHead>
-              <TableHead>Location</TableHead>
-              <TableHead className="text-center">Registered</TableHead>
+              <TableHead className="hidden sm:table-cell">Owner Address</TableHead>
+              <TableHead className="hidden md:table-cell">Location</TableHead>
+              <TableHead className="hidden lg:table-cell text-center">Registered</TableHead>
               <TableHead className="text-center">Status</TableHead>
             </TableRow>
           </TableHeader>
@@ -75,11 +75,11 @@ export function PublicPropertiesTable({ properties }: PublicPropertiesTableProps
                 className="cursor-pointer"
               >
                 <TableCell className="font-medium">{prop.title}</TableCell>
-                <TableCell>
+                <TableCell className="hidden sm:table-cell">
                   <HashPill hash={prop.owner} type="address" />
                 </TableCell>
-                <TableCell>{prop.location}</TableCell>
-                <TableCell className="text-center">
+                <TableCell className="hidden md:table-cell">{prop.location}</TableCell>
+                <TableCell className="hidden lg:table-cell text-center">
                     {prop.registeredAt ? format(prop.registeredAt.toDate(), "dd MMM yyyy") : 'N/A'}
                 </TableCell>
                 <TableCell className="text-center">

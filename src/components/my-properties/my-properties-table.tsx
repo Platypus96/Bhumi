@@ -60,9 +60,9 @@ export function MyPropertiesTable({ properties }: MyPropertiesTableProps) {
           <TableHeader>
             <TableRow>
               <TableHead>Property</TableHead>
-              <TableHead>Location</TableHead>
-              <TableHead>Area</TableHead>
-              <TableHead className="text-center">Registered</TableHead>
+              <TableHead className="hidden sm:table-cell">Location</TableHead>
+              <TableHead className="hidden md:table-cell">Area</TableHead>
+              <TableHead className="text-center hidden sm:table-cell">Registered</TableHead>
               <TableHead className="text-center">Status</TableHead>
             </TableRow>
           </TableHeader>
@@ -74,9 +74,9 @@ export function MyPropertiesTable({ properties }: MyPropertiesTableProps) {
                 className="cursor-pointer"
               >
                 <TableCell className="font-medium">{prop.title}</TableCell>
-                <TableCell>{prop.location}</TableCell>
-                <TableCell>{prop.area}</TableCell>
-                <TableCell className="text-center">
+                <TableCell className="hidden sm:table-cell">{prop.location}</TableCell>
+                <TableCell className="hidden md:table-cell">{prop.area}</TableCell>
+                <TableCell className="text-center hidden sm:table-cell">
                     {prop.registeredAt ? format(prop.registeredAt.toDate(), "dd MMM yyyy") : 'N/A'}
                 </TableCell>
                 <TableCell className="text-center">
