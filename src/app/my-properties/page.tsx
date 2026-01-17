@@ -1,21 +1,20 @@
-
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { collection, query, where, onSnapshot } from 'firebase/firestore';
 import type { Property } from '@/lib/types';
-import { PropertyCard } from '@/components/property-card';
-import { Skeleton } from '@/components/ui/skeleton';
 import { useWeb3 } from '@/hooks/use-web3';
 import { useFirebase } from '@/firebase';
 import { useToast } from '@/hooks/use-toast';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
-import { AlertCircle, PlusCircle, Building2, Home } from 'lucide-react';
+import { AlertCircle, PlusCircle, Home, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { MyPropertiesTable } from '@/components/my-properties/my-properties-table';
 
 export default function MyPropertiesPage() {
-  const [properties, setProperties] = useState<Property[]>([]);
+  const [allProperties, setAllProperties] = useState<Property[]>([]);
   const [loading, setLoading] = useState(true);
   const { account } = useWeb3();
   const { firestore } = useFirebase();
@@ -23,7 +22,7 @@ export default function MyPropertiesPage() {
 
   useEffect(() => {
     if (!account || !firestore) {
-      setProperties([]);
+      setAllProperties([]);
       setLoading(false);
       return;
     }
@@ -34,7 +33,9 @@ export default function MyPropertiesPage() {
     
     const unsubscribe = onSnapshot(q, (querySnapshot) => {
         const props = querySnapshot.docs.map(doc => doc.data() as Property);
-        setProperties(props);
+        // Sort by registration date
+        props.sort((a, b) => (b.registeredAt?.toMillis() || 0) - (a.registeredAt?.toMillis() || 0));
+        setAllProperties(props);
         setLoading(false);
     }, (error) => {
         console.error("Failed to fetch user properties:", error);
@@ -44,6 +45,24 @@ export default function MyPropertiesPage() {
 
     return () => unsubscribe();
   }, [account, firestore, toast]);
+
+  const { pendingProperties, verifiedProperties, rejectedProperties } = useMemo(() => {
+    const pending: Property[] = [];
+    const verified: Property[] = [];
+    const rejected: Property[] = [];
+
+    allProperties.forEach(prop => {
+      if (prop.status === 'verified') {
+        verified.push(prop);
+      } else if (prop.status === 'rejected') {
+        rejected.push(prop);
+      } else {
+        pending.push(prop);
+      }
+    });
+
+    return { pendingProperties: pending, verifiedProperties: verified, rejectedProperties: rejected };
+  }, [allProperties]);
   
   if (!account) {
     return (
@@ -70,7 +89,7 @@ export default function MyPropertiesPage() {
                   My Properties
                 </h1>
                 <p className="mt-2 text-lg text-muted-foreground">
-                    A list of all your registered properties, including pending and verified ones.
+                    A list of all your registered properties, sorted by their verification status.
                 </p>
             </div>
              <Button asChild size="lg" className="rounded-full font-semibold">
@@ -83,39 +102,33 @@ export default function MyPropertiesPage() {
 
       <div className="mt-6">
         {loading ? (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {Array.from({ length: 3 }).map((_, i) => (
-              <div key={i} className="flex flex-col space-y-3">
-                <Skeleton className="h-[250px] w-full rounded-xl" />
-                <div className="space-y-2">
-                  <Skeleton className="h-4 w-[250px]" />
-                  <Skeleton className="h-4 w-[200px]" />
-                </div>
-              </div>
-            ))}
+          <div className="flex items-center justify-center h-96">
+            <Loader2 className="h-8 w-8 animate-spin text-primary" />
+            <p className="ml-4 text-muted-foreground">Loading your properties...</p>
           </div>
         ) : (
-          <>
-            {properties.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                {properties.map((prop) => (
-                  <PropertyCard key={prop.parcelId} property={prop} />
-                ))}
-              </div>
-            ) : (
-               <div className="flex flex-col items-center justify-center text-center py-20 bg-card/50 rounded-2xl border-2 border-dashed">
-                  <div className="bg-secondary p-4 rounded-full mb-6">
-                      <Building2 className="h-12 w-12 text-muted-foreground" />
-                  </div>
-                <h3 className="text-2xl font-semibold text-foreground font-headline">
-                  You haven't added any properties yet.
-                </h3>
-                <p className="text-muted-foreground mt-2 max-w-md">
-                  Get started by registering a new property on the blockchain to see it appear here.
-                </p>
-              </div>
-            )}
-          </>
+          <Tabs defaultValue="pending">
+            <TabsList className="grid w-full grid-cols-3 max-w-lg mx-auto">
+              <TabsTrigger value="pending">
+                Under Verification ({pendingProperties.length})
+              </TabsTrigger>
+              <TabsTrigger value="verified">
+                Verified ({verifiedProperties.length})
+              </TabsTrigger>
+              <TabsTrigger value="rejected">
+                Rejected ({rejectedProperties.length})
+              </TabsTrigger>
+            </TabsList>
+            <TabsContent value="pending" className="mt-6">
+              <MyPropertiesTable properties={pendingProperties} status="unverified" />
+            </TabsContent>
+            <TabsContent value="verified" className="mt-6">
+              <MyPropertiesTable properties={verifiedProperties} status="verified" />
+            </TabsContent>
+            <TabsContent value="rejected" className="mt-6">
+              <MyPropertiesTable properties={rejectedProperties} status="rejected" />
+            </TabsContent>
+          </Tabs>
         )}
       </div>
     </div>
