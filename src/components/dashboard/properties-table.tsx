@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState } from "react";
@@ -114,7 +113,6 @@ export function PropertiesTable({ properties }: PropertiesTableProps) {
               <TableHead>Property</TableHead>
               <TableHead>Owner</TableHead>
               <TableHead className="text-center">Registered</TableHead>
-              <TableHead className="text-center">Verified</TableHead>
               <TableHead className="text-center">Status</TableHead>
               <TableHead className="text-right">Actions</TableHead>
             </TableRow>
@@ -132,9 +130,6 @@ export function PropertiesTable({ properties }: PropertiesTableProps) {
                 </TableCell>
                 <TableCell className="text-center">
                     {prop.registeredAt ? format(prop.registeredAt.toDate(), "dd MMM yyyy") : 'N/A'}
-                </TableCell>
-                 <TableCell className="text-center">
-                    {prop.verifiedAt ? format(prop.verifiedAt.toDate(), "dd MMM yyyy") : 'N/A'}
                 </TableCell>
                 <TableCell className="text-center">
                   <Badge variant={getStatusVariant(prop.status)}>{prop.status}</Badge>
@@ -177,4 +172,3 @@ export function PropertiesTable({ properties }: PropertiesTableProps) {
     </>
   );
 }
-

@@ -63,7 +63,6 @@ export function MyPropertiesTable({ properties }: MyPropertiesTableProps) {
               <TableHead>Location</TableHead>
               <TableHead>Area</TableHead>
               <TableHead className="text-center">Registered</TableHead>
-              <TableHead className="text-center">Verified</TableHead>
               <TableHead className="text-center">Status</TableHead>
             </TableRow>
           </TableHeader>
@@ -79,9 +78,6 @@ export function MyPropertiesTable({ properties }: MyPropertiesTableProps) {
                 <TableCell>{prop.area}</TableCell>
                 <TableCell className="text-center">
                     {prop.registeredAt ? format(prop.registeredAt.toDate(), "dd MMM yyyy") : 'N/A'}
-                </TableCell>
-                <TableCell className="text-center">
-                    {prop.verifiedAt ? format(prop.verifiedAt.toDate(), "dd MMM yyyy") : 'N/A'}
                 </TableCell>
                 <TableCell className="text-center">
                   <Badge variant={getStatusVariant(prop.status)}>{prop.status}</Badge>
