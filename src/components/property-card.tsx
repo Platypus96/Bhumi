@@ -55,16 +55,14 @@ export function PropertyCard({ property }: PropertyCardProps) {
   };
 
   return (
-    <Card className="h-full flex flex-col overflow-hidden rounded-xl border border-border/50 shadow-md hover:shadow-xl hover:border-primary/60 transition-all duration-300 bg-card relative group">
+    <Card className="h-full flex flex-col overflow-hidden rounded-xl border border-border/50 shadow-md hover:shadow-xl hover:border-primary/60 transition-all duration-300 bg-card relative group z-0">
       
       {/* Map Section */}
       <CardHeader className="p-0 relative">
          <div className="relative aspect-video overflow-hidden">
+            <p className="absolute top-0 w-full bg-black/50 text-white text-center text-[10px] p-0.5 z-20">This is only a tentative boundary for representation of land, actual boundary may defer</p>
              <LeafletMap readOnly initialData={property.polygon} />
              <StatusBadge />
-             <div className="absolute top-0 w-full bg-black/50 text-white text-center text-[10px] p-0.5 z-20">
-                This is only a tentative boundary for representation of land, actual boundary may defer
-             </div>
          </div>
       </CardHeader>
 

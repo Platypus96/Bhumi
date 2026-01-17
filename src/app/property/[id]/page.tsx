@@ -170,7 +170,7 @@ export default function PropertyDetailPage() {
           <div className="lg:col-span-2 space-y-8">
             
             {/* Map */}
-            <Card className="shadow-md overflow-hidden">
+            <Card className="shadow-md overflow-hidden relative z-0">
                 <CardContent className="p-0">
                     <p className="text-xs text-muted-foreground text-center p-2 bg-secondary/50">This is only a tentative boundary for representation of land, actual boundary may differ.</p>
                     <div className="h-[450px]">

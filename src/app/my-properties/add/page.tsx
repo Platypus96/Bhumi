@@ -297,8 +297,8 @@ export default function AddPropertyPage() {
               render={({ field }) => (
                  <FormItem>
                     <FormLabel>Property Boundary</FormLabel>
-                    <FormDescription>This is only a tentative boundary for representation of land, actual boundary may differ.</FormDescription>
-                    <div className="border rounded-xl overflow-hidden shadow-lg h-[500px]">
+                    <p className="text-xs text-muted-foreground text-center p-2 bg-secondary/50">This is only a tentative boundary for representation of land, actual boundary may differ.</p>
+                    <div className="border rounded-xl overflow-hidden shadow-lg h-[500px] relative z-0">
                       <LeafletMap 
                         onPolygonComplete={handlePolygonCreated}
                         center={mapCenter}
