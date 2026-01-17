@@ -2,6 +2,7 @@ import { VerifyProperty } from "@/components/verify-property";
 import { AllProperties } from "@/components/all-properties";
 import { Search } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Separator } from "@/components/ui/separator";
 
 export default function PublicPortalPage() {
   return (
@@ -12,12 +13,16 @@ export default function PublicPortalPage() {
               Public Verification Portal
             </h1>
             <p className="mt-2 text-lg text-muted-foreground">
-              Verify property documents and check authenticity using blockchain technology. Enter a parcel ID below to begin.
+              Verify property documents and check authenticity using blockchain technology. Enter a parcel ID below to begin or browse all properties.
             </p>
         </div>
 
         <VerifyProperty />
       </div>
+
+      <Separator />
+
+      <AllProperties showForSaleOnly={false} />
 
       <div className="space-y-8 pt-8">
         <h2 className="text-3xl font-bold text-center font-headline">How Verification Works</h2>

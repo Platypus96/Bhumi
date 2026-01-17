@@ -36,6 +36,15 @@ export function DashboardStats({ stats, currentFilter, onFilterChange }: Dashboa
       borderColor: "border-green-200 dark:border-green-800",
       filter: "verified" as PropertyStatusFilter,
     },
+     {
+      title: "Rejected",
+      value: stats.rejected,
+      icon: XCircle,
+      color: "text-red-500",
+      bgColor: "bg-red-50 dark:bg-red-900/20",
+      borderColor: "border-red-200 dark:border-red-800",
+      filter: "rejected" as PropertyStatusFilter,
+    },
     {
       title: "All",
       value: stats.pending + stats.verified + stats.rejected,
@@ -48,7 +57,7 @@ export function DashboardStats({ stats, currentFilter, onFilterChange }: Dashboa
   ];
 
   return (
-    <div className="grid gap-4 md:grid-cols-3">
+    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
       {statCards.map((card) => (
         <Card
           key={card.title}

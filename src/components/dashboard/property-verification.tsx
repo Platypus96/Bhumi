@@ -8,7 +8,7 @@ import { Badge } from '../ui/badge';
 import { Button } from '../ui/button';
 import { HashPill } from '../hash-pill';
 import { format } from 'date-fns';
-import { Download, FileText, Loader2, Map, User, ArrowLeft, CheckCircle, XCircle, ShieldAlert, ExternalLink, MapPin } from 'lucide-react';
+import { Download, FileText, Loader2, Map, User, CheckCircle, XCircle, ShieldAlert, ExternalLink, MapPin } from 'lucide-react';
 import Link from 'next/link';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '../ui/dialog';
 import { Separator } from '../ui/separator';
@@ -26,11 +26,11 @@ const LeafletMap = dynamic(() => import('@/components/LeafletMap'), {
 
 
 interface PropertyVerificationProps {
-    property: Property | null;
-    onBack?: () => void;
+    property: Property;
+    onUpdate: () => void;
 }
 
-export function PropertyVerification({ property, onBack }: PropertyVerificationProps) {
+export function PropertyVerification({ property, onUpdate }: PropertyVerificationProps) {
     const { verifyProperty: verifyOnChain } = useBlockchain();
     const { firestore } = useFirebase();
     const { toast } = useToast();
@@ -45,6 +45,7 @@ export function PropertyVerification({ property, onBack }: PropertyVerificationP
             await verifyOnChain(property.parcelId);
             await verifyPropertyInDb(firestore, property.parcelId);
             toast({ title: 'Success', description: 'Property has been verified.' });
+            onUpdate(); // Re-fetch data on parent page
         } catch (e: any) {
             setError(e.message || "An error occurred during verification.");
             toast({ variant: 'destructive', title: 'Verification Failed', description: e.message });
@@ -60,6 +61,7 @@ export function PropertyVerification({ property, onBack }: PropertyVerificationP
         try {
             await rejectPropertyInDb(firestore, property.parcelId);
             toast({ title: 'Property Rejected', description: 'The property status has been updated to rejected.' });
+            onUpdate(); // Re-fetch data on parent page
         } catch (e: any) {
             setError(e.message || "An error occurred.");
             toast({ variant: 'destructive', title: 'Rejection Failed', description: e.message });
@@ -68,18 +70,6 @@ export function PropertyVerification({ property, onBack }: PropertyVerificationP
         }
     }
 
-    if (!property) {
-        return (
-            <Card className="h-full flex items-center justify-center shadow-lg">
-                <div className="text-center p-8">
-                    <FileText className="h-12 w-12 mx-auto text-muted-foreground" />
-                    <h3 className="mt-4 text-lg font-semibold">No Property Selected</h3>
-                    <p className="mt-1 text-sm text-muted-foreground">Select a property from the list to view its details and begin verification.</p>
-                </div>
-            </Card>
-        );
-    }
-    
     const isPending = !property.status || property.status === 'unverified';
     const hasCoordinates = property.latitude && property.longitude;
 
@@ -103,13 +93,12 @@ export function PropertyVerification({ property, onBack }: PropertyVerificationP
                         <CardDescription>{property.location}</CardDescription>
                     )}
                 </div>
-                {onBack && <Button variant="ghost" onClick={onBack}><ArrowLeft className="mr-2"/> Back</Button>}
             </CardHeader>
             <CardContent className="space-y-6">
                 <div className="space-y-3 text-sm">
                     <div className="flex items-center justify-between"><strong className="text-muted-foreground flex items-center"><User className="mr-2 h-4 w-4"/>Owner</strong> <HashPill type="address" hash={property.owner}/></div>
                     <div className="flex items-center justify-between"><strong className="text-muted-foreground">Registered</strong> <span>{property.registeredAt ? format(property.registeredAt.toDate(), "PPP") : 'N/A'}</span></div>
-                    <div className="flex items-center justify-between"><strong className="text-muted-foreground">Status</strong> <Badge variant={isPending ? 'destructive' : property.status === 'verified' ? 'secondary' : 'default'}>{property.status || 'unverified'}</Badge></div>
+                    <div className="flex items-center justify-between"><strong className="text-muted-foreground">Status</strong> <Badge variant={isPending ? 'default' : property.status === 'verified' ? 'secondary' : 'destructive'}>{property.status || 'unverified'}</Badge></div>
                 </div>
 
                 <Separator/>

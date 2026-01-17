@@ -10,6 +10,7 @@ import {
   where,
   Timestamp,
   Firestore,
+  deleteDoc,
 } from 'firebase/firestore';
 
 import type { Property, TransferHistory } from './types';
@@ -113,7 +114,11 @@ export async function getAllProperties(db: Firestore): Promise<Property[]> {
 
 export async function verifyPropertyInDb(db: Firestore, parcelId: string): Promise<void> {
   const propRef = doc(db, PROPERTIES_COLLECTION, parcelId);
-  const updateData = { verified: true, status: 'verified' as const };
+  const updateData = { 
+      verified: true, 
+      status: 'verified' as const,
+      verifiedAt: Timestamp.now(),
+  };
   
   try {
     await updateDoc(propRef, updateData);
@@ -131,6 +136,15 @@ export async function rejectPropertyInDb(db: Firestore, parcelId: string): Promi
   } catch (error) {
     handleFirestoreError(error, 'update', propRef.path, updateData);
   }
+}
+
+export async function deletePropertyFromDb(db: Firestore, parcelId: string): Promise<void> {
+    const propRef = doc(db, PROPERTIES_COLLECTION, parcelId);
+    try {
+        await deleteDoc(propRef);
+    } catch (error) {
+        handleFirestoreError(error, 'delete', propRef.path);
+    }
 }
 
 

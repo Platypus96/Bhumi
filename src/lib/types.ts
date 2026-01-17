@@ -41,5 +41,6 @@ export interface Property {
   price: string | null; // in wei
   history: TransferHistory[];
   registeredAt: Timestamp;
+  verifiedAt?: Timestamp;
   polygon?: string; // GeoJSON string for the property boundary
 }
