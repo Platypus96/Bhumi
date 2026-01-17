@@ -12,7 +12,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { User, ShieldAlert, History, Check, Tag, Hourglass, ExternalLink, Trash2, Map, MapPin, Square, Building, Wallet } from "lucide-react";
+import { User, ShieldAlert, History, Check, Tag, Hourglass, ExternalLink, Trash2, MapPin, Square, Building, Wallet, Fingerprint } from "lucide-react";
 import { format } from 'date-fns';
 import { VerifyDocument } from "@/components/verify-document";
 import { ManageSale } from "@/components/manage-sale";
@@ -21,7 +21,6 @@ import { formatEther } from "ethers";
 import { Button } from "@/components/ui/button";
 import { HashPill } from "@/components/hash-pill";
 import { Separator } from "@/components/ui/separator";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
 import { useToast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";
@@ -30,7 +29,7 @@ import { cn } from "@/lib/utils";
 
 const LeafletMap = dynamic(() => import('@/components/LeafletMap'), {
   ssr: false,
-  loading: () => <div className="h-full w-full bg-muted animate-pulse" />
+  loading: () => <div className="h-[450px] w-full bg-muted animate-pulse" />
 });
 
 
@@ -84,9 +83,13 @@ export default function PropertyDetailPage() {
   if (loading) {
     return (
       <div className="container mx-auto max-w-7xl px-4 py-8 space-y-8">
-        <Skeleton className="h-96 w-full rounded-2xl" />
+        <div className="flex flex-col space-y-4">
+            <Skeleton className="h-10 w-2/3" />
+            <Skeleton className="h-6 w-1/3" />
+        </div>
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
             <div className="lg:col-span-2 space-y-4">
+                <Skeleton className="h-[450px] w-full rounded-2xl" />
                 <Skeleton className="h-48 w-full" />
                 <Skeleton className="h-48 w-full" />
             </div>
@@ -114,9 +117,9 @@ export default function PropertyDetailPage() {
   
   const StatusBadge = ({ className }: { className?: string }) => {
     const statusConfig = {
-      verified: { text: 'Verified', icon: Check, variant: 'secondary', className: 'bg-green-100 text-green-800 border-green-200' },
-      rejected: { text: 'Rejected', icon: ShieldAlert, variant: 'destructive', className: 'bg-red-100 text-red-800 border-red-200' },
-      unverified: { text: 'Pending Verification', icon: Hourglass, variant: 'default', className: 'bg-amber-100 text-amber-800 border-amber-200' }
+      verified: { text: 'Verified', icon: Check, className: 'bg-green-100 text-green-800 border-green-200' },
+      rejected: { text: 'Rejected', icon: ShieldAlert, className: 'bg-red-100 text-red-800 border-red-200' },
+      unverified: { text: 'Pending Verification', icon: Hourglass, className: 'bg-amber-100 text-amber-800 border-amber-200' }
     };
     const config = statusConfig[property.status || 'unverified'];
     const Icon = config.icon;
@@ -130,45 +133,48 @@ export default function PropertyDetailPage() {
   };
 
   return (
-    <div className="bg-gray-50/50 dark:bg-black">
-      {/* Hero Section */}
-      <div className="relative h-64 md:h-80 lg:h-[450px] w-full">
-        <LeafletMap readOnly initialData={property.polygon}/>
-        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
-        <div className="absolute bottom-0 left-0 right-0 p-6 md:p-8 text-white">
-          <div className="max-w-7xl mx-auto">
-             <StatusBadge className="mb-2"/>
-            <h1 className="text-3xl md:text-4xl lg:text-5xl font-extrabold tracking-tight drop-shadow-lg">
-              {property.title}
-            </h1>
-            <div className="flex items-center gap-2 mt-2 text-lg text-gray-200">
-               {isCoordinate ? (
-                  <a
-                    href={`https://www.google.com/maps?q=${property.latitude},${property.longitude}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="hover:underline flex items-center gap-2"
-                  >
-                    <MapPin className="h-5 w-5" />
-                    <span>{property.location}</span>
-                    <ExternalLink className="h-4 w-4" />
-                  </a>
-                ) : (
-                  <span className="flex items-center gap-2">
-                    <MapPin className="h-5 w-5" />
-                    {property.location}
-                  </span>
-                )}
-            </div>
+    <div className="bg-gray-50/50 dark:bg-black py-8 lg:py-12">
+      <div className="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+        
+        {/* Header */}
+        <div className="mb-8">
+          <StatusBadge className="mb-2 max-w-fit"/>
+          <h1 className="text-3xl md:text-4xl lg:text-5xl font-extrabold tracking-tight text-foreground">
+            {property.title}
+          </h1>
+          <div className="flex items-center gap-2 mt-2 text-lg text-muted-foreground">
+              {isCoordinate ? (
+                <a
+                  href={`https://www.google.com/maps?q=${property.latitude},${property.longitude}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="hover:underline flex items-center gap-2"
+                >
+                  <MapPin className="h-5 w-5" />
+                  <span>{property.location}</span>
+                  <ExternalLink className="h-4 w-4" />
+                </a>
+              ) : (
+                <span className="flex items-center gap-2">
+                  <MapPin className="h-5 w-5" />
+                  {property.location}
+                </span>
+              )}
           </div>
         </div>
-      </div>
 
-      {/* Main Content */}
-      <div className="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8 lg:py-12">
+        {/* Main Content */}
         <div className="grid grid-cols-1 lg:grid-cols-3 lg:gap-12">
+          
           {/* Left Column */}
           <div className="lg:col-span-2 space-y-8">
+            
+            {/* Map */}
+            <Card className="shadow-md overflow-hidden">
+                <div className="h-[450px]">
+                    <LeafletMap readOnly initialData={property.polygon}/>
+                </div>
+            </Card>
             
             {/* About Section */}
             <Card className="shadow-md">
@@ -177,23 +183,6 @@ export default function PropertyDetailPage() {
               </CardHeader>
               <CardContent className="space-y-6">
                 <p className="text-base text-muted-foreground whitespace-pre-wrap">{property.description}</p>
-                <Separator/>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-base">
-                    <div className="flex items-center gap-3">
-                        <div className="p-2 bg-secondary rounded-lg"><Square className="h-5 w-5 text-primary"/></div>
-                        <div>
-                            <p className="font-semibold">{property.area}</p>
-                            <p className="text-sm text-muted-foreground">Total Area</p>
-                        </div>
-                    </div>
-                    <div className="flex items-center gap-3">
-                        <div className="p-2 bg-secondary rounded-lg"><History className="h-5 w-5 text-primary"/></div>
-                        <div>
-                            <p className="font-semibold">{format(property.registeredAt.toDate(), "PPP")}</p>
-                            <p className="text-sm text-muted-foreground">Date Registered</p>
-                        </div>
-                    </div>
-                </div>
               </CardContent>
             </Card>
 
@@ -220,7 +209,7 @@ export default function PropertyDetailPage() {
                         <ul className="space-y-8">
                           {property.history.slice().reverse().map((item, index) => (
                             <li key={index} className="relative flex items-start space-x-6">
-                              <div className="absolute left-0 top-1.5 h-6 w-6 bg-secondary rounded-full flex items-center justify-center -translate-x-1/2">
+                              <div className="absolute left-0 top-1.5 h-6 w-6 bg-secondary rounded-full flex items-center justify-center -translate-x-1/2 ring-4 ring-background">
                                 <Check className="h-4 w-4 text-green-500" />
                               </div>
                               <div className="pt-1 w-full">
@@ -325,7 +314,10 @@ export default function PropertyDetailPage() {
                   </CardHeader>
                   <CardContent className="space-y-4 text-sm">
                      <div className="flex items-center justify-between"><strong className="text-muted-foreground flex items-center gap-2"><Wallet className="h-4 w-4"/>Owner</strong> <HashPill type="address" hash={property.owner}/></div>
-                      <div className="flex items-center justify-between"><strong className="text-muted-foreground flex items-center gap-2"><User className="h-4 w-4"/>Parcel ID</strong> <HashPill type="parcel" hash={property.parcelId}/></div>
+                      <div className="flex items-center justify-between"><strong className="text-muted-foreground flex items-center gap-2"><Fingerprint className="h-4 w-4"/>Parcel ID</strong> <HashPill type="parcel" hash={property.parcelId}/></div>
+                     <Separator/>
+                     <div className="flex items-center justify-between"><strong className="text-muted-foreground flex items-center gap-2"><Square className="h-4 w-4"/>Area</strong> <span className="font-semibold">{property.area}</span></div>
+                      <div className="flex items-center justify-between"><strong className="text-muted-foreground flex items-center gap-2"><History className="h-4 w-4"/>Registered</strong> <span className="font-semibold">{format(property.registeredAt.toDate(), "PPP")}</span></div>
                   </CardContent>
                 </Card>
 
@@ -338,3 +330,4 @@ export default function PropertyDetailPage() {
   );
 }
 
+    
