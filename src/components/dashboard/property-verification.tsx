@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState } from 'react';
@@ -10,13 +9,13 @@ import { HashPill } from '../hash-pill';
 import { format } from 'date-fns';
 import { Download, FileText, Loader2, Map, User, CheckCircle, XCircle, ShieldAlert, ExternalLink, MapPin } from 'lucide-react';
 import Link from 'next/link';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogClose } from '../ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, DialogFooter, DialogClose, DialogDescription } from '../ui/dialog';
 import { Separator } from '../ui/separator';
 import { useBlockchain } from '@/hooks/use-blockchain';
 import { useFirebase } from '@/firebase';
 import { useToast } from '@/hooks/use-toast';
 import { verifyPropertyInDb, rejectPropertyInDb } from '@/lib/data';
-import { Alert, AlertTitle, AlertDescription } from '../ui/alert';
+import { Alert, AlertTitle, AlertDescription as AlertDesc } from '../ui/alert';
 import dynamic from 'next/dynamic';
 import { Textarea } from '../ui/textarea';
 import { Label } from '../ui/label';
@@ -150,7 +149,7 @@ export function PropertyVerification({ property, onUpdate }: PropertyVerificatio
                      <Alert variant="destructive">
                         <ShieldAlert className="h-4 w-4" />
                         <AlertTitle>Operation Failed</AlertTitle>
-                        <AlertDescription>{error}</AlertDescription>
+                        <AlertDesc>{error}</AlertDesc>
                     </Alert>
                 )}
 
