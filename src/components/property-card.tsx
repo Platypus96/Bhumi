@@ -62,7 +62,7 @@ export function PropertyCard({ property }: PropertyCardProps) {
          <div className="relative aspect-video overflow-hidden">
              <LeafletMap readOnly initialData={property.polygon} />
              <StatusBadge />
-             <div className="absolute bottom-0 w-full bg-black/50 text-white text-center text-[10px] p-0.5 z-20">
+             <div className="absolute top-0 w-full bg-black/50 text-white text-center text-[10px] p-0.5 z-20">
                 This is only a tentative boundary for representation of land, actual boundary may defer
              </div>
          </div>

@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from 'react';
@@ -139,7 +140,8 @@ export function PropertyVerification({ property, onUpdate }: PropertyVerificatio
                         <DialogHeader className="p-4 border-b">
                             <DialogTitle>Map View: {property.title}</DialogTitle>
                         </DialogHeader>
-                        <div className="flex-grow">
+                        <p className="text-xs text-muted-foreground text-center p-2 bg-secondary flex-shrink-0">This is only a tentative boundary for representation of land, actual boundary may differ.</p>
+                        <div className="flex-grow h-full">
                          <LeafletMap readOnly initialData={property.polygon}/>
                         </div>
                     </DialogContent>

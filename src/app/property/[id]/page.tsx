@@ -171,9 +171,12 @@ export default function PropertyDetailPage() {
             
             {/* Map */}
             <Card className="shadow-md overflow-hidden">
-                <div className="h-[450px]">
-                    <LeafletMap readOnly initialData={property.polygon}/>
-                </div>
+                <CardContent className="p-0">
+                    <p className="text-xs text-muted-foreground text-center p-2 bg-secondary/50">This is only a tentative boundary for representation of land, actual boundary may differ.</p>
+                    <div className="h-[450px]">
+                        <LeafletMap readOnly initialData={property.polygon}/>
+                    </div>
+                </CardContent>
             </Card>
             
             {/* About Section */}
