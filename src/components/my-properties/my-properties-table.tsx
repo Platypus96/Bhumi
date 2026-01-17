@@ -17,10 +17,9 @@ import { Badge } from "@/components/ui/badge";
 
 interface MyPropertiesTableProps {
   properties: Property[];
-  status: Property['status'];
 }
 
-export function MyPropertiesTable({ properties, status }: MyPropertiesTableProps) {
+export function MyPropertiesTable({ properties }: MyPropertiesTableProps) {
   const router = useRouter();
 
   const handleRowClick = (parcelId: string) => {
@@ -46,10 +45,10 @@ export function MyPropertiesTable({ properties, status }: MyPropertiesTableProps
                 <Building2 className="h-12 w-12 text-muted-foreground" />
             </div>
             <h3 className="text-2xl font-semibold text-foreground font-headline">
-                No properties found with '{status}' status.
+                No properties match your filters.
             </h3>
             <p className="text-muted-foreground mt-2 max-w-md">
-                When you add a new property, it will appear in the 'unverified' list.
+                Try adjusting your search or filter settings, or add a new property.
             </p>
         </div>
     );
@@ -64,6 +63,7 @@ export function MyPropertiesTable({ properties, status }: MyPropertiesTableProps
               <TableHead>Location</TableHead>
               <TableHead>Area</TableHead>
               <TableHead className="text-center">Registered</TableHead>
+              <TableHead className="text-center">Verified</TableHead>
               <TableHead className="text-center">Status</TableHead>
             </TableRow>
           </TableHeader>
@@ -79,6 +79,9 @@ export function MyPropertiesTable({ properties, status }: MyPropertiesTableProps
                 <TableCell>{prop.area}</TableCell>
                 <TableCell className="text-center">
                     {prop.registeredAt ? format(prop.registeredAt.toDate(), "dd MMM yyyy") : 'N/A'}
+                </TableCell>
+                <TableCell className="text-center">
+                    {prop.verifiedAt ? format(prop.verifiedAt.toDate(), "dd MMM yyyy") : 'N/A'}
                 </TableCell>
                 <TableCell className="text-center">
                   <Badge variant={getStatusVariant(prop.status)}>{prop.status}</Badge>
