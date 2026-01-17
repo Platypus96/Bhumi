@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
@@ -7,12 +8,11 @@ import { getPropertyByParcelId, deletePropertyFromDb } from "@/lib/data";
 import type { Property } from "@/lib/types";
 import { useWeb3 } from "@/hooks/use-web3";
 import { useFirebase } from "@/firebase/provider";
-
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { User, ShieldAlert, History, Check, Tag, Hourglass, ExternalLink, Trash2, Map } from "lucide-react";
+import { User, ShieldAlert, History, Check, Tag, Hourglass, ExternalLink, Trash2, Map, MapPin, Square, Building, Wallet } from "lucide-react";
 import { format } from 'date-fns';
 import { VerifyDocument } from "@/components/verify-document";
 import { ManageSale } from "@/components/manage-sale";
@@ -26,10 +26,11 @@ import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, 
 import { useToast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";
 import dynamic from "next/dynamic";
+import { cn } from "@/lib/utils";
 
 const LeafletMap = dynamic(() => import('@/components/LeafletMap'), {
   ssr: false,
-  loading: () => <div className="h-full w-full bg-muted animate-pulse flex items-center justify-center"><p>Loading Map...</p></div>
+  loading: () => <div className="h-full w-full bg-muted animate-pulse" />
 });
 
 
@@ -81,7 +82,20 @@ export default function PropertyDetailPage() {
   };
 
   if (loading) {
-    return <div className="container mx-auto px-4 py-8"><Skeleton className="h-[600px] w-full" /></div>;
+    return (
+      <div className="container mx-auto max-w-7xl px-4 py-8 space-y-8">
+        <Skeleton className="h-96 w-full rounded-2xl" />
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <div className="lg:col-span-2 space-y-4">
+                <Skeleton className="h-48 w-full" />
+                <Skeleton className="h-48 w-full" />
+            </div>
+            <div>
+                <Skeleton className="h-64 w-full" />
+            </div>
+        </div>
+      </div>
+    );
   }
   
   if (!property) {
@@ -96,194 +110,231 @@ export default function PropertyDetailPage() {
     );
   }
 
-  const showReadMore = property.description.length > 200;
   const isCoordinate = property.latitude && property.longitude;
+  
+  const StatusBadge = ({ className }: { className?: string }) => {
+    const statusConfig = {
+      verified: { text: 'Verified', icon: Check, variant: 'secondary', className: 'bg-green-100 text-green-800 border-green-200' },
+      rejected: { text: 'Rejected', icon: ShieldAlert, variant: 'destructive', className: 'bg-red-100 text-red-800 border-red-200' },
+      unverified: { text: 'Pending Verification', icon: Hourglass, variant: 'default', className: 'bg-amber-100 text-amber-800 border-amber-200' }
+    };
+    const config = statusConfig[property.status || 'unverified'];
+    const Icon = config.icon;
+
+    return (
+      <Badge className={cn("flex items-center gap-2 text-sm font-medium", config.className, className)}>
+        <Icon className="h-4 w-4" />
+        {config.text}
+      </Badge>
+    );
+  };
 
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="grid md:grid-cols-2 gap-8 lg:gap-12">
-        <div className="space-y-6">
-          <Card>
+    <div className="bg-gray-50/50 dark:bg-black">
+      {/* Hero Section */}
+      <div className="relative h-64 md:h-80 lg:h-[450px] w-full">
+        <LeafletMap readOnly initialData={property.polygon}/>
+        <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
+        <div className="absolute bottom-0 left-0 right-0 p-6 md:p-8 text-white">
+          <div className="max-w-7xl mx-auto">
+             <StatusBadge className="mb-2"/>
+            <h1 className="text-3xl md:text-4xl lg:text-5xl font-extrabold tracking-tight drop-shadow-lg">
+              {property.title}
+            </h1>
+            <div className="flex items-center gap-2 mt-2 text-lg text-gray-200">
+               {isCoordinate ? (
+                  <a
+                    href={`https://www.google.com/maps?q=${property.latitude},${property.longitude}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="hover:underline flex items-center gap-2"
+                  >
+                    <MapPin className="h-5 w-5" />
+                    <span>{property.location}</span>
+                    <ExternalLink className="h-4 w-4" />
+                  </a>
+                ) : (
+                  <span className="flex items-center gap-2">
+                    <MapPin className="h-5 w-5" />
+                    {property.location}
+                  </span>
+                )}
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Main Content */}
+      <div className="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-8 lg:py-12">
+        <div className="grid grid-cols-1 lg:grid-cols-3 lg:gap-12">
+          {/* Left Column */}
+          <div className="lg:col-span-2 space-y-8">
+            
+            {/* About Section */}
+            <Card className="shadow-md">
               <CardHeader>
-                <CardTitle className="text-3xl font-bold">{property.title}</CardTitle>
+                <CardTitle className="text-2xl font-bold flex items-center"><Building className="mr-3 text-primary"/> About this Property</CardTitle>
               </CardHeader>
               <CardContent className="space-y-6">
-                <div className="text-muted-foreground">
-                  <p className={showReadMore ? 'line-clamp-3' : ''}>
-                    {property.description}
-                  </p>
-                  {showReadMore && (
-                      <Dialog>
-                        <DialogTrigger asChild>
-                          <Button variant="link" className="p-0 h-auto text-sm">Read more...</Button>
-                        </DialogTrigger>
-                        <DialogContent>
-                          <DialogHeader>
-                            <DialogTitle>{property.title}</DialogTitle>
-                          </DialogHeader>
-                          <DialogDescription className="max-h-[60vh] overflow-y-auto whitespace-pre-wrap">
-                            {property.description}
-                          </DialogDescription>
-                        </DialogContent>
-                      </Dialog>
-                  )}
+                <p className="text-base text-muted-foreground whitespace-pre-wrap">{property.description}</p>
+                <Separator/>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-base">
+                    <div className="flex items-center gap-3">
+                        <div className="p-2 bg-secondary rounded-lg"><Square className="h-5 w-5 text-primary"/></div>
+                        <div>
+                            <p className="font-semibold">{property.area}</p>
+                            <p className="text-sm text-muted-foreground">Total Area</p>
+                        </div>
+                    </div>
+                    <div className="flex items-center gap-3">
+                        <div className="p-2 bg-secondary rounded-lg"><History className="h-5 w-5 text-primary"/></div>
+                        <div>
+                            <p className="font-semibold">{format(property.registeredAt.toDate(), "PPP")}</p>
+                            <p className="text-sm text-muted-foreground">Date Registered</p>
+                        </div>
+                    </div>
                 </div>
-                
-                <Dialog>
-                  <DialogTrigger asChild>
-                    <Button variant="outline" className="w-full">
-                        <Map className="mr-2 h-4 w-4"/> View on Map
-                    </Button>
-                  </DialogTrigger>
-                  <DialogContent className="max-w-4xl h-[80vh] flex flex-col p-0">
-                      <DialogHeader className="p-4 border-b">
-                          <DialogTitle>Map View: {property.title}</DialogTitle>
-                      </DialogHeader>
-                      <div className="flex-grow">
-                        <LeafletMap readOnly initialData={property.polygon}/>
-                      </div>
-                  </DialogContent>
-                </Dialog>
               </CardContent>
-          </Card>
+            </Card>
 
+            {/* Document Verification */}
+             <Card className="shadow-md">
+              <CardHeader>
+                <CardTitle className="text-2xl font-bold">Document Integrity</CardTitle>
+                 <CardDescription>Verify the authenticity of property documents against the blockchain record.</CardDescription>
+              </CardHeader>
+              <CardContent>
+                 <VerifyDocument property={property} />
+              </CardContent>
+            </Card>
+
+            {/* History Section */}
             {property.history && property.history.length > 0 && (
-                <Card>
-                  <CardHeader><CardTitle className="flex items-center text-2xl"><History className="mr-3" />Transfer History</CardTitle></CardHeader>
+                <Card className="shadow-md">
+                  <CardHeader>
+                    <CardTitle className="text-2xl font-bold flex items-center"><History className="mr-3 text-primary" />Ownership History</CardTitle>
+                  </CardHeader>
                   <CardContent>
-                      <ul className="space-y-4">
+                      <div className="relative pl-6">
+                        <div className="absolute left-9 top-0 h-full w-0.5 bg-border -translate-x-1/2"></div>
+                        <ul className="space-y-8">
                           {property.history.slice().reverse().map((item, index) => (
-                            <li key={index} className="flex items-start space-x-3">
-                              <Check className="h-5 w-5 text-green-500 mt-1 flex-shrink-0" />
-                              <div>
-                                <div className="font-semibold">From: <HashPill type="address" hash={item.from} /></div>
-                                <div className="font-semibold">To: <HashPill type="address" hash={item.to} /></div>
-                                {item.price && item.price !== "0" && <p className="text-sm">Price: {formatEther(item.price)} ETH</p>}
-                                <p className="text-xs text-muted-foreground">{format(item.timestamp.toDate(), "PPP p")}</p>
+                            <li key={index} className="relative flex items-start space-x-6">
+                              <div className="absolute left-0 top-1.5 h-6 w-6 bg-secondary rounded-full flex items-center justify-center -translate-x-1/2">
+                                <Check className="h-4 w-4 text-green-500" />
+                              </div>
+                              <div className="pt-1 w-full">
+                                <p className="font-semibold text-base">Ownership Transferred</p>
+                                <div className="text-sm text-muted-foreground mt-1 space-y-2">
+                                    <div className="flex justify-between items-center"><span>From:</span> <HashPill type="address" hash={item.from} /></div>
+                                    <div className="flex justify-between items-center"><span>To:</span> <HashPill type="address" hash={item.to} /></div>
+                                    {item.price && item.price !== "0" && <div className="flex justify-between items-center"><span>Price:</span> <span className="font-semibold">{formatEther(item.price)} ETH</span></div>}
+                                </div>
+                                <p className="text-xs text-muted-foreground/70 mt-2">{format(item.timestamp.toDate(), "PPP 'at' p")}</p>
                               </div>
                             </li>
                           ))}
-                      </ul>
+                        </ul>
+                      </div>
                   </CardContent>
                 </Card>
             )}
-          
-        </div>
+          </div>
 
-        <div className="space-y-6">
-          <Card>
-              <CardHeader>
-               <CardTitle className="text-2xl break-all">Asset Information</CardTitle>
-               {property.forSale && property.price && (
-                 <Alert className="border-accent !mt-4 bg-accent/10">
+          {/* Right Column (Sticky) */}
+          <div className="relative mt-8 lg:mt-0">
+             <div className="lg:sticky lg:top-24 space-y-8">
+                
+                {property.forSale && (
+                  <Alert className="border-accent !mt-4 bg-accent/10 text-accent-foreground shadow-lg">
                    <Tag className="h-4 w-4 text-accent" />
-                   <AlertTitle className="text-accent">This property is for sale!</AlertTitle>
+                   <AlertTitle className="text-accent font-bold">This property is for sale</AlertTitle>
                    <AlertDescription>
-                     Price: <span className="font-bold text-lg">{formatEther(property.price)} ETH</span>
+                     Price: <span className="font-bold text-2xl">{formatEther(property.price!)} ETH</span>
                    </AlertDescription>
                  </Alert>
-               )}
-              </CardHeader>
+                )}
 
-              <CardContent className="space-y-4 text-sm">
-                  <div className="space-y-3">
-                      <div className="flex items-start justify-between"><strong className="text-muted-foreground">Owner</strong> <HashPill type="address" hash={property.owner}/></div>
-                      <div className="flex items-start justify-between"><strong className="text-muted-foreground">Parcel ID</strong> <HashPill type="parcel" hash={property.parcelId}/></div>
-                      {property.registeredAt && <div className="flex items-center justify-between"><strong className="text-muted-foreground">Registered</strong> <span>{format(property.registeredAt.toDate(), "PPP")}</span></div>}
-                      <div className="flex items-center justify-between"><strong className="text-muted-foreground">Status</strong> <Badge variant={property.status === 'verified' ? 'secondary' : property.status === 'rejected' ? 'destructive' : 'default'}>{property.status}</Badge></div>
-                      {property.location && (
-                        <div className="flex items-center justify-between">
-                          <strong className="text-muted-foreground">Location</strong>
-                          {isCoordinate ? (
-                            <a
-                              href={`https://www.google.com/maps?q=${property.latitude},${property.longitude}`}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="text-primary hover:underline flex items-center gap-1"
-                            >
-                              <span className="text-right font-mono">
-                                {property.latitude?.toFixed(5)}, {property.longitude?.toFixed(5)}
-                              </span>
-                              <ExternalLink className="h-3 w-3" />
-                            </a>
-                          ) : (
-                            <span className="text-right">{property.location}</span>
-                          )}
-                        </div>
-                      )}
-                  </div>
-                  <Separator className="my-4" />
-                  <VerifyDocument property={property} />
-              </CardContent>
-          </Card>
+                {/* Actions */}
+                {isOwner && property.status === "verified" && (
+                  <ManageSale property={property} onSaleStatusChanged={fetchProperty} />
+                )}
+                {!isOwner && property.forSale && (
+                  <BuyProperty property={property} onPurchase={fetchProperty} />
+                )}
 
-            {isOwner && property.status === 'rejected' && property.rejectionReason && (
-              <Alert variant="destructive">
-                  <ShieldAlert className="h-4 w-4" />
-                  <AlertTitle>Property Rejected</AlertTitle>
-                  <AlertDescription>
-                      <p className="font-semibold">The registrar provided the following reason:</p>
-                      <p className="mt-2 italic">"{property.rejectionReason}"</p>
-                  </AlertDescription>
-              </Alert>
-          )}
-          
-            {isOwner && property.status === 'verified' && (
-              <ManageSale property={property} onSaleStatusChanged={fetchProperty} />
-          )}
+                {/* Status-based Alerts for Owner */}
+                {isOwner && property.status === 'unverified' && (
+                  <Card className="border-dashed">
+                      <CardHeader className="flex-row items-center gap-4">
+                          <Hourglass className="h-8 w-8 text-muted-foreground"/>
+                          <div>
+                              <CardTitle>Pending Verification</CardTitle>
+                              <CardDescription>This property is awaiting review from the registrar.</CardDescription>
+                          </div>
+                      </CardHeader>
+                  </Card>
+                )}
+                {isOwner && property.status === 'rejected' && property.rejectionReason && (
+                    <Alert variant="destructive">
+                        <ShieldAlert className="h-4 w-4" />
+                        <AlertTitle>Property Rejected</AlertTitle>
+                        <AlertDescription>
+                            <p className="font-semibold">The registrar provided the following reason:</p>
+                            <p className="mt-2 italic">"{property.rejectionReason}"</p>
+                        </AlertDescription>
+                    </Alert>
+                )}
+                
+                {/* Delete action for owner */}
+                {isOwner && (property.status === 'unverified' || property.status === 'rejected') && (
+                    <Card className="border-amber-500 bg-amber-50/50 dark:bg-amber-950/30">
+                        <CardHeader>
+                            <CardTitle>Owner Actions</CardTitle>
+                            <CardDescription>You can remove this listing to submit a new, corrected registration.</CardDescription>
+                        </CardHeader>
+                        <CardContent>
+                            <AlertDialog>
+                                <AlertDialogTrigger asChild>
+                                    <Button variant="destructive" disabled={isDeleting} className="w-full">
+                                        <Trash2 className="mr-2 h-4 w-4"/> Delete and Re-register
+                                    </Button>
+                                </AlertDialogTrigger>
+                                <AlertDialogContent>
+                                    <AlertDialogHeader>
+                                        <AlertDialogTitle>Are you sure?</AlertDialogTitle>
+                                        <AlertDialogDescription>This will permanently remove this property registration.</AlertDialogDescription>
+                                    </AlertDialogHeader>
+                                    <AlertDialogFooter>
+                                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                        <AlertDialogAction onClick={handleDelete} disabled={isDeleting} className="bg-destructive hover:bg-destructive/90">
+                                            {isDeleting ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : null}
+                                            Yes, delete it
+                                        </AlertDialogAction>
+                                    </AlertDialogFooter>
+                                </AlertDialogContent>
+                            </AlertDialog>
+                        </CardContent>
+                    </Card>
+                )}
 
-            {isOwner && property.status === 'unverified' && (
-              <Card className="mt-6 border-dashed">
-                  <CardHeader className="flex-row items-center gap-4">
-                      <Hourglass className="h-6 w-6 text-muted-foreground"/>
-                      <div>
-                          <CardTitle>Pending Verification</CardTitle>
-                          <CardDescription>This property must be verified by the registrar before it can be listed for sale.</CardDescription>
-                      </div>
-                  </CardHeader>
-              </Card>
-          )}
-
-          {!isOwner && property.forSale && (
-            <BuyProperty property={property} onPurchase={fetchProperty} />
-          )}
-
-          {isOwner && (property.status === 'unverified' || property.status === 'rejected') && (
-              <Card className="border-amber-500 bg-amber-50/50 dark:bg-amber-950/30">
+                {/* Key Details */}
+                <Card className="shadow-md">
                   <CardHeader>
-                      <CardTitle>Owner Actions</CardTitle>
-                      <CardDescription>
-                          Since this property is not verified, you can remove it to submit a new, corrected registration.
-                      </CardDescription>
+                    <CardTitle className="text-xl font-bold">Key Details</CardTitle>
                   </CardHeader>
-                  <CardContent>
-                      <AlertDialog>
-                          <AlertDialogTrigger asChild>
-                              <Button variant="destructive" disabled={isDeleting}>
-                                  <Trash2 className="mr-2 h-4 w-4"/> Delete and Re-register
-                              </Button>
-                          </AlertDialogTrigger>
-                          <AlertDialogContent>
-                              <AlertDialogHeader>
-                                  <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
-                                  <AlertDialogDescription>
-                                      This will permanently remove this property registration. This action cannot be undone, but you will be able to submit a new registration.
-                                  </AlertDialogDescription>
-                              </AlertDialogHeader>
-                              <AlertDialogFooter>
-                                  <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                  <AlertDialogAction onClick={handleDelete} disabled={isDeleting} className="bg-destructive hover:bg-destructive/90">
-                                      {isDeleting ? <Loader2 className="mr-2 h-4 w-4 animate-spin"/> : null}
-                                      Yes, delete it
-                                  </AlertDialogAction>
-                              </AlertDialogFooter>
-                          </AlertDialogContent>
-                      </AlertDialog>
+                  <CardContent className="space-y-4 text-sm">
+                     <div className="flex items-center justify-between"><strong className="text-muted-foreground flex items-center gap-2"><Wallet className="h-4 w-4"/>Owner</strong> <HashPill type="address" hash={property.owner}/></div>
+                      <div className="flex items-center justify-between"><strong className="text-muted-foreground flex items-center gap-2"><User className="h-4 w-4"/>Parcel ID</strong> <HashPill type="parcel" hash={property.parcelId}/></div>
                   </CardContent>
-              </Card>
-          )}
+                </Card>
+
+             </div>
+          </div>
+
         </div>
       </div>
     </div>
   );
 }
+
