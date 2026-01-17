@@ -12,7 +12,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { User, ShieldAlert, History, Check, Tag, Hourglass, ExternalLink, Trash2, MapPin, Square, Building, Wallet, Fingerprint } from "lucide-react";
+import { User, ShieldAlert, History, Check, Tag, Hourglass, ExternalLink, Trash2, MapPin, Square, Building, Wallet, Fingerprint, Map } from "lucide-react";
 import { format } from 'date-fns';
 import { VerifyDocument } from "@/components/verify-document";
 import { ManageSale } from "@/components/manage-sale";
@@ -21,7 +21,7 @@ import { formatEther } from "ethers";
 import { Button } from "@/components/ui/button";
 import { HashPill } from "@/components/hash-pill";
 import { Separator } from "@/components/ui/separator";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger, Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/alert-dialog';
 import { useToast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";
 import dynamic from "next/dynamic";
@@ -134,7 +134,7 @@ export default function PropertyDetailPage() {
 
   return (
     <div className="bg-gray-50/50 dark:bg-black py-8 lg:py-12">
-      <div className="container mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
+      <div className="container mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
         
         {/* Header */}
         <div className="mb-8">
@@ -163,21 +163,21 @@ export default function PropertyDetailPage() {
           </div>
         </div>
 
+        {/* Map Card */}
+        <Card className="shadow-md overflow-hidden relative z-0 mb-12">
+            <CardContent className="p-0">
+                <p className="text-xs text-muted-foreground text-center p-2 bg-secondary/50">This is only a tentative boundary for representation of land, actual boundary may differ.</p>
+                <div className="h-[450px]">
+                    <LeafletMap readOnly initialData={property.polygon}/>
+                </div>
+            </CardContent>
+        </Card>
+
         {/* Main Content */}
         <div className="grid grid-cols-1 lg:grid-cols-3 lg:gap-12">
           
           {/* Left Column */}
           <div className="lg:col-span-2 space-y-8">
-            
-            {/* Map */}
-            <Card className="shadow-md overflow-hidden relative z-0">
-                <CardContent className="p-0">
-                    <p className="text-xs text-muted-foreground text-center p-2 bg-secondary/50">This is only a tentative boundary for representation of land, actual boundary may differ.</p>
-                    <div className="h-[450px]">
-                        <LeafletMap readOnly initialData={property.polygon}/>
-                    </div>
-                </CardContent>
-            </Card>
             
             {/* About Section */}
             <Card className="shadow-md">
@@ -332,5 +332,7 @@ export default function PropertyDetailPage() {
     </div>
   );
 }
+
+    
 
     
