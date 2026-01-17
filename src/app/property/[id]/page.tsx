@@ -104,36 +104,36 @@ export default function PropertyDetailPage() {
       <div className="grid md:grid-cols-2 gap-8 lg:gap-12">
         <div className="space-y-6">
           <Card>
-             <CardHeader>
+              <CardHeader>
                 <CardTitle className="text-3xl font-bold">{property.title}</CardTitle>
-             </CardHeader>
-             <CardContent className="space-y-6">
+              </CardHeader>
+              <CardContent className="space-y-6">
                 <div className="text-muted-foreground">
                   <p className={showReadMore ? 'line-clamp-3' : ''}>
                     {property.description}
                   </p>
                   {showReadMore && (
-                     <Dialog>
-                      <DialogTrigger asChild>
-                        <Button variant="link" className="p-0 h-auto text-sm">Read more...</Button>
-                      </DialogTrigger>
-                      <DialogContent>
-                        <DialogHeader>
-                          <DialogTitle>{property.title}</DialogTitle>
-                        </DialogHeader>
-                        <DialogDescription className="max-h-[60vh] overflow-y-auto whitespace-pre-wrap">
-                          {property.description}
-                        </DialogDescription>
-                      </DialogContent>
-                    </Dialog>
+                      <Dialog>
+                        <DialogTrigger asChild>
+                          <Button variant="link" className="p-0 h-auto text-sm">Read more...</Button>
+                        </DialogTrigger>
+                        <DialogContent>
+                          <DialogHeader>
+                            <DialogTitle>{property.title}</DialogTitle>
+                          </DialogHeader>
+                          <DialogDescription className="max-h-[60vh] overflow-y-auto whitespace-pre-wrap">
+                            {property.description}
+                          </DialogDescription>
+                        </DialogContent>
+                      </Dialog>
                   )}
                 </div>
                 
                 <Dialog>
                   <DialogTrigger asChild>
-                      <Button variant="outline" className="w-full">
-                          <Map className="mr-2 h-4 w-4"/> View on Map
-                      </Button>
+                    <Button variant="outline" className="w-full">
+                        <Map className="mr-2 h-4 w-4"/> View on Map
+                    </Button>
                   </DialogTrigger>
                   <DialogContent className="max-w-4xl h-[80vh] flex flex-col p-0">
                       <DialogHeader className="p-4 border-b">
@@ -144,26 +144,26 @@ export default function PropertyDetailPage() {
                       </div>
                   </DialogContent>
                 </Dialog>
-             </CardContent>
+              </CardContent>
           </Card>
 
             {property.history && property.history.length > 0 && (
                 <Card>
                   <CardHeader><CardTitle className="flex items-center text-2xl"><History className="mr-3" />Transfer History</CardTitle></CardHeader>
                   <CardContent>
-                     <ul className="space-y-4">
-                        {property.history.slice().reverse().map((item, index) => (
-                          <li key={index} className="flex items-start space-x-3">
-                            <Check className="h-5 w-5 text-green-500 mt-1 flex-shrink-0" />
-                            <div>
-                              <div className="font-semibold">From: <HashPill type="address" hash={item.from} /></div>
-                              <div className="font-semibold">To: <HashPill type="address" hash={item.to} /></div>
-                              {item.price && item.price !== "0" && <p className="text-sm">Price: {formatEther(item.price)} ETH</p>}
-                              <p className="text-xs text-muted-foreground">{format(item.timestamp.toDate(), "PPP p")}</p>
-                            </div>
-                          </li>
-                        ))}
-                     </ul>
+                      <ul className="space-y-4">
+                          {property.history.slice().reverse().map((item, index) => (
+                            <li key={index} className="flex items-start space-x-3">
+                              <Check className="h-5 w-5 text-green-500 mt-1 flex-shrink-0" />
+                              <div>
+                                <div className="font-semibold">From: <HashPill type="address" hash={item.from} /></div>
+                                <div className="font-semibold">To: <HashPill type="address" hash={item.to} /></div>
+                                {item.price && item.price !== "0" && <p className="text-sm">Price: {formatEther(item.price)} ETH</p>}
+                                <p className="text-xs text-muted-foreground">{format(item.timestamp.toDate(), "PPP p")}</p>
+                              </div>
+                            </li>
+                          ))}
+                      </ul>
                   </CardContent>
                 </Card>
             )}
@@ -172,52 +172,52 @@ export default function PropertyDetailPage() {
 
         <div className="space-y-6">
           <Card>
-             <CardHeader>
-              <CardTitle className="text-2xl break-all">Asset Information</CardTitle>
-              {property.forSale && property.price && (
-                <Alert className="border-accent !mt-4 bg-accent/10">
-                  <Tag className="h-4 w-4 text-accent" />
-                  <AlertTitle className="text-accent">This property is for sale!</AlertTitle>
-                  <AlertDescription>
-                    Price: <span className="font-bold text-lg">{formatEther(property.price)} ETH</span>
-                  </AlertDescription>
-                </Alert>
-              )}
-            </CardHeader>
+              <CardHeader>
+               <CardTitle className="text-2xl break-all">Asset Information</CardTitle>
+               {property.forSale && property.price && (
+                 <Alert className="border-accent !mt-4 bg-accent/10">
+                   <Tag className="h-4 w-4 text-accent" />
+                   <AlertTitle className="text-accent">This property is for sale!</AlertTitle>
+                   <AlertDescription>
+                     Price: <span className="font-bold text-lg">{formatEther(property.price)} ETH</span>
+                   </AlertDescription>
+                 </Alert>
+               )}
+              </CardHeader>
 
-            <CardContent className="space-y-4 text-sm">
-                <div className="space-y-3">
-                    <div className="flex items-start justify-between"><strong className="text-muted-foreground">Owner</strong> <HashPill type="address" hash={property.owner}/></div>
-                    <div className="flex items-start justify-between"><strong className="text-muted-foreground">Parcel ID</strong> <HashPill type="parcel" hash={property.parcelId}/></div>
-                    {property.registeredAt && <div className="flex items-center justify-between"><strong className="text-muted-foreground">Registered</strong> <span>{format(property.registeredAt.toDate(), "PPP")}</span></div>}
-                    <div className="flex items-center justify-between"><strong className="text-muted-foreground">Status</strong> <Badge variant={property.status === 'verified' ? 'secondary' : property.status === 'rejected' ? 'destructive' : 'default'}>{property.status}</Badge></div>
-                    {property.location && (
-                      <div className="flex items-center justify-between">
-                        <strong className="text-muted-foreground">Location</strong>
-                        {isCoordinate ? (
-                          <a
-                            href={`https://www.google.com/maps?q=${property.latitude},${property.longitude}`}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-primary hover:underline flex items-center gap-1"
-                          >
-                            <span className="text-right font-mono">
+              <CardContent className="space-y-4 text-sm">
+                  <div className="space-y-3">
+                      <div className="flex items-start justify-between"><strong className="text-muted-foreground">Owner</strong> <HashPill type="address" hash={property.owner}/></div>
+                      <div className="flex items-start justify-between"><strong className="text-muted-foreground">Parcel ID</strong> <HashPill type="parcel" hash={property.parcelId}/></div>
+                      {property.registeredAt && <div className="flex items-center justify-between"><strong className="text-muted-foreground">Registered</strong> <span>{format(property.registeredAt.toDate(), "PPP")}</span></div>}
+                      <div className="flex items-center justify-between"><strong className="text-muted-foreground">Status</strong> <Badge variant={property.status === 'verified' ? 'secondary' : property.status === 'rejected' ? 'destructive' : 'default'}>{property.status}</Badge></div>
+                      {property.location && (
+                        <div className="flex items-center justify-between">
+                          <strong className="text-muted-foreground">Location</strong>
+                          {isCoordinate ? (
+                            <a
+                              href={`https://www.google.com/maps?q=${property.latitude},${property.longitude}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-primary hover:underline flex items-center gap-1"
+                            >
+                              <span className="text-right font-mono">
                                 {property.latitude?.toFixed(5)}, {property.longitude?.toFixed(5)}
-                            </span>
-                            <ExternalLink className="h-3 w-3" />
-                          </a>
-                        ) : (
-                          <span className="text-right">{property.location}</span>
-                        )}
-                      </div>
-                    )}
-                </div>
-                <Separator className="my-4" />
-                <VerifyDocument property={property} />
-            </CardContent>
+                              </span>
+                              <ExternalLink className="h-3 w-3" />
+                            </a>
+                          ) : (
+                            <span className="text-right">{property.location}</span>
+                          )}
+                        </div>
+                      )}
+                  </div>
+                  <Separator className="my-4" />
+                  <VerifyDocument property={property} />
+              </CardContent>
           </Card>
 
-           {isOwner && property.status === 'rejected' && property.rejectionReason && (
+            {isOwner && property.status === 'rejected' && property.rejectionReason && (
               <Alert variant="destructive">
                   <ShieldAlert className="h-4 w-4" />
                   <AlertTitle>Property Rejected</AlertTitle>
@@ -228,20 +228,20 @@ export default function PropertyDetailPage() {
               </Alert>
           )}
           
-           {isOwner && property.status === 'verified' && (
-            <ManageSale property={property} onSaleStatusChanged={fetchProperty} />
+            {isOwner && property.status === 'verified' && (
+              <ManageSale property={property} onSaleStatusChanged={fetchProperty} />
           )}
 
-           {isOwner && property.status === 'unverified' && (
-            <Card className="mt-6 border-dashed">
-                <CardHeader className="flex-row items-center gap-4">
-                    <Hourglass className="h-6 w-6 text-muted-foreground"/>
-                    <div>
-                        <CardTitle>Pending Verification</CardTitle>
-                        <CardDescription>This property must be verified by the registrar before it can be listed for sale.</CardDescription>
-                    </div>
-                </CardHeader>
-            </Card>
+            {isOwner && property.status === 'unverified' && (
+              <Card className="mt-6 border-dashed">
+                  <CardHeader className="flex-row items-center gap-4">
+                      <Hourglass className="h-6 w-6 text-muted-foreground"/>
+                      <div>
+                          <CardTitle>Pending Verification</CardTitle>
+                          <CardDescription>This property must be verified by the registrar before it can be listed for sale.</CardDescription>
+                      </div>
+                  </CardHeader>
+              </Card>
           )}
 
           {!isOwner && property.forSale && (
