@@ -9,11 +9,14 @@ The platform ensures transparency, security, and efficiency in managing property
 - **Wallet Integration**: Seamlessly connect with MetaMask to interact with the application and the Ethereum blockchain.
 - **Decentralized Document Storage**: All property images and legal documents are uploaded to IPFS via Pinata, ensuring their integrity and perpetual availability.
 - **AI-Powered Descriptions**: Users can leverage Google's Gemini AI to automatically improve and professionalize property descriptions, making listings more appealing.
-- **Property Registration & Management**: Authenticated users can register new properties, which are recorded on the blockchain and stored in Firestore.
-- **Registrar Verification**: A designated registrar has a special dashboard to review and officially verify new property listings on the blockchain.
-- **Marketplace**: Verified properties can be listed for sale. Users can browse the marketplace and purchase properties directly, with the transaction handled by a smart contract.
-- **Ownership History**: All property transfers are recorded on-chain, providing a transparent and tamper-proof history of ownership for each asset.
-- **Public Verification Portal**: Anyone can use a unique Parcel ID to look up a property and verify its details and document authenticity against the blockchain record.
+- **Interactive Property Mapping**: Users can draw their property's boundary on an interactive map using Leaflet. The area is calculated automatically, and the location can be found via geocoding.
+- **Property Registration & Management**: Authenticated users can register new properties, which are recorded on the blockchain and stored in Firestore. They can manage their properties through a dedicated dashboard, filtering by verification status.
+- **Registrar Verification Workflow**: A designated registrar has a special dashboard to review and officially verify new property listings on the blockchain. The registrar can approve a property or reject it with a specific reason, which is then communicated back to the owner.
+- **Marketplace**: Verified properties can be listed for sale. Owners can set a price in ETH, and other users can browse and search the marketplace by location, title, parcel ID, or owner address.
+- **On-Chain Purchase**: Users can purchase properties directly through the platform. The transaction is handled by a smart contract, which securely transfers ownership and funds.
+- **Ownership History & Integrity Check**: All property transfers are recorded on-chain, providing a transparent and tamper-proof history of ownership. The platform also allows for on-demand verification of document authenticity against the blockchain record.
+- **Public Verification Portal**: Anyone can use a search portal to look up a property by its Parcel ID, location, owner name, or wallet address to verify its details and document authenticity.
+- **Role-Based Access**: The application has clear roles for a general user and a registrar, with UI and functionality tailored to each.
 
 ## Technology Stack
 
@@ -23,6 +26,7 @@ The platform ensures transparency, security, and efficiency in managing property
 - **Styling**: Tailwind CSS with shadcn/ui components for a modern and responsive UI.
 - **Blockchain**: Ethereum (interacting via Ethers.js)
 - **Decentralized Storage**: IPFS (through Pinata for pinning)
+- **Mapping**: Leaflet, Leaflet-draw, and Turf.js
 - **Backend & Database**: Firebase (Firestore for off-chain data and Auth for user management)
 - **Generative AI**: Genkit with Google's Gemini model for description enhancement.
 
@@ -37,6 +41,7 @@ To get the project running locally, follow these steps.
 - A Firebase project with Firestore enabled.
 - API keys from [Pinata](https://www.pinata.cloud/) for IPFS uploads.
 - A Google AI Gemini API key.
+- A Google Maps API Key for geocoding functionality.
 
 ### 1. Clone the Repository
 
@@ -79,6 +84,10 @@ PINATA_API_SECRET="YourPinataSecretAPIKey"
 # Google AI (Gemini)
 # Your Gemini API Key from Google AI Studio
 GEMINI_API_KEY="YourGeminiAPIKey"
+
+# Google Maps (for Geocoding API)
+# Your Google Maps API key with Geocoding API enabled
+GOOGLE_MAPS_API_KEY="YourGoogleMapsAPIKey"
 ```
 
 ### 4. Run the Development Server
