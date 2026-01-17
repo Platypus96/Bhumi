@@ -31,7 +31,7 @@ const LeafletMap = dynamic(() => import('@/components/LeafletMap'), {
 
 
 const formSchema = z.object({
-  title: z.string().min(5, "Title must be at least 5 characters."),
+  ownerName: z.string().min(2, "Owner's name must be at least 2 characters."),
   description: z.string().min(10, "Description is required."),
   location: z.string().min(3, "Location is required."),
   area: z.string().min(1, "Area is required."),
@@ -60,7 +60,7 @@ export default function AddPropertyPage() {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      title: "",
+      ownerName: "",
       description: "",
       location: "",
       area: "",
@@ -164,7 +164,7 @@ export default function AddPropertyPage() {
       const propertyData: any = {
         parcelId: parcelId,
         owner: account,
-        title: values.title,
+        title: values.ownerName,
         description: values.description,
         location: values.location,
         area: values.area,
@@ -223,12 +223,12 @@ export default function AddPropertyPage() {
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
              <FormField
               control={form.control}
-              name="title"
+              name="ownerName"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Property Title</FormLabel>
+                  <FormLabel>Property Owner's Name</FormLabel>
                   <FormControl>
-                    <Input placeholder="e.g., 3 BHK Plot in Greenfield" {...field} />
+                    <Input placeholder="e.g., John Doe" {...field} />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
