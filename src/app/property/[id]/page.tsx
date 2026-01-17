@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
@@ -13,7 +12,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { User, ShieldAlert, History, Check, Tag, Hourglass, ExternalLink, Trash2 } from "lucide-react";
+import { User, ShieldAlert, History, Check, Tag, Hourglass, ExternalLink, Trash2, Map } from "lucide-react";
 import { format } from 'date-fns';
 import { VerifyDocument } from "@/components/verify-document";
 import { ManageSale } from "@/components/manage-sale";
@@ -30,7 +29,7 @@ import dynamic from "next/dynamic";
 
 const LeafletMap = dynamic(() => import('@/components/LeafletMap'), {
   ssr: false,
-  loading: () => <div className="h-[400px] w-full bg-muted animate-pulse flex items-center justify-center"><p>Loading Map...</p></div>
+  loading: () => <div className="h-full w-full bg-muted animate-pulse flex items-center justify-center"><p>Loading Map...</p></div>
 });
 
 
@@ -104,13 +103,12 @@ export default function PropertyDetailPage() {
     <div className="container mx-auto px-4 py-8">
       <div className="grid md:grid-cols-2 gap-8 lg:gap-12">
         <div className="space-y-6">
-          <Card className="overflow-hidden">
-             <div className="h-[400px] w-full">
-                <LeafletMap readOnly initialData={property.polygon} />
-             </div>
-             <CardContent className="p-6">
+          <Card>
+             <CardHeader>
                 <CardTitle className="text-3xl font-bold">{property.title}</CardTitle>
-                <div className="mt-4 text-muted-foreground">
+             </CardHeader>
+             <CardContent className="space-y-6">
+                <div className="text-muted-foreground">
                   <p className={showReadMore ? 'line-clamp-3' : ''}>
                     {property.description}
                   </p>
@@ -130,6 +128,22 @@ export default function PropertyDetailPage() {
                     </Dialog>
                   )}
                 </div>
+                
+                <Dialog>
+                  <DialogTrigger asChild>
+                      <Button variant="outline" className="w-full">
+                          <Map className="mr-2 h-4 w-4"/> View on Map
+                      </Button>
+                  </DialogTrigger>
+                  <DialogContent className="max-w-4xl h-[80vh] flex flex-col p-0">
+                      <DialogHeader className="p-4 border-b">
+                          <DialogTitle>Map View: {property.title}</DialogTitle>
+                      </DialogHeader>
+                      <div className="flex-grow">
+                        <LeafletMap readOnly initialData={property.polygon}/>
+                      </div>
+                  </DialogContent>
+                </Dialog>
              </CardContent>
           </Card>
 
