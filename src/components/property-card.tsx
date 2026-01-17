@@ -55,43 +55,44 @@ export function PropertyCard({ property }: PropertyCardProps) {
   };
 
   return (
-    <Card className="h-full flex flex-col overflow-hidden rounded-xl border border-border/50 shadow-md hover:shadow-xl hover:border-primary/60 transition-all duration-300 bg-card relative group z-0">
+    <Card className="h-full flex flex-col overflow-hidden rounded-xl border border-border/50 shadow-md hover:shadow-xl hover:border-primary/60 transition-all duration-300 bg-card group">
       
-      {/* Map Section */}
       <CardHeader className="p-0 relative">
-         <div className="relative aspect-video overflow-hidden">
-            <p className="absolute top-0 w-full bg-black/50 text-white text-center text-[10px] p-0.5 z-20">This is only a tentative boundary for representation of land, actual boundary may defer</p>
-             <LeafletMap readOnly initialData={property.polygon} />
-             <StatusBadge />
-         </div>
+        <Link href={`/property/${property.parcelId}`} className="block" aria-label={`View details for ${property.title}`}>
+          <div className="relative aspect-video overflow-hidden">
+              <p className="absolute top-0 w-full bg-black/50 text-white text-center text-[10px] p-0.5 z-20">This is only a tentative boundary for representation of land, actual boundary may defer</p>
+              <LeafletMap readOnly initialData={property.polygon} />
+              <StatusBadge />
+          </div>
+        </Link>
       </CardHeader>
 
-      {/* Content Section - This is now the clickable area */}
-      <Link href={`/property/${property.parcelId}`} className="p-4 flex-grow flex flex-col bg-card hover:bg-muted/30 transition-colors" aria-label={`View details for ${property.title}`}>
+      <CardContent className="p-4 flex-grow flex flex-col">
         <CardTitle className="text-lg font-semibold tracking-tight text-foreground line-clamp-1">
+          <Link href={`/property/${property.parcelId}`} className="hover:underline">
             {property.title}
+          </Link>
         </CardTitle>
 
         <div className="text-sm text-muted-foreground leading-relaxed mt-1 min-h-[40px] flex-grow">
           <p className="line-clamp-2">{property.description}</p>
           {showReadMore && (
             <Dialog>
-              <DialogTrigger asChild onClick={(e) => e.stopPropagation() /* Prevent card navigation when opening dialog */}>
-                <Button variant="link" className="p-0 h-auto text-xs -mt-1 relative z-30">Read more...</Button>
+              <DialogTrigger asChild>
+                <Button variant="link" className="p-0 h-auto text-xs -mt-1">Read more...</Button>
               </DialogTrigger>
-              <DialogContent className="z-50">
+              <DialogContent>
                 <DialogHeader>
                   <DialogTitle>{property.title}</DialogTitle>
+                  <DialogDescription className="max-h-[60vh] overflow-y-auto">
+                    {property.description}
+                  </DialogDescription>
                 </DialogHeader>
-                <DialogDescription className="max-h-[60vh] overflow-y-auto">
-                  {property.description}
-                </DialogDescription>
               </DialogContent>
             </Dialog>
           )}
         </div>
 
-        {/* Specs Row */}
         <div className="mt-4 pt-4 border-t border-border/60 space-y-2 text-sm">
             <div className="flex items-center text-muted-foreground">
                 <Square className="h-4 w-4 mr-2 text-primary shrink-0" />
@@ -102,10 +103,9 @@ export function PropertyCard({ property }: PropertyCardProps) {
                 <span className="truncate">{property.location || "Not specified"}</span>
             </div>
         </div>
-      </Link>
+      </CardContent>
 
-      {/* Footer Section */}
-      <CardFooter className="p-3 bg-secondary/30 relative z-30">
+      <CardFooter className="p-3 bg-secondary/30">
            <div className="flex items-center text-xs text-muted-foreground font-mono">
               <Fingerprint className="h-4 w-4 mr-2 text-primary shrink-0" />
               <span className="truncate">
