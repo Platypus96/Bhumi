@@ -1,7 +1,6 @@
-
 "use client";
 
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Loader2, ShoppingCart } from "lucide-react";
@@ -19,11 +18,26 @@ interface BuyPropertyProps {
 }
 
 export function BuyProperty({ property, onPurchase }: BuyPropertyProps) {
-  const { account } = useWeb3();
+  const { account, balance } = useWeb3();
   const { toast } = useToast();
   const { buyProperty } = useBlockchain();
   const { firestore } = useFirebase();
   const [isBuying, setIsBuying] = useState(false);
+
+  const hasSufficientFunds = useMemo(() => {
+    if (!balance || !property.price) return false;
+    // property.price is in wei (string), balance is in ETH (string)
+    try {
+      const priceInEth = parseFloat(formatEther(property.price));
+      const balanceInEth = parseFloat(balance);
+      // For simplicity, we'll just check if balance > price. A real app might estimate gas.
+      return balanceInEth >= priceInEth;
+    } catch (e) {
+      console.error("Could not compare funds:", e);
+      return false;
+    }
+  }, [balance, property.price]);
+
 
   const handleBuy = async () => {
     if (!property.price) return;
@@ -97,7 +111,7 @@ export function BuyProperty({ property, onPurchase }: BuyPropertyProps) {
 
         <Button
           onClick={handleBuy}
-          disabled={isBuying || !account}
+          disabled={isBuying || !account || !hasSufficientFunds}
           className="w-full relative bg-emerald-600 hover:bg-emerald-700 dark:bg-emerald-500 dark:hover:bg-emerald-600 text-white text-base font-medium py-5 rounded-xl transition-all duration-300 shadow-md hover:shadow-lg"
         >
           {isBuying ? (
@@ -108,7 +122,7 @@ export function BuyProperty({ property, onPurchase }: BuyPropertyProps) {
           ) : (
             <>
               <ShoppingCart className="mr-2 h-4 w-4" />
-              Buy Now
+              {hasSufficientFunds ? 'Buy Now' : 'Insufficient Funds'}
             </>
           )}
         </Button>
@@ -117,6 +131,11 @@ export function BuyProperty({ property, onPurchase }: BuyPropertyProps) {
           <p className="text-xs text-center text-muted-foreground pt-1">
             ⚠️ Connect your wallet to continue.
           </p>
+        )}
+        {account && !hasSufficientFunds && (
+            <p className="text-xs text-center text-destructive/80 pt-1">
+                ⚠️ You do not have enough ETH in your wallet to purchase this property (excluding gas fees).
+            </p>
         )}
       </CardContent>
     </Card>

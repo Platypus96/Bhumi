@@ -3,7 +3,7 @@
 
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { useToast } from './use-toast';
-import { BrowserProvider } from 'ethers';
+import { BrowserProvider, formatEther } from 'ethers';
 import { REGISTRAR_ADDRESS } from '@/config/blockchain';
 import { useFirebase } from '@/firebase';
 import { getAuth, signInAnonymously, signOut, onAuthStateChanged } from 'firebase/auth';
@@ -11,6 +11,7 @@ import { getAuth, signInAnonymously, signOut, onAuthStateChanged } from 'firebas
 interface Web3ContextType {
   account: string | null;
   provider: BrowserProvider | null;
+  balance: string | null;
   connectWallet: () => Promise<void>;
   disconnectWallet: () => void;
   isRegistrar: boolean;
@@ -21,6 +22,7 @@ const Web3Context = createContext<Web3ContextType | null>(null);
 export const Web3Provider = ({ children }: { children: React.ReactNode }) => {
   const [account, setAccount] = useState<string | null>(null);
   const [provider, setProvider] = useState<BrowserProvider | null>(null);
+  const [balance, setBalance] = useState<string | null>(null);
   const { toast } = useToast();
   const { auth } = useFirebase();
 
@@ -38,9 +40,19 @@ export const Web3Provider = ({ children }: { children: React.ReactNode }) => {
 
     if (accounts.length > 0) {
         const newAccount = accounts[0].toLowerCase();
-        setAccount(newAccount);
         const browserProvider = new BrowserProvider(getEthereumObject());
+        
+        setAccount(newAccount);
         setProvider(browserProvider);
+        
+        // Fetch and set balance
+        try {
+            const balanceInWei = await browserProvider.getBalance(newAccount);
+            setBalance(formatEther(balanceInWei));
+        } catch (error) {
+            console.error("Failed to fetch balance:", error);
+            setBalance(null);
+        }
         
         if (auth.currentUser?.isAnonymous || auth.currentUser?.uid.toLowerCase() !== newAccount) {
             console.log("Wallet changed, ensuring Firebase auth state is correct.");
@@ -54,6 +66,7 @@ export const Web3Provider = ({ children }: { children: React.ReactNode }) => {
     } else {
         setAccount(null);
         setProvider(null);
+        setBalance(null); // Clear balance on disconnect
         if (!auth.currentUser || !auth.currentUser.isAnonymous) {
             await signOut(auth).catch(); 
             await signInAnonymously(auth); 
@@ -119,7 +132,7 @@ export const Web3Provider = ({ children }: { children: React.ReactNode }) => {
 
 
   return (
-    <Web3Context.Provider value={{ account, provider, connectWallet, disconnectWallet, isRegistrar }}>
+    <Web3Context.Provider value={{ account, provider, balance, connectWallet, disconnectWallet, isRegistrar }}>
       {children}
     </Web3Context.Provider>
   );
