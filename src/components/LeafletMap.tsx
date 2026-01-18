@@ -6,6 +6,7 @@ import 'leaflet/dist/leaflet.css';
 import 'leaflet-draw/dist/leaflet.draw.css';
 import 'leaflet-draw';
 import { Lock, Unlock } from 'lucide-react';
+import { cn } from '@/lib/utils';
 
 // Fix for default icon issue with webpack
 // @ts-ignore
@@ -169,8 +170,15 @@ export default function LeafletMap({ onPolygonComplete, initialData, readOnly = 
 
 
   return (
-    <div ref={mapContainerRef} style={{ height: '100%', width: '100%', borderRadius: 'inherit', position: 'relative' }}>
-        <div className="leaflet-top leaflet-right" style={{ zIndex: 1000 }}>
+    <div 
+        ref={mapContainerRef} 
+        style={{ height: '100%', width: '100%', borderRadius: 'inherit' }}
+        className={cn(
+            "relative transition-all duration-300",
+            !isLocked && "ring-2 ring-primary ring-offset-background ring-offset-2"
+        )}
+    >
+        <div className="leaflet-top leaflet-right" style={{ zIndex: 1000, top: '10px', right: '10px' }}>
             <div className="leaflet-control leaflet-bar">
                 <button
                     onClick={() => setIsLocked(!isLocked)}
