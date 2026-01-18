@@ -6,9 +6,10 @@ import { useParams, useRouter } from "next/navigation";
 import { getPropertyByParcelId } from "@/lib/data";
 import type { Property } from "@/lib/types";
 import { useFirebase } from "@/firebase/provider";
+import { useWeb3 } from "@/hooks/use-web3";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { ShieldAlert, ArrowLeft } from "lucide-react";
+import { ShieldAlert, ArrowLeft, AlertCircle } from "lucide-react";
 import { PropertyVerification } from "@/components/dashboard/property-verification";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -17,6 +18,7 @@ export default function PropertyVerificationPage() {
   const params = useParams();
   const router = useRouter();
   const { firestore } = useFirebase();
+  const { account, isRegistrar } = useWeb3();
   
   const [property, setProperty] = useState<Property | null>(null);
   const [loading, setLoading] = useState(true);
@@ -33,8 +35,40 @@ export default function PropertyVerificationPage() {
   }, [id, firestore]);
 
   useEffect(() => {
-    fetchProperty();
-  }, [fetchProperty]);
+    if (isRegistrar) {
+        fetchProperty();
+    } else {
+        setLoading(false);
+    }
+  }, [fetchProperty, isRegistrar]);
+
+  if (!account) {
+    return (
+      <div className="container mx-auto px-4 py-8 text-center">
+        <Alert variant="destructive" className="max-w-md mx-auto">
+          <AlertCircle className="h-4 w-4" />
+          <AlertTitle>Access Denied</AlertTitle>
+          <AlertDescription>
+            Please connect your wallet to access this page.
+          </AlertDescription>
+        </Alert>
+      </div>
+    );
+  }
+
+  if (!isRegistrar) {
+    return (
+      <div className="container mx-auto px-4 py-8 text-center">
+        <Alert variant="destructive" className="max-w-md mx-auto">
+          <AlertCircle className="h-4 w-4" />
+          <AlertTitle>Access Denied</AlertTitle>
+          <AlertDescription>
+            Only the registrar can access this dashboard page.
+          </AlertDescription>
+        </Alert>
+      </div>
+    );
+  }
   
   if (loading) {
     return (
@@ -76,4 +110,3 @@ export default function PropertyVerificationPage() {
     </div>
   );
 }
-
