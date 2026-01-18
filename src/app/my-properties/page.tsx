@@ -10,10 +10,11 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { AlertCircle, PlusCircle, Home, Loader2, Search } from 'lucide-react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { MyPropertiesTable } from '@/components/my-properties/my-properties-table';
 import { DashboardStats } from '@/components/dashboard/stats';
 import { PropertyStatusFilter } from '@/app/dashboard/page';
 import { Input } from '@/components/ui/input';
+import { Skeleton } from '@/components/ui/skeleton';
+import { PropertyCard } from '@/components/property-card';
 
 export default function MyPropertiesPage() {
   const [allProperties, setAllProperties] = useState<Property[]>([]);
@@ -138,12 +139,39 @@ export default function MyPropertiesPage() {
           </div>
 
           {loading ? (
-            <div className="flex items-center justify-center h-96">
-              <Loader2 className="h-8 w-8 animate-spin text-primary" />
-              <p className="ml-4 text-muted-foreground">Loading your properties...</p>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+              {Array.from({ length: 3 }).map((_, i) => (
+                <div key={i} className="flex flex-col space-y-3">
+                  <Skeleton className="h-[225px] w-full rounded-xl" />
+                  <div className="space-y-2">
+                    <Skeleton className="h-4 w-full" />
+                    <Skeleton className="h-4 w-2/3" />
+                  </div>
+                </div>
+              ))}
             </div>
           ) : (
-            <MyPropertiesTable properties={filteredProperties} />
+            <>
+              {filteredProperties.length > 0 ? (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                  {filteredProperties.map((prop) => (
+                    <PropertyCard key={prop.parcelId} property={prop} />
+                  ))}
+                </div>
+              ) : (
+                <div className="flex flex-col items-center justify-center text-center py-20 bg-card/50 rounded-2xl border-2 border-dashed">
+                  <div className="bg-secondary p-4 rounded-full mb-6">
+                    <Home className="h-12 w-12 text-muted-foreground" />
+                  </div>
+                  <h3 className="text-2xl font-semibold text-foreground font-headline">
+                    {allProperties.length === 0 ? "You haven't registered any properties yet." : "No properties match your filters."}
+                  </h3>
+                  <p className="text-muted-foreground mt-2 max-w-md">
+                    {allProperties.length === 0 ? "Click the button above to add your first property to the blockchain." : "Try adjusting your search or filter settings."}
+                  </p>
+                </div>
+              )}
+            </>
           )}
         </div>
       </div>
