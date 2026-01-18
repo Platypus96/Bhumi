@@ -5,6 +5,7 @@ import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import 'leaflet-draw/dist/leaflet.draw.css';
 import 'leaflet-draw';
+import { Lock, Unlock } from 'lucide-react';
 
 // Fix for default icon issue with webpack
 // @ts-ignore
@@ -40,7 +41,9 @@ export default function LeafletMap({ onPolygonComplete, initialData, readOnly = 
   const mapInstanceRef = useRef<L.Map | null>(null);
   const drawnItemsRef = useRef<L.FeatureGroup | null>(null);
   const tileLayerRef = useRef<L.TileLayer | null>(null);
+  const zoomControlRef = useRef<L.Control.Zoom | null>(null);
   const [currentLayer, setCurrentLayer] = useState<'street' | 'satellite'>('street');
+  const [isLocked, setIsLocked] = useState(true);
 
   useEffect(() => {
     if (mapInstanceRef.current || !mapContainerRef.current) return;
@@ -48,7 +51,11 @@ export default function LeafletMap({ onPolygonComplete, initialData, readOnly = 
     const map = L.map(mapContainerRef.current, {
         center: center,
         zoom: zoom,
-        zoomControl: !readOnly, // Only show zoom if interactive
+        zoomControl: false,
+        scrollWheelZoom: false,
+        doubleClickZoom: false,
+        touchZoom: false,
+        boxZoom: false,
     });
     
     tileLayerRef.current = L.tileLayer(tileLayers[currentLayer].url, {
@@ -59,6 +66,8 @@ export default function LeafletMap({ onPolygonComplete, initialData, readOnly = 
     map.addLayer(drawnItems);
     drawnItemsRef.current = drawnItems;
     mapInstanceRef.current = map;
+    
+    zoomControlRef.current = L.control.zoom({ position: 'topright' });
 
     if (!readOnly) {
       const drawControl = new (L.Control as any).Draw({
@@ -87,9 +96,38 @@ export default function LeafletMap({ onPolygonComplete, initialData, readOnly = 
         }
       });
     }
-    
+
+    return () => {
+      if (mapInstanceRef.current) {
+        mapInstanceRef.current.remove();
+        mapInstanceRef.current = null;
+      }
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  useEffect(() => {
+    const map = mapInstanceRef.current;
+    if (!map) return;
+
+    if (isLocked) {
+      map.scrollWheelZoom.disable();
+      map.doubleClickZoom.disable();
+      map.touchZoom.disable();
+      map.boxZoom.disable();
+      if (zoomControlRef.current && map.hasControl(zoomControlRef.current)) {
+        map.removeControl(zoomControlRef.current);
+      }
+    } else {
+      map.scrollWheelZoom.enable();
+      map.doubleClickZoom.enable();
+      map.touchZoom.enable();
+      map.boxZoom.enable();
+      if (zoomControlRef.current && !map.hasControl(zoomControlRef.current)) {
+        map.addControl(zoomControlRef.current);
+      }
+    }
+  }, [isLocked]);
 
    useEffect(() => {
     if (mapInstanceRef.current && !initialData) {
@@ -132,6 +170,19 @@ export default function LeafletMap({ onPolygonComplete, initialData, readOnly = 
 
   return (
     <div ref={mapContainerRef} style={{ height: '100%', width: '100%', borderRadius: 'inherit', position: 'relative' }}>
+        <div className="leaflet-top leaflet-right" style={{ zIndex: 1000 }}>
+            <div className="leaflet-control leaflet-bar">
+                <button
+                    onClick={() => setIsLocked(!isLocked)}
+                    className="flex items-center justify-center h-[30px] w-[30px] bg-white text-black hover:bg-gray-100 focus:outline-none"
+                    title={isLocked ? "Unlock map zoom" : "Lock map zoom"}
+                    aria-label={isLocked ? "Unlock map zoom" : "Lock map zoom"}
+                >
+                    {isLocked ? <Lock size={14}/> : <Unlock size={14}/>}
+                </button>
+            </div>
+        </div>
+
         <div style={{ position: 'absolute', bottom: 10, left: 10, zIndex: 401, display: 'flex', gap: '4px' }}>
             <button 
                 onClick={() => setCurrentLayer('street')} 
