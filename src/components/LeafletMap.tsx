@@ -115,7 +115,7 @@ export default function LeafletMap({ onPolygonComplete, initialData, readOnly = 
       map.doubleClickZoom.disable();
       map.touchZoom.disable();
       map.boxZoom.disable();
-      if (zoomControlRef.current && map.hasControl(zoomControlRef.current)) {
+      if (zoomControlRef.current) {
         map.removeControl(zoomControlRef.current);
       }
     } else {
@@ -123,7 +123,7 @@ export default function LeafletMap({ onPolygonComplete, initialData, readOnly = 
       map.doubleClickZoom.enable();
       map.touchZoom.enable();
       map.boxZoom.enable();
-      if (zoomControlRef.current && !map.hasControl(zoomControlRef.current)) {
+      if (zoomControlRef.current) {
         map.addControl(zoomControlRef.current);
       }
     }
