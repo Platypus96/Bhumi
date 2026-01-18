@@ -24,11 +24,6 @@ interface PropertyCardProps {
   property: Property;
 }
 
-function truncateHash(hash: string, startChars = 6, endChars = 4) {
-  if (!hash) return "";
-  return `${hash.substring(0, startChars)}...${hash.substring(hash.length - endChars)}`;
-}
-
 export function PropertyCard({ property }: PropertyCardProps) {
 
   const StatusBadge = () => {
@@ -69,7 +64,7 @@ export function PropertyCard({ property }: PropertyCardProps) {
             <Dialog>
                 <DialogTrigger asChild>
                     <div role="button" aria-label="View on map" className={cn(
-                        "absolute inset-0 bg-black/60 flex items-center justify-center text-white",
+                        "absolute inset-0 bg-black/50 flex items-center justify-center text-white",
                         "opacity-0 group-hover:opacity-100 transition-opacity duration-300 cursor-pointer"
                     )}>
                         <Button variant="outline" className="bg-white/90 text-black hover:bg-white text-sm font-semibold">
@@ -91,26 +86,35 @@ export function PropertyCard({ property }: PropertyCardProps) {
       </CardHeader>
 
       <CardContent className="p-4 flex-grow flex flex-col">
-          {property.forSale && property.price ? (
-            <div className="text-2xl font-bold text-primary mb-1">
-                {formatEther(property.price)} ETH
-            </div>
-            ) : (
-                <div className="h-[32px] mb-1"></div> // Placeholder to keep alignment
-            )
-        }
-        <Link href={`/property/${property.parcelId}`}>
-            <CardTitle className="text-lg font-bold tracking-tight text-foreground line-clamp-1 hover:underline">{property.title}</CardTitle>
+        {/* Price section */}
+        {property.forSale && property.price ? (
+          <div className="mb-2">
+            <span className="text-2xl font-bold text-primary">{formatEther(property.price)} ETH</span>
+          </div>
+        ) : (
+          <div className="h-[36px] mb-2" /> // Keep vertical alignment
+        )}
+
+        {/* Title */}
+        <Link href={`/property/${property.parcelId}`} className='block'>
+          <CardTitle className="text-lg font-semibold text-foreground line-clamp-2 hover:text-primary transition-colors duration-200">
+            {property.title}
+          </CardTitle>
         </Link>
-        <p className="text-sm text-muted-foreground line-clamp-1 mt-0.5">{property.location}</p>
         
-        <div className="flex-grow"></div>
+        {/* Spacer */}
+        <div className="flex-grow" />
         
-        <div className="mt-4 pt-4 border-t border-border/60 space-x-4 text-sm flex items-center">
-            <div className="flex items-center text-muted-foreground gap-2">
-                <Square className="h-4 w-4 text-primary shrink-0" />
-                 <span className="font-medium text-foreground/90">{property.area}</span>
-            </div>
+        {/* Details footer */}
+        <div className="mt-4 pt-4 border-t border-border/70 space-y-3 text-sm">
+          <div className="flex items-center text-muted-foreground gap-2">
+            <MapPin className="h-4 w-4 text-accent flex-shrink-0" />
+            <span className="line-clamp-1">{property.location}</span>
+          </div>
+          <div className="flex items-center text-muted-foreground gap-2">
+            <Square className="h-4 w-4 text-accent flex-shrink-0" />
+            <span className="font-medium text-foreground">{property.area}</span>
+          </div>
         </div>
       </CardContent>
     </Card>
