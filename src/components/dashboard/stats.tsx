@@ -1,10 +1,10 @@
 
 "use client";
 
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { CheckCircle, Clock, XCircle, Globe } from "lucide-react";
 import { PropertyStatusFilter } from "@/app/dashboard/page";
 import { cn } from "@/lib/utils";
+import { Button } from "@/components/ui/button";
 
 interface DashboardStatsProps {
   stats: {
@@ -17,66 +17,64 @@ interface DashboardStatsProps {
 }
 
 export function DashboardStats({ stats, currentFilter, onFilterChange }: DashboardStatsProps) {
-  const statCards = [
-    {
-      title: "Pending Review",
-      value: stats.pending,
-      icon: Clock,
-      color: "text-amber-500",
-      bgColor: "bg-amber-50 dark:bg-amber-900/20",
-      borderColor: "border-amber-200 dark:border-amber-800",
-      filter: "pending" as PropertyStatusFilter,
-    },
-    {
-      title: "Verified Lands",
-      value: stats.verified,
-      icon: CheckCircle,
-      color: "text-green-500",
-      bgColor: "bg-green-50 dark:bg-green-900/20",
-      borderColor: "border-green-200 dark:border-green-800",
-      filter: "verified" as PropertyStatusFilter,
-    },
-     {
-      title: "Rejected",
-      value: stats.rejected,
-      icon: XCircle,
-      color: "text-red-500",
-      bgColor: "bg-red-50 dark:bg-red-900/20",
-      borderColor: "border-red-200 dark:border-red-800",
-      filter: "rejected" as PropertyStatusFilter,
-    },
+  const statItems = [
     {
       title: "All",
       value: stats.pending + stats.verified + stats.rejected,
       icon: Globe,
-      color: "text-gray-500",
-      bgColor: "bg-gray-50 dark:bg-gray-900/20",
-      borderColor: "border-gray-200 dark:border-gray-800",
       filter: "all" as PropertyStatusFilter,
+      activeColor: "text-primary",
+    },
+    {
+      title: "Pending",
+      value: stats.pending,
+      icon: Clock,
+      filter: "pending" as PropertyStatusFilter,
+      activeColor: "text-amber-600 dark:text-amber-500",
+    },
+    {
+      title: "Verified",
+      value: stats.verified,
+      icon: CheckCircle,
+      filter: "verified" as PropertyStatusFilter,
+      activeColor: "text-green-600 dark:text-green-500",
+    },
+    {
+      title: "Rejected",
+      value: stats.rejected,
+      icon: XCircle,
+      filter: "rejected" as PropertyStatusFilter,
+      activeColor: "text-red-600 dark:text-red-500",
     },
   ];
 
   return (
-    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-      {statCards.map((card) => (
-        <Card
-          key={card.title}
+    <div className="flex flex-wrap items-center gap-2 rounded-lg bg-card p-1.5 border shadow-sm">
+      {statItems.map((item) => (
+        <Button
+          key={item.title}
+          variant="ghost"
           className={cn(
-            "cursor-pointer transition-all duration-200 hover:shadow-lg hover:-translate-y-1",
-            card.bgColor,
-            card.borderColor,
-            currentFilter === card.filter ? `ring-2 ring-offset-2 ring-primary` : ''
+            "flex-grow justify-center md:justify-start h-auto px-4 py-2 text-sm font-medium transition-all duration-200 rounded-md",
+            currentFilter === item.filter
+              ? `bg-secondary shadow-sm ${item.activeColor}`
+              : "text-muted-foreground hover:bg-secondary/50 hover:text-foreground"
           )}
-          onClick={() => onFilterChange(card.filter)}
+          onClick={() => onFilterChange(item.filter)}
         >
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">{card.title}</CardTitle>
-            <card.icon className={cn("h-4 w-4 text-muted-foreground", card.color)} />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{card.value}</div>
-          </CardContent>
-        </Card>
+          <item.icon className={cn("h-5 w-5 mr-2")} />
+          <span>{item.title}</span>
+          <span
+            className={cn(
+              "ml-2.5 rounded-full px-2 py-0.5 text-xs font-semibold",
+              currentFilter === item.filter
+                ? "bg-primary/20 text-primary"
+                : "bg-muted-foreground/10"
+            )}
+          >
+            {item.value}
+          </span>
+        </Button>
       ))}
     </div>
   );
