@@ -95,8 +95,8 @@ export default function MarketplacePage() {
         </div>
 
         {loading ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
-            {Array.from({ length: 8 }).map((_, i) => (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4">
+            {Array.from({ length: 10 }).map((_, i) => (
                 <div key={i} className="flex flex-col space-y-3">
                 <Skeleton className="h-[225px] w-full rounded-xl" />
                 <div className="space-y-2">
@@ -109,7 +109,7 @@ export default function MarketplacePage() {
         ) : (
             <>
             {filteredProperties.length > 0 ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4">
                 {filteredProperties.map((prop) => (
                     <PropertyCard key={prop.parcelId} property={prop} />
                 ))}
