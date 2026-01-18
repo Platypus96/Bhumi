@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Badge } from '@/components/ui/badge';
 import type { Property } from '@/lib/types';
 import { Fingerprint, MapPin, Square, CheckCircle, Clock, ShieldX, Map } from 'lucide-react';
-import { CopyButton } from './copy-button';
+import { HashPill } from './hash-pill';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Button } from './ui/button';
 import { formatEther } from 'ethers';
@@ -87,23 +87,23 @@ export function PropertyCard({ property }: PropertyCardProps) {
 
       <CardContent className="p-4 flex-grow flex flex-col">
         {/* Price section */}
-        {property.forSale && property.price ? (
+        {property.forSale && property.price && (
           <div className="mb-2">
             <span className="text-2xl font-bold text-primary">{formatEther(property.price)} ETH</span>
           </div>
-        ) : (
-          <div className="h-[36px] mb-2" /> // Keep vertical alignment
         )}
 
         {/* Title */}
         <Link href={`/property/${property.parcelId}`} className='block'>
-          <CardTitle className="text-lg font-semibold text-foreground line-clamp-2 hover:text-primary transition-colors duration-200">
+          <CardTitle className="text-lg font-semibold text-foreground line-clamp-1 hover:text-primary transition-colors duration-200">
             {property.title}
           </CardTitle>
         </Link>
         
-        {/* Spacer */}
-        <div className="flex-grow" />
+        {/* Description */}
+        <CardDescription className="mt-2 text-sm line-clamp-3 flex-grow">
+            {property.description}
+        </CardDescription>
         
         {/* Details footer */}
         <div className="mt-4 pt-4 border-t border-border/70 space-y-3 text-sm">
@@ -114,6 +114,13 @@ export function PropertyCard({ property }: PropertyCardProps) {
           <div className="flex items-center text-muted-foreground gap-2">
             <Square className="h-4 w-4 text-accent flex-shrink-0" />
             <span className="font-medium text-foreground">{property.area}</span>
+          </div>
+           <div className="flex items-center justify-between">
+            <span className="text-muted-foreground flex items-center gap-2">
+                <Fingerprint className="h-4 w-4 text-accent flex-shrink-0"/>
+                Parcel ID
+            </span>
+            <HashPill hash={property.parcelId} type="parcel" />
           </div>
         </div>
       </CardContent>
