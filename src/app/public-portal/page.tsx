@@ -5,11 +5,12 @@ import { collection, query, getDocs } from 'firebase/firestore';
 import type { Property } from '@/lib/types';
 import { useFirebase } from '@/firebase';
 import { useToast } from '@/hooks/use-toast';
-import { PublicPropertiesTable } from "@/components/public-properties-table";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Loader2, Search } from "lucide-react";
+import { Loader2, Search, Building2 } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { PropertyCard } from "@/components/property-card";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function PublicPortalPage() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -115,12 +116,39 @@ export default function PublicPortalPage() {
       {hasSearched && (
         <div className="mt-8">
             {loading ? (
-                <div className="flex items-center justify-center h-40">
-                  <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                  <p className="ml-4 text-muted-foreground">Searching for properties...</p>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4">
+                    {Array.from({ length: 10 }).map((_, i) => (
+                        <div key={i} className="flex flex-col space-y-3">
+                        <Skeleton className="h-[225px] w-full rounded-xl" />
+                        <div className="space-y-2">
+                            <Skeleton className="h-4 w-full" />
+                            <Skeleton className="h-4 w-2/3" />
+                        </div>
+                        </div>
+                    ))}
                 </div>
             ) : (
-                <PublicPropertiesTable properties={properties} />
+                <>
+                {properties.length > 0 ? (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4">
+                    {properties.map((prop) => (
+                        <PropertyCard key={prop.parcelId} property={prop} />
+                    ))}
+                    </div>
+                ) : (
+                    <div className="flex flex-col items-center justify-center text-center py-20 bg-card/50 rounded-2xl border-2 border-dashed">
+                        <div className="bg-secondary p-4 rounded-full mb-6">
+                            <Building2 className="h-12 w-12 text-muted-foreground" />
+                        </div>
+                        <h3 className="text-2xl font-semibold text-foreground font-headline">
+                            No Properties Found
+                        </h3>
+                        <p className="text-muted-foreground mt-2 max-w-md">
+                            No properties matched your search criteria. Please try a different search.
+                        </p>
+                    </div>
+                )}
+                </>
             )}
         </div>
       )}
