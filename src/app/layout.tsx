@@ -3,7 +3,6 @@ import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
 import { Navbar } from '@/components/layout/navbar';
 import { Web3Provider } from '@/hooks/use-web3';
-import { FirebaseProvider } from '@/firebase/provider';
 import { FirebaseClientProvider } from '@/firebase/client-provider';
 import { Inter } from 'next/font/google';
 
@@ -39,17 +38,15 @@ export default function RootLayout({
         suppressHydrationWarning
         className="antialiased bg-background text-foreground transition-colors duration-200"
       >
-        <FirebaseProvider>
-          <FirebaseClientProvider>
-            <Web3Provider>
-              <div className="flex min-h-screen flex-col">
-                <Navbar />
-                <main className="flex-1">{children}</main>
-              </div>
-              <Toaster />
-            </Web3Provider>
-          </FirebaseClientProvider>
-        </FirebaseProvider>
+        <FirebaseClientProvider>
+          <Web3Provider>
+            <div className="flex min-h-screen flex-col">
+              <Navbar />
+              <main className="flex-1">{children}</main>
+            </div>
+            <Toaster />
+          </Web3Provider>
+        </FirebaseClientProvider>
       </body>
     </html>
   );
