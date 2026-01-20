@@ -1,4 +1,4 @@
-"use client";
+'use client';
 
 import Image from 'next/image';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -84,7 +84,6 @@ export function PropertyCard({ property }: PropertyCardProps) {
                     <span className="font-medium text-foreground">{property.area}</span>
                 </div>
             </div>
-            
         </CardContent>
         </Card>
     </div>
