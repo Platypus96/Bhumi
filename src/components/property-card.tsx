@@ -1,7 +1,6 @@
 
 "use client";
 
-import Link from 'next/link';
 import dynamic from 'next/dynamic';
 import Image from 'next/image';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -12,6 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Button } from './ui/button';
 import { formatEther } from 'ethers';
 import { cn } from '@/lib/utils';
+import { useRouter } from 'next/navigation';
 
 const LeafletMap = dynamic(() => import('./LeafletMap'), {
   ssr: false,
@@ -24,6 +24,11 @@ interface PropertyCardProps {
 }
 
 export function PropertyCard({ property }: PropertyCardProps) {
+  const router = useRouter();
+
+  const handleCardClick = () => {
+    router.push(`/property/${property.parcelId}`);
+  };
 
   const StatusBadge = () => {
     if (property.status === 'verified') {
@@ -51,71 +56,69 @@ export function PropertyCard({ property }: PropertyCardProps) {
   };
 
   return (
-    <Card className="h-full flex flex-col overflow-hidden rounded-xl border border-border/50 shadow-md hover:shadow-xl hover:border-primary/60 transition-all duration-300 bg-card group">
-      
-      <CardHeader className="p-0 relative">
-        <div className="aspect-video w-full relative">
-            <Link href={`/property/${property.parcelId}`} className="block h-full w-full" aria-label={`View details for ${property.title}`}>
+    <div onClick={handleCardClick} className="h-full cursor-pointer group">
+        <Card className="h-full flex flex-col overflow-hidden rounded-xl border border-border/50 shadow-md group-hover:shadow-xl group-hover:border-primary/60 transition-all duration-300 bg-card">
+        
+        <CardHeader className="p-0 relative">
+            <div className="aspect-video w-full relative">
                 <Image src={property.imageUrl} alt={property.title} fill className="object-cover"/>
-            </Link>
-            <StatusBadge />
+                <StatusBadge />
 
-            <Dialog>
-                <DialogTrigger asChild>
-                    <div role="button" aria-label="View on map" className={cn(
-                        "absolute inset-0 bg-black/50 flex items-center justify-center text-white",
-                        "opacity-0 group-hover:opacity-100 transition-opacity duration-300 cursor-pointer"
-                    )}>
-                        <Button variant="outline" className="bg-white/90 text-black hover:bg-white text-sm font-semibold">
-                            <Map className="mr-2 h-4 w-4"/> View on Map
-                        </Button>
-                    </div>
-                </DialogTrigger>
-                <DialogContent className="max-w-4xl h-[80vh] flex flex-col p-0">
-                    <DialogHeader className="p-4 border-b">
-                        <DialogTitle>Map View: {property.title}</DialogTitle>
-                         <CardDescription>This is only a tentative boundary for representation of land, actual boundary may differ.</CardDescription>
-                    </DialogHeader>
-                    <div className="flex-grow h-full">
-                        <LeafletMap readOnly initialData={property.polygon}/>
-                    </div>
-                </DialogContent>
-            </Dialog>
-        </div>
-      </CardHeader>
+                <Dialog>
+                    <DialogTrigger asChild>
+                        <div role="button" aria-label="View on map" onClick={(e) => e.stopPropagation()} className={cn(
+                            "absolute inset-0 bg-black/50 flex items-center justify-center text-white",
+                            "opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                        )}>
+                            <Button variant="outline" className="bg-white/90 text-black hover:bg-white text-sm font-semibold pointer-events-none">
+                                <Map className="mr-2 h-4 w-4"/> View on Map
+                            </Button>
+                        </div>
+                    </DialogTrigger>
+                    <DialogContent className="max-w-4xl h-[80vh] flex flex-col p-0">
+                        <DialogHeader className="p-4 border-b">
+                            <DialogTitle>Map View: {property.title}</DialogTitle>
+                            <CardDescription>This is only a tentative boundary for representation of land, actual boundary may differ.</CardDescription>
+                        </DialogHeader>
+                        <div className="flex-grow h-full">
+                            <LeafletMap readOnly initialData={property.polygon}/>
+                        </div>
+                    </DialogContent>
+                </Dialog>
+            </div>
+        </CardHeader>
 
-      <CardContent className="p-3 flex-grow flex flex-col">
-        {/* Price section */}
-        {property.forSale && property.price && (
-          <div className="mb-2">
-            <span className="text-2xl font-bold text-primary">{formatEther(property.price)} ETH</span>
-          </div>
-        )}
+        <CardContent className="p-3 flex-grow flex flex-col">
+            {/* Price section */}
+            {property.forSale && property.price && (
+            <div className="mb-2">
+                <span className="text-2xl font-bold text-primary">{formatEther(property.price)} ETH</span>
+            </div>
+            )}
 
-        {/* Title */}
-        <Link href={`/property/${property.parcelId}`} className='block'>
-          <CardTitle className="text-lg font-semibold text-foreground line-clamp-1 hover:text-primary transition-colors duration-200">
-            {property.title}
-          </CardTitle>
-        </Link>
-        
-        {/* Description */}
-        <CardDescription className="mt-1 text-sm line-clamp-2 flex-grow">
-            {property.description}
-        </CardDescription>
-        
-        {/* Details footer */}
-        <div className="mt-3 pt-3 border-t border-border/70 space-y-2 text-sm">
-          <div className="flex items-center text-muted-foreground gap-2">
-            <MapPin className="h-4 w-4 text-accent flex-shrink-0" />
-            <span className="line-clamp-1">{property.location}</span>
-          </div>
-          <div className="flex items-center text-muted-foreground gap-2">
-            <Square className="h-4 w-4 text-accent flex-shrink-0" />
-            <span className="font-medium text-foreground">{property.area}</span>
-          </div>
-        </div>
-      </CardContent>
-    </Card>
+            {/* Title */}
+            <CardTitle className="text-lg font-semibold text-foreground line-clamp-1 group-hover:text-primary transition-colors duration-200">
+                {property.title}
+            </CardTitle>
+            
+            {/* Description */}
+            <CardDescription className="mt-1 text-sm line-clamp-2 flex-grow">
+                {property.description}
+            </CardDescription>
+            
+            {/* Details footer */}
+            <div className="mt-3 pt-3 border-t border-border/70 space-y-2 text-sm">
+            <div className="flex items-center text-muted-foreground gap-2">
+                <MapPin className="h-4 w-4 text-accent flex-shrink-0" />
+                <span className="line-clamp-1">{property.location}</span>
+            </div>
+            <div className="flex items-center text-muted-foreground gap-2">
+                <Square className="h-4 w-4 text-accent flex-shrink-0" />
+                <span className="font-medium text-foreground">{property.area}</span>
+            </div>
+            </div>
+        </CardContent>
+        </Card>
+    </div>
   );
 }
