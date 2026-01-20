@@ -1,22 +1,12 @@
 "use client";
 
-import dynamic from 'next/dynamic';
 import Image from 'next/image';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import type { Property } from '@/lib/types';
-import { MapPin, Square, CheckCircle, Clock, ShieldX, Map } from 'lucide-react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
-import { Button } from './ui/button';
+import { MapPin, Square, CheckCircle, Clock, ShieldX } from 'lucide-react';
 import { formatEther } from 'ethers';
-import { cn } from '@/lib/utils';
 import { useRouter } from 'next/navigation';
-
-const LeafletMap = dynamic(() => import('./LeafletMap'), {
-  ssr: false,
-  loading: () => <div className="aspect-video w-full bg-muted animate-pulse flex items-center justify-center"><p className="text-sm text-muted-foreground">Loading Map...</p></div>
-});
-
 
 interface PropertyCardProps {
   property: Property;
@@ -95,29 +85,6 @@ export function PropertyCard({ property }: PropertyCardProps) {
                 </div>
             </div>
             
-            {/* MAP DIALOG - MOVED */}
-            <Dialog>
-                <DialogTrigger asChild>
-                    <Button
-                        variant="outline"
-                        size="icon"
-                        onClick={(e) => e.stopPropagation()}
-                        className="absolute bottom-4 right-4 h-10 w-10 bg-white/80 backdrop-blur-sm text-black hover:bg-white shadow-lg rounded-full"
-                        aria-label="View on map"
-                    >
-                        <Map className="h-5 w-5"/>
-                    </Button>
-                </DialogTrigger>
-                <DialogContent className="max-w-4xl h-[80vh] flex flex-col p-0">
-                    <DialogHeader className="p-4 border-b">
-                        <DialogTitle>Map View: {property.title}</DialogTitle>
-                        <CardDescription>This is only a tentative boundary for representation of land, actual boundary may differ.</CardDescription>
-                    </DialogHeader>
-                    <div className="flex-grow h-full">
-                        <LeafletMap readOnly initialData={property.polygon}/>
-                    </div>
-                </DialogContent>
-            </Dialog>
         </CardContent>
         </Card>
     </div>
