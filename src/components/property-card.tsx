@@ -63,32 +63,10 @@ export function PropertyCard({ property }: PropertyCardProps) {
             <div className="aspect-video w-full relative">
                 <Image src={property.imageUrl} alt={property.title} fill className="object-cover"/>
                 <StatusBadge />
-
-                <Dialog>
-                    <DialogTrigger asChild>
-                        <div role="button" aria-label="View on map" onClick={(e) => e.stopPropagation()} className={cn(
-                            "absolute inset-0 bg-black/50 flex items-center justify-center text-white",
-                            "opacity-0 group-hover:opacity-100 transition-opacity duration-300"
-                        )}>
-                            <Button variant="outline" className="bg-white/90 text-black hover:bg-white text-sm font-semibold pointer-events-none">
-                                <Map className="mr-2 h-4 w-4"/> View on Map
-                            </Button>
-                        </div>
-                    </DialogTrigger>
-                    <DialogContent className="max-w-4xl h-[80vh] flex flex-col p-0">
-                        <DialogHeader className="p-4 border-b">
-                            <DialogTitle>Map View: {property.title}</DialogTitle>
-                            <CardDescription>This is only a tentative boundary for representation of land, actual boundary may differ.</CardDescription>
-                        </DialogHeader>
-                        <div className="flex-grow h-full">
-                            <LeafletMap readOnly initialData={property.polygon}/>
-                        </div>
-                    </DialogContent>
-                </Dialog>
             </div>
         </CardHeader>
 
-        <CardContent className="p-3 flex-grow flex flex-col">
+        <CardContent className="p-4 flex-grow flex flex-col relative">
             {/* Price section */}
             {property.forSale && property.price && (
             <div className="mb-2">
@@ -107,16 +85,40 @@ export function PropertyCard({ property }: PropertyCardProps) {
             </CardDescription>
             
             {/* Details footer */}
-            <div className="mt-3 pt-3 border-t border-border/70 space-y-2 text-sm">
-            <div className="flex items-center text-muted-foreground gap-2">
-                <MapPin className="h-4 w-4 text-accent flex-shrink-0" />
-                <span className="line-clamp-1">{property.location}</span>
+            <div className="mt-4 pt-4 border-t border-border/70 space-y-2 text-sm">
+                <div className="flex items-center text-muted-foreground gap-2">
+                    <MapPin className="h-4 w-4 text-accent flex-shrink-0" />
+                    <span className="line-clamp-1">{property.location}</span>
+                </div>
+                <div className="flex items-center text-muted-foreground gap-2">
+                    <Square className="h-4 w-4 text-accent flex-shrink-0" />
+                    <span className="font-medium text-foreground">{property.area}</span>
+                </div>
             </div>
-            <div className="flex items-center text-muted-foreground gap-2">
-                <Square className="h-4 w-4 text-accent flex-shrink-0" />
-                <span className="font-medium text-foreground">{property.area}</span>
-            </div>
-            </div>
+            
+            {/* MAP DIALOG - MOVED */}
+            <Dialog>
+                <DialogTrigger asChild>
+                    <Button
+                        variant="outline"
+                        size="icon"
+                        onClick={(e) => e.stopPropagation()}
+                        className="absolute bottom-4 right-4 h-10 w-10 bg-white/80 backdrop-blur-sm text-black hover:bg-white shadow-lg rounded-full"
+                        aria-label="View on map"
+                    >
+                        <Map className="h-5 w-5"/>
+                    </Button>
+                </DialogTrigger>
+                <DialogContent className="max-w-4xl h-[80vh] flex flex-col p-0">
+                    <DialogHeader className="p-4 border-b">
+                        <DialogTitle>Map View: {property.title}</DialogTitle>
+                        <CardDescription>This is only a tentative boundary for representation of land, actual boundary may differ.</CardDescription>
+                    </DialogHeader>
+                    <div className="flex-grow h-full">
+                        <LeafletMap readOnly initialData={property.polygon}/>
+                    </div>
+                </DialogContent>
+            </Dialog>
         </CardContent>
         </Card>
     </div>
