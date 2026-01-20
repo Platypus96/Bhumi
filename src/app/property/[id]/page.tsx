@@ -21,7 +21,8 @@ import { formatEther } from "ethers";
 import { Button } from "@/components/ui/button";
 import { HashPill } from "@/components/hash-pill";
 import { Separator } from "@/components/ui/separator";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger, Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/alert-dialog';
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from '@/components/ui/alert-dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { useToast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";
 import dynamic from "next/dynamic";
@@ -332,7 +333,3 @@ export default function PropertyDetailPage() {
     </div>
   );
 }
-
-    
-
-    
