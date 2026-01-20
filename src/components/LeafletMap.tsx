@@ -49,7 +49,7 @@ export default function LeafletMap({ onPolygonComplete, initialData, readOnly = 
         center: center,
         zoom: zoom,
         zoomControl: true,
-        scrollWheelZoom: true,
+        scrollWheelZoom: false,
         doubleClickZoom: true,
         touchZoom: true,
         boxZoom: true,
