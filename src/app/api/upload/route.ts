@@ -1,6 +1,5 @@
 
 import { NextResponse } from 'next/server';
-import { Readable } from 'stream';
 
 const PINATA_API_KEY = process.env.PINATA_API_KEY;
 const PINATA_API_SECRET = process.env.PINATA_API_SECRET;
