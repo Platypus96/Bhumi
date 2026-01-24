@@ -44,11 +44,11 @@ export function PropertyCard({ property }: PropertyCardProps) {
     return (
       <div
         className={cn(
-          'absolute top-3 right-3 z-10 inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-xs font-semibold',
+          'absolute top-2 right-2 z-10 inline-flex items-center gap-1 rounded-full border px-1.5 py-0.5 text-[10px] font-semibold',
           config.className
         )}
       >
-        <Icon className="h-3.5 w-3.5" />
+        <Icon className="h-3 w-3" />
         {config.text}
       </div>
     );
@@ -65,32 +65,27 @@ export function PropertyCard({ property }: PropertyCardProps) {
             </div>
         </CardHeader>
 
-        <CardContent className="p-3 flex-grow flex flex-col relative">
+        <CardContent className="p-2 flex-grow flex flex-col">
             {/* Price section */}
             {property.forSale && property.price && (
-            <div className="mb-1">
-                <span className="text-xl font-bold text-primary">{formatEther(property.price)} ETH</span>
+            <div className="mb-0.5">
+                <span className="text-lg font-bold text-primary">{formatEther(property.price)} ETH</span>
             </div>
             )}
 
             {/* Title */}
-            <CardTitle className="text-base font-semibold text-foreground line-clamp-1 group-hover:text-primary transition-colors duration-200">
+            <CardTitle className="text-sm font-semibold text-foreground line-clamp-2 group-hover:text-primary transition-colors duration-200 flex-grow">
                 {property.title}
             </CardTitle>
             
-            {/* Description */}
-            <CardDescription className="mt-1 text-sm line-clamp-1 flex-grow">
-                {property.description}
-            </CardDescription>
-            
             {/* Details footer */}
-            <div className="mt-3 pt-3 border-t border-border/70 space-y-1 text-sm">
-                <div className="flex items-center text-muted-foreground gap-2">
-                    <MapPin className="h-4 w-4 text-accent flex-shrink-0" />
+            <div className="mt-auto pt-2 border-t border-border/70 space-y-1 text-xs">
+                <div className="flex items-center text-muted-foreground gap-1.5">
+                    <MapPin className="h-3.5 w-3.5 text-accent flex-shrink-0" />
                     <span className="line-clamp-1">{property.location}</span>
                 </div>
-                <div className="flex items-center text-muted-foreground gap-2">
-                    <Square className="h-4 w-4 text-accent flex-shrink-0" />
+                <div className="flex items-center text-muted-foreground gap-1.5">
+                    <Square className="h-3.5 w-3.5 text-accent flex-shrink-0" />
                     <span className="font-medium text-foreground">{property.area}</span>
                 </div>
             </div>
