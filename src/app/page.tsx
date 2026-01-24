@@ -135,30 +135,6 @@ export default function Home() {
         </div>
       </div>
 
-      {/* Stats Section - Animated */}
-      <div className="bg-gradient-to-b from-card/60 to-primary/5 backdrop-blur-sm py-16 border-b border-border">
-        <div className="mx-auto max-w-7xl px-6 lg:px-8">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
-            <div className="animate-fadeInUp">
-              <div className="text-5xl font-bold text-primary mb-2">980+</div>
-              <div className="text-sm text-muted-foreground font-medium">Properties Registered</div>
-            </div>
-            <div className="animate-fadeInUp animate-delay-200">
-              <div className="text-5xl font-bold text-primary mb-2">800+</div>
-              <div className="text-sm text-muted-foreground font-medium">Verified Owners</div>
-            </div>
-            <div className="animate-fadeInUp animate-delay-300">
-              <div className="text-5xl font-bold text-primary mb-2">100+</div>
-              <div className="text-sm text-muted-foreground font-medium">Locations Covered</div>
-            </div>
-            <div className="animate-fadeInUp animate-delay-400">
-              <div className="text-5xl font-bold text-primary mb-2">2000+</div>
-              <div className="text-sm text-muted-foreground font-medium">Transactions</div>
-            </div>
-          </div>
-        </div>
-      </div>
-
       {/* CTA Section - Animated */}
       <div className="py-20">
         <div className="mx-auto max-w-4xl px-6 text-center animate-fadeInUp">
