@@ -10,6 +10,7 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { useState, useEffect, memo } from "react";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
+import { IdenaIcon } from "@/components/icons/idena-icon";
 
 const NavLink = ({ href, children, onClick, isRegistrarLink = false }: { href: string, children: React.ReactNode, onClick: () => void, isRegistrarLink?: boolean}) => {
   const pathname = usePathname();
@@ -63,6 +64,8 @@ const BaseNavbar = () => {
     { href: "/marketplace", label: "Marketplace" },
   ];
 
+  const idenaLink = { href: "/idena" };
+
   const registrarLink = { href: "/dashboard", label: "Dashboard" };
 
   const closeMobileMenu = () => setMobileMenuOpen(false);
@@ -72,6 +75,9 @@ const BaseNavbar = () => {
       {navLinks.map(link => (
         <NavLink key={link.href} href={link.href} onClick={closeMobileMenu}>{link.label}</NavLink>
       ))}
+       <NavLink href={idenaLink.href} onClick={closeMobileMenu}>
+        <IdenaIcon className="h-5 w-5" />
+      </NavLink>
       {isClient && isRegistrar && (
         <NavLink href={registrarLink.href} onClick={closeMobileMenu} isRegistrarLink>
            <div className="flex items-center text-gold font-semibold">
@@ -88,6 +94,12 @@ const BaseNavbar = () => {
       {navLinks.map(link => (
         <MobileNavLink key={link.href} href={link.href} onClick={closeMobileMenu}>{link.label}</MobileNavLink>
       ))}
+      <MobileNavLink href={idenaLink.href} onClick={closeMobileMenu}>
+          <div className="flex items-center gap-2">
+              <IdenaIcon className="h-5 w-5"/>
+              <span>Idena</span>
+          </div>
+      </MobileNavLink>
       {isClient && isRegistrar && (
         <MobileNavLink href={registrarLink.href} onClick={closeMobileMenu}>
           <div className="flex items-center text-gold font-semibold">
