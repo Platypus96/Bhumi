@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from "react";
@@ -79,7 +80,7 @@ export default function PublicPortalPage() {
   return (
     <div className="container mx-auto px-4 py-8 space-y-12">
       <div className="text-left mb-8 max-w-2xl">
-        <h1 className="text-4xl font-bold tracking-tight text-primary font-headline flex items-center">
+        <h1 className="text-4xl font-bold tracking-tight text-foreground font-headline flex items-center">
           Public Property Search
         </h1>
         <p className="mt-2 text-lg text-muted-foreground">
