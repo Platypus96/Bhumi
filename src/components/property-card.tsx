@@ -66,7 +66,7 @@ export function PropertyCard({ property }: PropertyCardProps) {
     return (
       <div
         className={cn(
-          'inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-semibold',
+          'inline-flex items-center gap-1 rounded-full px-2.5 py-0.5 text-xs font-semibold',
           config.className
         )}
       >
@@ -81,35 +81,35 @@ export function PropertyCard({ property }: PropertyCardProps) {
             {/* Image */}
             <div className="aspect-[16/10] w-full relative">
                 <Image src={property.imageUrl} alt={property.title} fill className="object-cover transition-transform duration-300 group-hover:scale-105"/>
-                <div className="absolute top-3 left-3">
+                <div className="absolute top-2.5 left-2.5">
                     <StatusBadge />
                 </div>
             </div>
 
-            <div className="p-3 bg-card flex-grow flex flex-col">
+            <div className="p-2.5 bg-card flex-grow flex flex-col">
                 
                 {/* Title */}
-                <p className="font-bold text-base text-foreground truncate group-hover:text-primary">{property.title}</p>
+                <p className="font-bold text-sm text-foreground truncate group-hover:text-primary">{property.title}</p>
                 
                 {/* Location */}
-                <div className="flex items-center text-sm text-muted-foreground mt-1">
-                  <MapPin className="h-3.5 w-3.5 mr-1.5 shrink-0"/>
+                <div className="flex items-center text-xs text-muted-foreground mt-1">
+                  <MapPin className="h-3 w-3 mr-1 shrink-0"/>
                   <span className="truncate">{property.location}</span>
                 </div>
 
                 {/* Price and Area */}
-                <div className="mt-3 pt-3 border-t flex items-end justify-between">
+                <div className="mt-2 pt-2 border-t flex items-end justify-between">
                     <div>
                         {property.forSale && property.price ? (
                             <>
-                                <p className="text-lg font-bold text-foreground">{priceInUsd}</p>
+                                <p className="text-base font-bold text-foreground">{priceInUsd}</p>
                                 <p className="text-xs font-medium text-muted-foreground -mt-1">{formatEther(property.price)} ETH</p>
                             </>
                         ) : (
-                            <p className="text-sm font-semibold text-muted-foreground">Not for Sale</p>
+                            <p className="text-xs font-semibold text-muted-foreground">Not for Sale</p>
                         )}
                     </div>
-                    <div className="flex items-center justify-center gap-1.5 py-1 px-2 rounded-md bg-secondary text-xs">
+                    <div className="flex items-center justify-center gap-1 py-0.5 px-1.5 rounded-md bg-secondary text-xs">
                         <Square className="h-3 w-3 text-muted-foreground" />
                         <span className="whitespace-nowrap font-medium">{property.area}</span>
                     </div>
