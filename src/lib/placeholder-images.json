@@ -33,7 +33,7 @@
     {
       "id": "discover-map",
       "description": "Map with a location pin",
-      "imageUrl": "https://images.unsplash.com/photo-1604357209793-fca5dca89f97?w=1080&q=80",
+      "imageUrl": "https://images.unsplash.com/photo-1542051841857-5f90071e7989?w=1080",
       "imageHint": "map location"
     }
   ]
