@@ -31,7 +31,7 @@ export default function RootLayout({
        <head>
         <link
           rel="icon"
-          href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='hsl(145, 73%, 36%)' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M7 20h10'/><path d='M10 20c5.5-2.5.8-6.4 3-10'/><path d='M14 20c-5.5-2.5-.8-6.4-3-10'/></svg>"
+          href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='hsl(145, 73%, 36%)' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'><path d='M4 22h16'/><path d='M6 18v-5'/><path d='M10 18v-5'/><path d='M14 18v-5'/><path d='M18 18v-5'/><path d='m2 13 10-7 10 7'/></svg>"
         />
       </head>
       <body 
