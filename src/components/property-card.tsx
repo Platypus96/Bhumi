@@ -3,7 +3,7 @@
 import Image from 'next/image';
 import { Card } from '@/components/ui/card';
 import type { Property } from '@/lib/types';
-import { Square } from 'lucide-react';
+import { Square, MapPin } from 'lucide-react';
 import { formatEther } from 'ethers';
 import { useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
@@ -77,39 +77,41 @@ export function PropertyCard({ property }: PropertyCardProps) {
 
   return (
     <div onClick={handleCardClick} className="h-full cursor-pointer group">
-        <Card className="h-full flex flex-col overflow-hidden rounded-2xl shadow-lg group-hover:shadow-2xl transition-all duration-300 bg-card border-none">
+        <Card className="h-full flex flex-col overflow-hidden rounded-2xl shadow-md hover:shadow-xl transition-all duration-300 bg-card border">
             {/* Image */}
-            <div className="aspect-[4/3] w-full relative">
-                <Image src={property.imageUrl} alt={property.title} fill className="object-cover"/>
-                <div className="absolute top-3 left-3 flex gap-2">
+            <div className="aspect-[16/10] w-full relative">
+                <Image src={property.imageUrl} alt={property.title} fill className="object-cover transition-transform duration-300 group-hover:scale-105"/>
+                <div className="absolute top-3 left-3">
                     <StatusBadge />
                 </div>
             </div>
 
-            <div className="p-4 bg-card flex-grow flex flex-col">
-                {/* Info pills */}
-                <div className="flex border-b pb-3 mb-4">
-                    <div className="flex items-center justify-center gap-2 py-2 px-3 rounded-lg bg-secondary text-sm">
-                        <Square className="h-4 w-4 text-muted-foreground" />
-                        <span className="whitespace-nowrap font-medium">{property.area.split(' ')[0]} ft²</span>
-                    </div>
+            <div className="p-3 bg-card flex-grow flex flex-col">
+                
+                {/* Title */}
+                <p className="font-bold text-base text-foreground truncate group-hover:text-primary">{property.title}</p>
+                
+                {/* Location */}
+                <div className="flex items-center text-sm text-muted-foreground mt-1">
+                  <MapPin className="h-3.5 w-3.5 mr-1.5 shrink-0"/>
+                  <span className="truncate">{property.location}</span>
                 </div>
 
-                {/* Price and Address */}
-                <div className="flex items-center justify-between mt-auto">
-                    <div className="flex flex-col">
+                {/* Price and Area */}
+                <div className="mt-3 pt-3 border-t flex items-end justify-between">
+                    <div>
                         {property.forSale && property.price ? (
                             <>
-                                <p className="text-2xl font-bold text-foreground">{priceInUsd}</p>
-                                <p className="text-sm font-medium text-muted-foreground">{formatEther(property.price)} ETH</p>
+                                <p className="text-lg font-bold text-foreground">{priceInUsd}</p>
+                                <p className="text-xs font-medium text-muted-foreground -mt-1">{formatEther(property.price)} ETH</p>
                             </>
                         ) : (
-                            <p className="text-lg font-semibold text-muted-foreground">Not for Sale</p>
+                            <p className="text-sm font-semibold text-muted-foreground">Not for Sale</p>
                         )}
                     </div>
-                    <div className="text-right flex-shrink-0 ml-4 max-w-[60%]">
-                        <p className="font-semibold text-base text-foreground truncate">{property.title}</p>
-                        <p className="text-sm text-muted-foreground truncate">{property.location}</p>
+                    <div className="flex items-center justify-center gap-1.5 py-1 px-2 rounded-md bg-secondary text-xs">
+                        <Square className="h-3 w-3 text-muted-foreground" />
+                        <span className="whitespace-nowrap font-medium">{property.area}</span>
                     </div>
                 </div>
             </div>
