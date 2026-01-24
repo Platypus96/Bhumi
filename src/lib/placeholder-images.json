@@ -33,7 +33,7 @@
     {
       "id": "discover-map",
       "description": "World map with location pins",
-      "imageUrl": "https://images.unsplash.com/photo-1539635278303-d4002c07eae3?w=1080&q=80",
+      "imageUrl": "https://images.unsplash.com/photo-1619468129361-605ebea04b44?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3NDE5ODJ8MHwxfHNlYXJjaHwxfHxtYXB8ZW58MHx8fHwxNzY5Mjg0OTE5fDA&ixlib=rb-4.1.0&q=80&w=1080",
       "imageHint": "world map"
     }
   ]
