@@ -1,4 +1,3 @@
-
 "use client";
 
 import { CheckCircle, Clock, XCircle, Globe } from "lucide-react";
@@ -19,18 +18,20 @@ interface DashboardStatsProps {
 export function DashboardStats({ stats, currentFilter, onFilterChange }: DashboardStatsProps) {
   const statItems = [
     {
-      title: "All",
+      title: "All Properties",
       value: stats.pending + stats.verified + stats.rejected,
       icon: Globe,
       filter: "all" as PropertyStatusFilter,
       activeColor: "text-primary",
+      bgColor: "bg-primary/10",
     },
     {
-      title: "Pending",
+      title: "Pending Verification",
       value: stats.pending,
       icon: Clock,
       filter: "pending" as PropertyStatusFilter,
       activeColor: "text-amber-600 dark:text-amber-500",
+      bgColor: "bg-amber-50",
     },
     {
       title: "Verified",
@@ -38,6 +39,7 @@ export function DashboardStats({ stats, currentFilter, onFilterChange }: Dashboa
       icon: CheckCircle,
       filter: "verified" as PropertyStatusFilter,
       activeColor: "text-green-600 dark:text-green-500",
+      bgColor: "bg-green-50",
     },
     {
       title: "Rejected",
@@ -45,34 +47,41 @@ export function DashboardStats({ stats, currentFilter, onFilterChange }: Dashboa
       icon: XCircle,
       filter: "rejected" as PropertyStatusFilter,
       activeColor: "text-red-600 dark:text-red-500",
+      bgColor: "bg-red-50",
     },
   ];
 
   return (
-    <div className="flex flex-wrap items-center gap-2 rounded-lg bg-card p-1.5 border shadow-sm">
-      {statItems.map((item) => (
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 animate-fadeIn">
+      {statItems.map((item, index) => (
         <Button
           key={item.title}
           variant="ghost"
           className={cn(
-            "flex-grow justify-center md:justify-start h-auto px-4 py-2 text-sm font-medium transition-all duration-200 rounded-md",
+            "h-auto p-6 flex flex-col items-start text-left hover-lift transition-smooth animate-fadeInUp",
             currentFilter === item.filter
-              ? `bg-secondary shadow-sm ${item.activeColor}`
-              : "text-muted-foreground hover:bg-secondary/50 hover:text-foreground"
+              ? `${item.bgColor} ${item.activeColor} shadow-lg border-2 border-current`
+              : "bg-card hover:bg-card/80 text-muted-foreground border border-border"
           )}
           onClick={() => onFilterChange(item.filter)}
+          style={{animationDelay: `${index * 100}ms`}}
         >
-          <item.icon className={cn("h-5 w-5 mr-2")} />
-          <span>{item.title}</span>
-          <span
-            className={cn(
-              "ml-2.5 rounded-full px-2 py-0.5 text-xs font-semibold",
-              currentFilter === item.filter
-                ? "bg-primary/20 text-primary"
-                : "bg-muted-foreground/10"
-            )}
-          >
-            {item.value}
+          <div className="flex items-center justify-between w-full mb-3">
+            <item.icon className={cn("h-8 w-8", currentFilter === item.filter ? item.activeColor : "text-muted-foreground")} />
+            <span
+              className={cn(
+                "text-3xl font-bold",
+                currentFilter === item.filter ? item.activeColor : "text-foreground"
+              )}
+            >
+              {item.value}
+            </span>
+          </div>
+          <span className={cn(
+            "text-sm font-semibold",
+            currentFilter === item.filter ? item.activeColor : "text-muted-foreground"
+          )}>
+            {item.title}
           </span>
         </Button>
       ))}

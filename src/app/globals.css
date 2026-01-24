@@ -13,6 +13,7 @@
     --popover-foreground: 222.2 84% 4.9%;
     --primary: 226 55% 33%; /* Deep Blue */
     --primary-foreground: 210 40% 98%;
+    --primary-rgb: 38, 91, 128;
     --secondary: 210 40% 96.1%;
     --secondary-foreground: 215.4 16.3% 46.9%;
     --muted: 210 40% 96.1%;
@@ -42,6 +43,7 @@
     --popover-foreground: 210 40% 98%;
     --primary: 168 65% 57%; /* Soft Teal */
     --primary-foreground: 222 47% 11%;
+    --primary-rgb: 74, 218, 184;
     --secondary: 217 33% 17%;
     --secondary-foreground: 210 40% 98%;
     --muted: 217 33% 17%;
@@ -58,7 +60,7 @@
 
 @layer base {
   * {
-    @apply border-border transition-all duration-300;
+    @apply border-border;
   }
   body {
     @apply bg-background text-foreground antialiased;
@@ -68,5 +70,73 @@
   h1, h2, h3, h4, h5, h6 {
     font-family: var(--font-inter), sans-serif;
     @apply font-bold;
+  }
+}
+
+@layer utilities {
+  /* Custom Animations */
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  @keyframes fadeInUp {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+  @keyframes float {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-10px); }
+  }
+  @keyframes scaleIn {
+    from {
+      opacity: 0;
+      transform: scale(0.95);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+   @keyframes pulse-glow {
+    0%, 100% {
+      transform: scale(1);
+      box-shadow: 0 0 0 0 rgba(var(--primary-rgb), 0.4);
+    }
+    50% {
+      transform: scale(1.05);
+      box-shadow: 0 0 10px 10px rgba(var(--primary-rgb), 0);
+    }
+  }
+
+  /* Animation Utilities */
+  .animate-fadeIn { animation: fadeIn 0.8s ease-out forwards; }
+  .animate-fadeInUp { animation: fadeInUp 0.8s ease-out forwards; }
+  .animate-float { animation: float 6s ease-in-out infinite; }
+  .animate-scaleIn { animation: scaleIn 0.5s ease-out forwards; }
+  .animate-pulse-glow { animation: pulse-glow 2.5s infinite; }
+
+  /* Animation Delays */
+  .animate-delay-200 { animation-delay: 200ms; }
+  .animate-delay-300 { animation-delay: 300ms; }
+  .animate-delay-400 { animation-delay: 400ms; }
+  
+  /* Custom Transition */
+  .transition-smooth {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  /* Custom Transform */
+  .hover-lift {
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+  .hover-lift:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--shadow-lg);
   }
 }
