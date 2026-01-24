@@ -22,9 +22,9 @@ export function DashboardStats({ stats, currentFilter, onFilterChange }: Dashboa
       value: stats.pending + stats.verified + stats.rejected,
       filter: "all" as PropertyStatusFilter,
       icon: Globe,
-      color: "text-primary",
-      borderColor: "border-primary",
-      badgeColor: "bg-primary/10 text-primary",
+      color: "text-foreground",
+      borderColor: "border-foreground",
+      badgeColor: "bg-secondary text-secondary-foreground",
     },
     {
       title: "Pending",
