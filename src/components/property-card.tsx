@@ -3,7 +3,7 @@
 import Image from 'next/image';
 import { Card } from '@/components/ui/card';
 import type { Property } from '@/lib/types';
-import { Square, BedDouble, Bath } from 'lucide-react';
+import { Square } from 'lucide-react';
 import { formatEther } from 'ethers';
 import { useRouter } from 'next/navigation';
 import { cn } from '@/lib/utils';
@@ -15,15 +15,9 @@ interface PropertyCardProps {
 
 export function PropertyCard({ property }: PropertyCardProps) {
   const router = useRouter();
-  const [beds, setBeds] = useState(0);
-  const [baths, setBaths] = useState(0);
   const [ethPrice, setEthPrice] = useState<number | null>(null);
 
   useEffect(() => {
-    // Generate random beds/baths on client to avoid hydration errors
-    setBeds(Math.floor(Math.random() * 4) + 1); // 1 to 4
-    setBaths(Math.floor(Math.random() * 2) + 1); // 1 to 2
-    
     // Fetch ETH price
     const fetchEthPrice = async () => {
       try {
@@ -94,16 +88,8 @@ export function PropertyCard({ property }: PropertyCardProps) {
 
             <div className="p-4 bg-card flex-grow flex flex-col">
                 {/* Info pills */}
-                <div className="grid grid-cols-3 gap-2 border-b pb-3 mb-4">
-                    <div className="flex items-center justify-center gap-2 py-2 px-1 rounded-lg bg-secondary text-sm">
-                        <BedDouble className="h-4 w-4 text-muted-foreground" />
-                        {beds > 0 && <span className="font-medium">{beds} Beds</span>}
-                    </div>
-                    <div className="flex items-center justify-center gap-2 py-2 px-1 rounded-lg bg-secondary text-sm">
-                        <Bath className="h-4 w-4 text-muted-foreground" />
-                        {baths > 0 && <span className="font-medium">{baths} Baths</span>}
-                    </div>
-                    <div className="flex items-center justify-center gap-2 py-2 px-1 rounded-lg bg-secondary text-sm">
+                <div className="flex border-b pb-3 mb-4">
+                    <div className="flex items-center justify-center gap-2 py-2 px-3 rounded-lg bg-secondary text-sm">
                         <Square className="h-4 w-4 text-muted-foreground" />
                         <span className="whitespace-nowrap font-medium">{property.area.split(' ')[0]} ft²</span>
                     </div>
