@@ -3,8 +3,12 @@
 import Link from 'next/link';
 import { University, Search, Shield, FileText, CheckCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import Image from 'next/image';
+import { PlaceHolderImages } from '@/lib/placeholder-images';
 
 export default function Home() {
+  const discoverImage = PlaceHolderImages.find(img => img.id === 'discover-map');
+
   return (
     <div className="relative isolate overflow-hidden">
       {/* Hero Section with Background Image Effect */}
@@ -42,40 +46,6 @@ export default function Home() {
             Leverage blockchain technology for immutable property records, transparent ownership verification, and secure land transactions. Join the future of decentralized land management.
           </p>
 
-          {/* Search Box - Animated */}
-          <div className="mt-12 bg-card rounded-2xl shadow-2xl p-8 max-w-4xl mx-auto border border-border hover-lift animate-scaleIn animate-delay-300">
-            <h3 className="text-lg font-semibold mb-6 text-foreground text-left flex items-center gap-2">
-              <Search className="h-5 w-5 text-primary" />
-              Search & Verify Properties
-            </h3>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              <div className="md:col-span-1">
-                <label className="block text-sm font-medium text-muted-foreground mb-2">Search By</label>
-                <select className="w-full px-4 py-3 rounded-lg border border-input focus:ring-2 focus:ring-primary focus:border-transparent transition-smooth">
-                  <option>Parcel ID</option>
-                  <option>Owner Address</option>
-                  <option>Location</option>
-                </select>
-              </div>
-              <div className="md:col-span-1">
-                <label className="block text-sm font-medium text-muted-foreground mb-2">Search Term</label>
-                <input 
-                  type="text" 
-                  placeholder="Enter search term..." 
-                  className="w-full px-4 py-3 rounded-lg border border-input focus:ring-2 focus:ring-primary focus:border-transparent transition-smooth"
-                />
-              </div>
-              <div className="md:col-span-1 flex items-end">
-                <Button asChild className="w-full h-12 bg-primary hover:bg-primary/90 text-white rounded-xl font-semibold shadow-lg hover:shadow-xl transition-smooth">
-                  <Link href="/public-portal">
-                    <Search className="h-4 w-4 mr-2" />
-                    Verify Property
-                  </Link>
-                </Button>
-              </div>
-            </div>
-          </div>
-
           {/* CTA Buttons - Animated */}
           <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-x-6 gap-y-4 animate-fadeInUp animate-delay-400">
             <Button size="lg" asChild className="rounded-full px-8 py-6 text-lg w-full sm:w-auto bg-primary hover:bg-primary/90 shadow-lg hover:shadow-xl transition-smooth">
@@ -92,6 +62,35 @@ export default function Home() {
           </div>
         </div>
       </div>
+      
+      {/* Discover Section */}
+      {discoverImage && (
+        <div className="py-20 bg-background/80 backdrop-blur-sm">
+            <div className="container mx-auto max-w-5xl">
+                <div className="rounded-2xl bg-card/80 border border-border p-8 md:p-12 shadow-lg flex flex-col md:flex-row items-center gap-8 animate-scaleIn">
+                    <div className="md:w-1/2 text-center md:text-left">
+                        <h2 className="text-4xl font-bold text-foreground mb-4">
+                            Discover Properties with the Best Value
+                        </h2>
+                        <p className="text-muted-foreground text-lg">
+                            We connect buyers and sellers through a trusted platform with verified properties, transparent deals.
+                        </p>
+                    </div>
+                    <div className="md:w-1/2 mt-6 md:mt-0">
+                        <Image
+                            src={discoverImage.imageUrl}
+                            alt={discoverImage.description}
+                            width={600}
+                            height={400}
+                            className="rounded-xl shadow-md w-full h-auto"
+                            data-ai-hint={discoverImage.imageHint}
+                        />
+                    </div>
+                </div>
+            </div>
+        </div>
+      )}
+
 
       {/* Features Section - Animated */}
       <div className="bg-card/80 backdrop-blur-sm py-20 border-y border-border">
