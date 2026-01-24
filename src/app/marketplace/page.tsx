@@ -72,8 +72,7 @@ export default function MarketplacePage() {
   return (
     <div className="container mx-auto px-4 py-8 space-y-12">
       <div className="text-left">
-        <h1 className="text-4xl font-bold tracking-tight text-primary font-headline flex items-center">
-          <Building2 className="h-8 w-8 mr-4" />
+        <h1 className="text-4xl font-bold tracking-tight text-primary font-headline">
           Property Marketplace
         </h1>
         <p className="mt-2 text-lg text-muted-foreground">
