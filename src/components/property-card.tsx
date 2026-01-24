@@ -2,11 +2,11 @@
 
 import Image from 'next/image';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import type { Property } from '@/lib/types';
 import { MapPin, Square, CheckCircle, Clock, ShieldX } from 'lucide-react';
 import { formatEther } from 'ethers';
 import { useRouter } from 'next/navigation';
+import { cn } from '@/lib/utils';
 
 interface PropertyCardProps {
   property: Property;
@@ -20,27 +20,37 @@ export function PropertyCard({ property }: PropertyCardProps) {
   };
 
   const StatusBadge = () => {
-    if (property.status === 'verified') {
-      return (
-        <Badge variant="default" className="absolute top-3 right-3 flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium shadow-md bg-green-100 text-green-800 border border-green-200 z-10">
-          <CheckCircle className="h-3.5 w-3.5" />
-          Verified
-        </Badge>
-      );
-    }
-    if (property.status === 'rejected') {
-       return (
-        <Badge variant="destructive" className="absolute top-3 right-3 flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium shadow-md z-10">
-          <ShieldX className="h-3.5 w-3.5" />
-          Rejected
-        </Badge>
-      );
-    }
+    const statusConfig = {
+      verified: {
+        text: 'Verified',
+        icon: CheckCircle,
+        className: 'bg-green-100 text-green-800 border-green-200',
+      },
+      rejected: {
+        text: 'Rejected',
+        icon: ShieldX,
+        className: 'bg-red-100 text-red-800 border-red-200',
+      },
+      unverified: {
+        text: 'Pending',
+        icon: Clock,
+        className: 'bg-amber-100 text-amber-800 border-amber-200',
+      },
+    };
+
+    const config = statusConfig[property.status || 'unverified'];
+    const Icon = config.icon;
+
     return (
-      <Badge variant="secondary" className="absolute top-3 right-3 flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-medium shadow-md bg-amber-100 text-amber-800 border border-amber-200 z-10">
-        <Clock className="h-3.5 w-3.5" />
-        Pending
-      </Badge>
+      <div
+        className={cn(
+          'absolute top-3 right-3 z-10 inline-flex items-center gap-1.5 rounded-full border px-2 py-0.5 text-xs font-semibold',
+          config.className
+        )}
+      >
+        <Icon className="h-3.5 w-3.5" />
+        {config.text}
+      </div>
     );
   };
 
