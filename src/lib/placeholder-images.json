@@ -32,9 +32,9 @@
     },
     {
       "id": "discover-map",
-      "description": "Map with a location pin",
-      "imageUrl": "https://images.unsplash.com/photo-1542051841857-5f90071e7989?w=1080",
-      "imageHint": "map location"
+      "description": "World map with location pins",
+      "imageUrl": "https://images.unsplash.com/photo-1539635278303-d4002c07eae3?w=1080&q=80",
+      "imageHint": "world map"
     }
   ]
 }
