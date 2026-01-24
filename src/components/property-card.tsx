@@ -65,26 +65,26 @@ export function PropertyCard({ property }: PropertyCardProps) {
             </div>
         </CardHeader>
 
-        <CardContent className="p-4 flex-grow flex flex-col relative">
+        <CardContent className="p-3 flex-grow flex flex-col relative">
             {/* Price section */}
             {property.forSale && property.price && (
-            <div className="mb-2">
-                <span className="text-2xl font-bold text-primary">{formatEther(property.price)} ETH</span>
+            <div className="mb-1">
+                <span className="text-xl font-bold text-primary">{formatEther(property.price)} ETH</span>
             </div>
             )}
 
             {/* Title */}
-            <CardTitle className="text-lg font-semibold text-foreground line-clamp-1 group-hover:text-primary transition-colors duration-200">
+            <CardTitle className="text-base font-semibold text-foreground line-clamp-1 group-hover:text-primary transition-colors duration-200">
                 {property.title}
             </CardTitle>
             
             {/* Description */}
-            <CardDescription className="mt-1 text-sm line-clamp-2 flex-grow">
+            <CardDescription className="mt-1 text-sm line-clamp-1 flex-grow">
                 {property.description}
             </CardDescription>
             
             {/* Details footer */}
-            <div className="mt-4 pt-4 border-t border-border/70 space-y-2 text-sm">
+            <div className="mt-3 pt-3 border-t border-border/70 space-y-1 text-sm">
                 <div className="flex items-center text-muted-foreground gap-2">
                     <MapPin className="h-4 w-4 text-accent flex-shrink-0" />
                     <span className="line-clamp-1">{property.location}</span>
