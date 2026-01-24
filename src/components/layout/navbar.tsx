@@ -74,7 +74,7 @@ const BaseNavbar = () => {
       ))}
       {isClient && isRegistrar && (
         <NavLink href={registrarLink.href} onClick={closeMobileMenu} isRegistrarLink>
-           <div className="flex items-center text-primary font-semibold">
+           <div className="flex items-center text-gold font-semibold">
             <Shield className="mr-2 h-4 w-4" />
             {registrarLink.label}
           </div>
@@ -90,7 +90,7 @@ const BaseNavbar = () => {
       ))}
       {isClient && isRegistrar && (
         <MobileNavLink href={registrarLink.href} onClick={closeMobileMenu}>
-          <div className="flex items-center text-primary font-semibold">
+          <div className="flex items-center text-gold font-semibold">
             <Shield className="mr-2 h-4 w-4" />
             {registrarLink.label}
           </div>
