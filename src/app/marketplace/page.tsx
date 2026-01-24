@@ -5,7 +5,7 @@ import { collection, query, where, onSnapshot } from 'firebase/firestore';
 import type { Property } from '@/lib/types';
 import { useFirebase } from '@/firebase';
 import { useToast } from '@/hooks/use-toast';
-import { Loader2, Search, Store, Building2 } from 'lucide-react';
+import { Loader2, Search, Building2 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { PropertyCard } from '@/components/property-card';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -74,7 +74,7 @@ export default function MarketplacePage() {
       <div className="text-left">
         <h1 className="text-4xl font-bold tracking-tight text-primary font-headline flex items-center">
           <div className="bg-primary/10 text-primary p-3 rounded-xl mr-4">
-            <Store className="h-8 w-8" />
+            <Building2 className="h-8 w-8" />
           </div>
           Property Marketplace
         </h1>
