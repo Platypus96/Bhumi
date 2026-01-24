@@ -43,7 +43,7 @@ export default function Home() {
           </p>
 
           {/* Search Box - Animated */}
-          <div className="mt-12 bg-white rounded-2xl shadow-2xl p-8 max-w-4xl mx-auto border border-border hover-lift animate-scaleIn animate-delay-300">
+          <div className="mt-12 bg-card rounded-2xl shadow-2xl p-8 max-w-4xl mx-auto border border-border hover-lift animate-scaleIn animate-delay-300">
             <h3 className="text-lg font-semibold mb-6 text-foreground text-left flex items-center gap-2">
               <Search className="h-5 w-5 text-primary" />
               Search & Verify Properties
@@ -94,14 +94,14 @@ export default function Home() {
       </div>
 
       {/* Features Section - Animated */}
-      <div className="bg-white/80 backdrop-blur-sm py-20 border-y border-border">
+      <div className="bg-card/80 backdrop-blur-sm py-20 border-y border-border">
         <div className="mx-auto max-w-7xl px-6 lg:px-8">
           <h3 className="text-3xl font-bold text-center mb-12 text-foreground animate-fadeIn">
             Why Choose Bhumi Land Registry?
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
             {/* Feature 1 */}
-            <div className="text-center p-6 rounded-2xl bg-white shadow-md hover-lift animate-fadeInUp">
+            <div className="text-center p-6 rounded-2xl bg-card shadow-md hover-lift animate-fadeInUp">
               <div className="bg-primary/10 p-4 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center">
                 <Shield className="h-8 w-8 text-primary" />
               </div>
@@ -112,7 +112,7 @@ export default function Home() {
             </div>
 
             {/* Feature 2 */}
-            <div className="text-center p-6 rounded-2xl bg-white shadow-md hover-lift animate-fadeInUp animate-delay-200">
+            <div className="text-center p-6 rounded-2xl bg-card shadow-md hover-lift animate-fadeInUp animate-delay-200">
               <div className="bg-primary/10 p-4 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center">
                 <CheckCircle className="h-8 w-8 text-primary" />
               </div>
@@ -123,7 +123,7 @@ export default function Home() {
             </div>
 
             {/* Feature 3 */}
-            <div className="text-center p-6 rounded-2xl bg-white shadow-md hover-lift animate-fadeInUp animate-delay-400">
+            <div className="text-center p-6 rounded-2xl bg-card shadow-md hover-lift animate-fadeInUp animate-delay-400">
               <div className="bg-primary/10 p-4 rounded-full w-16 h-16 mx-auto mb-4 flex items-center justify-center">
                 <FileText className="h-8 w-8 text-primary" />
               </div>
@@ -137,7 +137,7 @@ export default function Home() {
       </div>
 
       {/* Stats Section - Animated */}
-      <div className="bg-gradient-to-b from-white/60 to-primary/5 backdrop-blur-sm py-16 border-b border-border">
+      <div className="bg-gradient-to-b from-card/60 to-primary/5 backdrop-blur-sm py-16 border-b border-border">
         <div className="mx-auto max-w-7xl px-6 lg:px-8">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
             <div className="animate-fadeInUp">

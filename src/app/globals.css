@@ -4,27 +4,27 @@
 
 @layer base {
   :root {
-    /* ===== Bhumi Theme ===== */
+    /* ===== Bhumi Theme (Green) ===== */
     --background: 220 20% 98%; /* Light Gray */
     --foreground: 222.2 84% 4.9%;
     --card: 0 0% 100%;
     --card-foreground: 222.2 84% 4.9%;
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
-    --primary: 226 55% 33%; /* Deep Blue */
+    --primary: 145 73% 36%; /* Tailwind Green-600 */
     --primary-foreground: 210 40% 98%;
-    --primary-rgb: 38, 91, 128;
+    --primary-rgb: 22, 163, 74;
     --secondary: 210 40% 96.1%;
     --secondary-foreground: 215.4 16.3% 46.9%;
     --muted: 210 40% 96.1%;
     --muted-foreground: 215.4 16.3% 46.9%;
-    --accent: 168 65% 57%; /* Soft Teal */
+    --accent: 145 63% 59%; /* Tailwind Green-400 */
     --accent-foreground: 222.2 47.4% 11.2%;
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
     --border: 214.3 31.8% 90%;
     --input: 214.3 31.8% 90%;
-    --ring: 226 55% 33%; /* Deep Blue */
+    --ring: 145 73% 36%; /* Tailwind Green-600 */
     --radius: 0.75rem;
 
     /* ===== Rich Depth ===== */
@@ -41,20 +41,20 @@
     --card-foreground: 210 40% 98%;
     --popover: 222 47% 11%;
     --popover-foreground: 210 40% 98%;
-    --primary: 168 65% 57%; /* Soft Teal */
+    --primary: 145 63% 46%; /* Tailwind Green-500 */
     --primary-foreground: 222 47% 11%;
-    --primary-rgb: 74, 218, 184;
+    --primary-rgb: 34, 197, 94;
     --secondary: 217 33% 17%;
     --secondary-foreground: 210 40% 98%;
     --muted: 217 33% 17%;
     --muted-foreground: 215 20% 65%;
-    --accent: 168 65% 57%;
+    --accent: 145 63% 46%; /* Tailwind Green-500 */
     --accent-foreground: 210 40% 98%;
     --destructive: 0 63% 31%;
     --destructive-foreground: 210 40% 98%;
     --border: 217 33% 25%;
     --input: 217 33% 25%;
-    --ring: 168 65% 57%;
+    --ring: 145 63% 46%;
   }
 }
 

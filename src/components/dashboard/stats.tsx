@@ -31,7 +31,7 @@ export function DashboardStats({ stats, currentFilter, onFilterChange }: Dashboa
       icon: Clock,
       filter: "pending" as PropertyStatusFilter,
       activeColor: "text-amber-600 dark:text-amber-500",
-      bgColor: "bg-amber-50",
+      bgColor: "bg-amber-100/50 dark:bg-amber-500/10",
     },
     {
       title: "Verified",
@@ -39,7 +39,7 @@ export function DashboardStats({ stats, currentFilter, onFilterChange }: Dashboa
       icon: CheckCircle,
       filter: "verified" as PropertyStatusFilter,
       activeColor: "text-green-600 dark:text-green-500",
-      bgColor: "bg-green-50",
+      bgColor: "bg-green-100/50 dark:bg-green-500/10",
     },
     {
       title: "Rejected",
@@ -47,7 +47,7 @@ export function DashboardStats({ stats, currentFilter, onFilterChange }: Dashboa
       icon: XCircle,
       filter: "rejected" as PropertyStatusFilter,
       activeColor: "text-red-600 dark:text-red-500",
-      bgColor: "bg-red-50",
+      bgColor: "bg-red-100/50 dark:bg-red-500/10",
     },
   ];
 
