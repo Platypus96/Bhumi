@@ -1,109 +1,117 @@
-# Bhumi: Decentralized Land Registry
 
-Bhumi is a modern, full-stack web application that provides a decentralized solution for land and property registration. It leverages the power of the Ethereum blockchain for immutable transaction records, IPFS for decentralized document storage, and Firebase for scalable backend services.
+# Bhumi — Decentralized Land Registry & Investment Platform
 
-The platform ensures transparency, security, and efficiency in managing property ownership, transfers, and verification. It features distinct roles for users and a central registrar, creating a trustworthy digital ecosystem for real estate.
+Bhumi is a decentralized Web3 application designed to bring **transparency, trust, and programmability** to land ownership.
+It enables on-chain land registration, verification, ownership transfer, and introduces a next-generation **land-as-an-asset** model.
 
-## Key Features
+Bhumi bridges real-world land records with blockchain infrastructure, making land ownership **verifiable, secure, and accessible** without relying on centralized intermediaries.
 
-- **Wallet Integration**: Seamlessly connect with MetaMask to interact with the application and the Ethereum blockchain.
-- **Decentralized Document Storage**: All property images and legal documents are uploaded to IPFS via Pinata, ensuring their integrity and perpetual availability.
-- **AI-Powered Descriptions**: Users can leverage Google's Gemini AI to automatically improve and professionalize property descriptions, making listings more appealing.
-- **Interactive Property Mapping**: Users can draw their property's boundary on an interactive map using Leaflet. The area is calculated automatically, and the location can be found via geocoding.
-- **Property Registration & Management**: Authenticated users can register new properties, which are recorded on the blockchain and stored in Firestore. They can manage their properties through a dedicated dashboard, filtering by verification status.
-- **Registrar Verification Workflow**: A designated registrar has a special dashboard to review and officially verify new property listings on the blockchain. The registrar can approve a property or reject it with a specific reason, which is then communicated back to the owner.
-- **Marketplace**: Verified properties can be listed for sale. Owners can set a price in ETH, and other users can browse and search the marketplace by location, title, parcel ID, or owner address.
-- **On-Chain Purchase**: Users can purchase properties directly through the platform. The transaction is handled by a smart contract, which securely transfers ownership and funds.
-- **Ownership History & Integrity Check**: All property transfers are recorded on-chain, providing a transparent and tamper-proof history of ownership. The platform also allows for on-demand verification of document authenticity against the blockchain record.
-- **Public Verification Portal**: Anyone can use a search portal to look up a property by its Parcel ID, location, owner name, or wallet address to verify its details and document authenticity.
-- **Role-Based Access**: The application has clear roles for a general user and a registrar, with UI and functionality tailored to each.
+---
 
-## Technology Stack
+## ✨ Core Features
 
-- **Framework**: Next.js 15 (with App Router)
-- **Deployment**: Vercel
-- **Language**: TypeScript
-- **Styling**: Tailwind CSS with shadcn/ui components for a modern and responsive UI.
-- **Blockchain**: Ethereum (interacting via Ethers.js)
-- **Decentralized Storage**: IPFS (through Pinata for pinning)
-- **Mapping**: Leaflet, Leaflet-draw, and Turf.js
-- **Backend & Database**: Firebase (Firestore for off-chain data and Auth for user management)
-- **Generative AI**: Genkit with Google's Gemini model for description enhancement.
+### 🏠 Decentralized Land Registry
 
-## Getting Started
+* Register land parcels on-chain using a unique parcel ID.
+* Ownership records are stored immutably on the blockchain.
+* Property-related metadata (images, descriptions, proofs) is stored off-chain using **Firestore** for efficient retrieval.
 
-To get the project running locally, follow these steps.
+### 🧾 Registrar-Based Verification
 
-### Prerequisites
+* A designated registrar verifies submitted land records.
+* Only verified properties can be sold or converted into investment assets.
+* Ensures legitimacy without compromising decentralization.
 
-- [Node.js](https://nodejs.org/) (version 18 or later)
-- A web browser with the [MetaMask](https://metamask.io/) extension installed.
-- A Firebase project with Firestore enabled.
-- API keys from [Pinata](https://www.pinata.cloud/) for IPFS uploads.
-- A Google AI Gemini API key.
-- A Google Maps API Key for geocoding functionality.
+### 🔄 Ownership Transfer
 
-### 1. Clone the Repository
+* Supports secure peer-to-peer land transfers.
+* Ownership updates are recorded transparently on-chain.
+* Prevents double-spending and ownership disputes.
 
-```bash
-git clone <your-repository-url>
-cd <repository-directory>
-```
+---
 
-### 2. Install Dependencies
+## 🧩 Land Investment (Fractional Ownership)
 
-```bash
-npm install
-```
+Bhumi introduces a **land-as-an-investment** model where land can be treated as a financial asset rather than a physically divided resource.
 
-### 3. Set Up Environment Variables
+* Property owners can convert verified land into **investment mode**.
+* Ownership is split into a small, fixed number of units (e.g. 2–10).
+* Investors can buy and sell units directly within the same property page.
+* While in investment mode, whole-land sale is disabled.
+* When a single entity reunifies ownership, the land automatically exits investment mode.
 
-Create a file named `.env` in the root of your project and add the following variables. This is required for both local development and for deployment on services like Vercel.
+This approach avoids physical fragmentation while enabling shared ownership and liquidity.
 
-```env
-# Firebase Configuration
-# You can get these values from your Firebase project settings
-NEXT_PUBLIC_FIREBASE_API_KEY=YOUR_FIREBASE_API_KEY
-NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=YOUR_FIREBASE_AUTH_DOMAIN
-NEXT_PUBLIC_FIREBASE_PROJECT_ID=YOUR_FIREBASE_PROJECT_ID
-NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=YOUR_FIREBASE_STORAGE_BUCKET
-NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=YOUR_FIREBASE_MESSAGING_SENDER_ID
-NEXT_PUBLIC_FIREBASE_APP_ID=YOUR_FIREBASE_APP_ID
+---
 
-# Blockchain Configuration
-# Address of the Ethereum account designated as the registrar
-NEXT_PUBLIC_REGISTRAR_ADDRESS="0xYourRegistrarWalletAddress"
-# Address of the deployed LandRegistry smart contract
-NEXT_PUBLIC_CONTRACT_ADDRESS="0xYourContractAddress"
+## 🗂️ Architecture Overview
 
-# IPFS Service (Pinata)
-# Your Pinata API keys for uploading files to IPFS
-PINATA_API_KEY="YourPinataAPIKey"
-PINATA_API_SECRET="YourPinataSecretAPIKey"
+* **Smart Contracts**
 
-# Google AI (Gemini)
-# Your Gemini API Key from Google AI Studio
-GEMINI_API_KEY="YourGeminiAPIKey"
+  * Handle land registration, verification, ownership, and investment logic.
+  * Act as the single source of truth for ownership and transactions.
 
-# Google Maps (for Geocoding API)
-# Your Google Maps API key with Geocoding API enabled
-GOOGLE_MAPS_API_KEY="YourGoogleMapsAPIKey"
-```
+* **Firestore (Metadata Storage)**
 
-### 4. Run the Development Server
+  * Stores non-critical metadata such as property descriptions, images, and UI-related information.
+  * No ownership or financial data is stored off-chain.
 
-```bash
-npm run dev
-```
+* **Frontend (Web3-enabled UI)**
 
-The application will be available at `http://localhost:9002`.
+  * Wallet-based authentication.
+  * Property-centric interaction model.
+  * Dedicated sections for whole ownership and fractional investment.
 
-### 5. Deploying to Vercel
+---
 
-When you deploy to Vercel, make sure to add all the environment variables from your `.env` file to your Vercel project's settings.
+## 🚧 Work in Progress
 
-### 6. Set up MetaMask
+Bhumi is actively under development.
+The current implementation focuses on building a strong and secure foundation before expanding into advanced financial primitives.
 
-- Open MetaMask and connect to your local development network (e.g., Hardhat, Ganache) or a testnet (e.g., Sepolia).
-- Make sure you have some test ETH in your account to pay for gas fees.
-- To use the registrar features, connect with the wallet address you specified in `NEXT_PUBLIC_REGISTRAR_ADDRESS`.
+Expect frequent updates and architectural improvements.
+
+---
+
+## 🔮 Upcoming Updates
+
+### 🧮 Land as DeFi
+
+* Using land-backed ownership as collateral.
+* Lending, borrowing, and yield mechanisms built on land value.
+* Integration with decentralized financial protocols.
+
+### 📈 Land as an Investment
+
+* Enhanced investment analytics.
+* Ownership tracking and valuation insights.
+* Improved liquidity mechanisms for land-backed assets.
+
+### 🧍 Proof of Person
+
+* Ensures each participant represents a **unique real individual**.
+* Prevents fake identities, bots, and sybil attacks.
+* Enables fair governance and participation without exposing personal data.
+
+---
+
+## 🎯 Vision
+
+Bhumi aims to redefine how land is owned, transferred, and invested in by combining:
+
+* **Blockchain transparency**
+* **Minimal trust assumptions**
+* **Real-world asset utility**
+
+The long-term goal is to make land a **programmable, liquid, and globally accessible asset**, while preserving its legal and social integrity.
+
+---
+
+## 📜 License
+
+This project is licensed under the **MIT License**.
+* rewrite it for **open-source contributors**
+* add **technical diagrams**
+* add a **roadmap section**
+
+Just tell me the direction.
