@@ -62,6 +62,7 @@ const BaseNavbar = () => {
     { href: "/public-portal", label: "Public Portal" },
     { href: "/my-properties", label: "My Properties" },
     { href: "/marketplace", label: "Marketplace" },
+    { href: "/investment", label: "Investment" },
   ];
 
   const idenaLink = { href: "/idena" };
