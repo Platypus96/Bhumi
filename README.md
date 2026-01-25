@@ -110,8 +110,3 @@ The long-term goal is to make land a **programmable, liquid, and globally access
 ## 📜 License
 
 This project is licensed under the **MIT License**.
-* rewrite it for **open-source contributors**
-* add **technical diagrams**
-* add a **roadmap section**
-
-Just tell me the direction.
